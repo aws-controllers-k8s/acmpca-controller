@@ -1,0 +1,42 @@
+---
+annotations:
+  capabilityLevel: Basic Install
+  shortDescription: AWS EKS controller is a service controller for managing EKS resources
+    in Kubernetes
+displayName: AWS Controllers for Kubernetes - Amazon EKS
+description: |-
+  Manage Elastic Kubernetes Service (EKS) resources in AWS from within your Kubernetes cluster.
+
+
+  **About Amazon EKS**
+
+
+  Amazon Elastic Kubernetes Service (Amazon EKS) is a managed service that you can use to run Kubernetes on AWS without needing to install, operate, and maintain your own Kubernetes control plane or nodes. Kubernetes is an open-source system for automating the deployment, scaling, and management of containerized applications.
+
+
+  **About the AWS Controllers for Kubernetes**
+
+
+  This controller is a component of the [AWS Controller for Kubernetes](https://github.com/aws/aws-controllers-k8s)
+  project. This project is currently in **developer preview**.
+
+
+  **Pre-Installation Steps**
+
+
+  Please follow the following link: [Red Hat OpenShift](https://aws-controllers-k8s.github.io/community/docs/user-docs/openshift/)
+samples:
+- kind: Addon
+  spec: '{}'
+- kind: Cluster
+  spec: '{}'
+- kind: FargateProfile
+  spec: '{}'
+- kind: Nodegroup
+  spec: '{}'
+maintainers:
+- name: "eks maintainer team"
+  email: "ack-maintainers@amazon.com"
+links:
+- name: Amazon EKS Developer Resources
+  url: https://aws.amazon.com/eks/getting-started/

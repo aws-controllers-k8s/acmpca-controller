@@ -1,0 +1,21 @@
+ignore:
+  resource_names:
+  # - CertificateAuthority
+  - CertificateAuthorityAuditReport
+  - Permission
+  field_paths:
+  - CreateCertificateAuthorityInput.IdempotencyToken
+model_name: acm-pca
+operations: {}
+prefix_config: {}
+resources:
+  CertificateAuthority:
+    exceptions:
+      terminal_codes:
+      - InvalidAction
+      - InvalidParameterCombination
+      - InvalidParameterValue
+      - InvalidQueryParameter
+      - MissingParameter
+      - ValidationError
+      - ValidationException
