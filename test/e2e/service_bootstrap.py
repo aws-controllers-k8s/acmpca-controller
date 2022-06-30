@@ -24,7 +24,7 @@ def service_bootstrap() -> Resources:
     logging.getLogger().setLevel(logging.INFO)
     
     resources = BootstrapResources(
-        ClusterRole=Role("cluster-role", "eks.amazonaws.com", managed_policies=["arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"]),
+        ClusterRole=Role("cluster-role", "eks.amazonaws.com", managed_policies=["arn:aws:iam::aws:policy/AmazonEKSClusterPolicy", "arn:aws:iam::aws:policy/AmazonVPCFullAccess"]),
         FargatePodRole=Role("fargate-pod-role", "eks-fargate-pods.amazonaws.com", managed_policies=["arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy"]),
         NodegroupRole=Role("nodegroup-role", "ec2.amazonaws.com", managed_policies=[
             "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
