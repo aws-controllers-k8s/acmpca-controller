@@ -36,7 +36,7 @@ DELETE_WAIT_AFTER_SECONDS = 10
 class TestCertificateAuthority:
 
     def test_create_delete(self, acmpca_client):
-        ca_name = random_suffix_name("")
+        ca_name = "my-certificate-authority" 
         replacements = REPLACEMENT_VALUES.copy()
 
         # Load CA CR
@@ -47,9 +47,9 @@ class TestCertificateAuthority:
         logging.debug(resource_data)
 
         # Create k8s resource
-        ref = k8s.CustomResourceReference(
+        ref = k8s.create_reference(
             CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
-            resource_name, namespace="default",
+            ca_name, namespace="default",
         )
         k8s.create_custom_resource(ref, resource_data)
         cr = k8s.wait_resource_consumed_by_controller(ref)
@@ -58,13 +58,23 @@ class TestCertificateAuthority:
         assert k8s.get_resource_exists(ref)
 
         resource = k8s.get_resource(ref)
-        resource_id = resource["status"]["certificateauthoritiesID"]
+        assert resource is not None
+
+        resource_arn =  k8s.get_resource_arn(cr)
+        if resource_arn is None:
+            logging.error(
+                f"ARN for this resource is None, resource status is: {cr['status']}"
+            )
+        assert resource_arn is not None
 
         time.sleep(CREATE_WAIT_AFTER_SECONDS)
 
         # Check CA exits in AWS
         acmpca_validator = ACMPCAValidator(acmpca_client)
-        acmpca_validator.assert_certificate_authority(resource_id)
+        acmpca_validator.assert_certificate_authority(resource_arn)
+
+        # Check CSR
+        acmpca_validator.assert_csr(resource_arn)
 
         # Delete k8s resource
         _, deleted = k8s.delete_custom_resource(ref)

@@ -21,11 +21,20 @@ class ACMPCAValidator:
     def __init__(self, acmpca_client):
         self.acmpca_client = acmpca_client
 
-    def assert_certificate_authority(self, ca_id: str, exists=True):
+    def assert_certificate_authority(self, ca_arn: str, exists=True):
         res_found = False
         try:
-            aws_res = self.acmpca_client.describe_certificate_authority(CertificateAuthorityID=[ca_id])
-            res_found = aws_res["Status"] is "PENDING_CERTIFICATE"
+            aws_res = self.acmpca_client.describe_certificate_authority(CertificateAuthorityArn=ca_arn)
+            res_found = aws_res["Status"] == "PENDING_CERTIFICATE"
+        except self.acmpca_client.exceptions.ClientError:
+            pass
+        assert res_found is exists
+    
+    def assert_csr(self, ca_arn: str, exists=True):
+        res_found = False
+        try:
+            aws_res = self.acmpca_client.get_certificate_authority_csr(CertificateAuthorityArn=ca_arn)
+            res_found = aws_res["Csr"] != None
         except self.acmpca_client.exceptions.ClientError:
             pass
         assert res_found is exists

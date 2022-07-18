@@ -49,3 +49,7 @@ def k8s_client():
 @pytest.fixture(scope='module')
 def eks_client():
     return boto3.client('eks')
+
+@pytest.fixture(scope='module')
+def acmpca_client():
+    return boto3.client('acm-pca')

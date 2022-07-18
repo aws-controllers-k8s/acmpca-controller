@@ -25,15 +25,15 @@ def service_bootstrap() -> Resources:
     
     resources = BootstrapResources(
         ClusterRole=Role("cluster-role", "eks.amazonaws.com", managed_policies=["arn:aws:iam::aws:policy/AmazonEKSClusterPolicy", "arn:aws:iam::aws:policy/AmazonVPCFullAccess"]),
-        FargatePodRole=Role("fargate-pod-role", "eks-fargate-pods.amazonaws.com", managed_policies=["arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy"]),
+        FargatePodRole=Role("fargate-pod-role", "eks-fargate-pods.amazonaws.com", managed_policies=["arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy","arn:aws:iam::aws:policy/AmazonVPCFullAccess"]),
         NodegroupRole=Role("nodegroup-role", "ec2.amazonaws.com", managed_policies=[
             "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
             "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
-            "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+            "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
+            "arn:aws:iam::aws:policy/AmazonVPCFullAccess"
         ]),
         ClusterVPC=VPC(name_prefix="cluster-vpc", num_public_subnet=2, num_private_subnet=2)
     )
-
     try:
         resources.bootstrap()
     except BootstrapFailureException as ex:

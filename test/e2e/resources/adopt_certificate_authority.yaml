@@ -1,0 +1,12 @@
+apiVersion: services.k8s.aws/v1alpha1
+kind: AdoptedResource
+metadata:
+  name: adopt-test-certificate-authority
+spec:
+  aws:
+    nameOrID: certificate-authority
+  kubernetes:
+    group: acmpca.services.k8s.aws
+    kind: CertificateAuthority
+    metadata:
+      name: test-certificate-authority
