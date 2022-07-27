@@ -22,13 +22,28 @@ class ACMPCAValidator:
         self.acmpca_client = acmpca_client
 
     def assert_certificate_authority(self, ca_arn: str, exists=True):
-        res_found = False
+        #res_found = False
         try:
             aws_res = self.acmpca_client.describe_certificate_authority(CertificateAuthorityArn=ca_arn)
-            res_found = aws_res["Status"] == "PENDING_CERTIFICATE"
+            assert aws_res["Status"] is "PENDING_CERTIFICATE"
+            assert aws_res["Type"] is "ROOT"
+            assert aws_res["CertificateAuthorityConfiguration"]["KeyAlgorithm"] is "RSA_2048"
+            assert aws_res["CertificateAuthorityConfiguration"]["SigningAlgorithm"] is "SHA256WITHRSA"
+            assert aws_res["CertificateAuthorityConfiguration"]["Subject"]["Organization"] is "Example Organization"
+            assert aws_res["CertificateAuthorityConfiguration"]["Subject"]["OrganizationalUnit"] is "Example"
+            assert aws_res["CertificateAuthorityConfiguration"]["Subject"]["Country"] is "US"
+            assert aws_res["CertificateAuthorityConfiguration"]["Subject"]["State"] is "Virginia"
+            assert aws_res["CertificateAuthorityConfiguration"]["Subject"]["Locality"] is "Arlington"
+            assert aws_res["CertificateAuthorityConfiguration"]["Subject"]["CommonName"] is "www.example.com"
         except self.acmpca_client.exceptions.ClientError:
             pass
-        assert res_found is exists
+        #assert res_found is exists
+        try:
+            aws_res = self.acmpca_client.list_tags(CertificateAuthorityArn=ca_arn)
+            assert aws_res["Tags"]["Key"] is "Name"
+            assert aws_res["Tags"]["Value"] is "Test CA"
+        except self.acmpca_client.exceptions.ClientError:
+            pass
     
     def assert_csr(self, ca_arn: str, exists=True):
         res_found = False
@@ -38,3 +53,12 @@ class ACMPCAValidator:
         except self.acmpca_client.exceptions.ClientError:
             pass
         assert res_found is exists
+
+    def assert_certificate(self, ca_arn: str, c_arn: str, exists=True):
+        res_found = False
+        try:
+            aws_res = self.acmpca_client.get_certificate(CertificateAuthorityArn=ca_arn, CertificateArn=c_arn)
+            res_found = aws_res["Certificate"] != None
+        except self.acmpca_client.exceptions.ClientError:
+            pass
+        assert res_found is exists 

@@ -25,7 +25,7 @@ from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_acmpca_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e.tests.helper import ACMPCAValidator
 
-RESOURCE_PLURAL = "certificateauthorities"
+RESOURCE_PLURAL = "certificateAuthorities"
 
 DEFAULT_WAIT_AFTER_SECONDS = 5
 CREATE_WAIT_AFTER_SECONDS = 10
@@ -61,10 +61,6 @@ class TestCertificateAuthority:
         assert resource is not None
 
         resource_arn =  k8s.get_resource_arn(cr)
-        if resource_arn is None:
-            logging.error(
-                f"ARN for this resource is None, resource status is: {cr['status']}"
-            )
         assert resource_arn is not None
 
         time.sleep(CREATE_WAIT_AFTER_SECONDS)
