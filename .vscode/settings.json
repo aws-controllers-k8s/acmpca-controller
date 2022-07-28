@@ -1,0 +1,4 @@
+{
+    "python.pythonPath": "/home/nithomso/miniconda3/envs/eks-ack-test/bin/python",
+    "python.envFile": "${workspaceFolder}/.env"
+}

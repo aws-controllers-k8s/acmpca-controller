@@ -1,0 +1,8 @@
+service:
+  full_name: "AWS Certificate Manager Private Certificate Authority"
+  short_name: "ACM-PCA"
+  link: "https://docs.aws.amazon.com/acm/index.html"
+  documentation: "https://docs.aws.amazon.com/acm/latest/userguide/acm-overview.html"
+api_versions:
+  - api_version: v1alpha1
+    status: available

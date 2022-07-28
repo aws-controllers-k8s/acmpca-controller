@@ -1,0 +1,25 @@
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: CertificateAuthority
+metadata:
+  name: my-certificate-authority
+spec:
+  certificateAuthorityType: ROOT
+  certificateAuthorityConfiguration:
+    subject:
+      organization: "Example Organization"
+      organizationalUnit: "Example"
+      country: "US"
+      state: "Virginia"
+      locality: "Arlington"
+      commonName: "www.example.com"
+    keyAlgorithm: RSA_2048
+    signingAlgorithm: SHA256WITHRSA
+  revocationConfiguration:
+    crlConfiguration:
+      enabled: true
+      expirationInDays: 365
+      s3BucketName: ndbhat-crl-bucket
+      s3ObjectACL: BUCKET_OWNER_FULL_CONTROL
+  tags:
+    - key: Name
+      value: "ndbhat@ CA"
