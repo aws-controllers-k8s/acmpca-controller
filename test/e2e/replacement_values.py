@@ -11,7 +11,7 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 """Stores the values used by each of the integration tests for replacing the
-EKS-specific test variables.
+ACMPCA-specific test variables.
 """
 
 from e2e.bootstrap_resources import get_bootstrap_resources
@@ -21,13 +21,3 @@ REPLACEMENT_VALUES = {
 
 }
 
-"""
-"CLUSTER_ROLE": get_bootstrap_resources().ClusterRole.arn,
-    "FARGATE_POD_ROLE": get_bootstrap_resources().FargatePodRole.arn,
-    "NODEGROUP_ROLE": get_bootstrap_resources().NodegroupRole.arn,
-
-    "PUBLIC_SUBNET_1": get_bootstrap_resources().ClusterVPC.public_subnets.subnet_ids[0],
-    "PUBLIC_SUBNET_2": get_bootstrap_resources().ClusterVPC.public_subnets.subnet_ids[1],
-    "PRIVATE_SUBNET_1": get_bootstrap_resources().ClusterVPC.private_subnets.subnet_ids[0],
-    "PRIVATE_SUBNET_2": get_bootstrap_resources().ClusterVPC.private_subnets.subnet_ids[1]
-    """

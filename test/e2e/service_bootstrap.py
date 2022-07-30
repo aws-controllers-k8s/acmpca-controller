@@ -10,7 +10,7 @@
 # on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
-"""Bootstraps the resources required to run the EKS integration tests.
+"""Bootstraps the resources required to run the ACMPCA integration tests.
 """
 import logging
 

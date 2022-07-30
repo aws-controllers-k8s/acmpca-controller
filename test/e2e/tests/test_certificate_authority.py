@@ -25,7 +25,7 @@ from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_acmpca_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e.tests.helper import ACMPCAValidator
 
-RESOURCE_PLURAL = "certificateAuthorities"
+RESOURCE_PLURAL = "certificateauthorities"
 
 DEFAULT_WAIT_AFTER_SECONDS = 5
 CREATE_WAIT_AFTER_SECONDS = 10
@@ -36,15 +36,26 @@ DELETE_WAIT_AFTER_SECONDS = 10
 class TestCertificateAuthority:
 
     def test_create_delete(self, acmpca_client):
-        ca_name = "my-certificate-authority" 
+        ca_name = random_suffix_name("certificate-authority", 24)
+
         replacements = REPLACEMENT_VALUES.copy()
+
+        replacements["CA_NAME"] = ca_name
+        
+        replacements["CA_ORG"] = "Example Organization"
+        replacements["CA_ORG_UNIT"] = "Example"
+        replacements["CA_COUNTRY"] = "US"
+        replacements["CA_STATE"] = "Virginia"
+        replacements["CA_LOCALITY"] = "Arlington"
+        replacements["CA_COMMON_NAME"] = "www.example.com"
+
 
         # Load CA CR
         resource_data = load_acmpca_resource(
             "certificate_authority",
             additional_replacements=replacements,
         )
-        logging.debug(resource_data)
+        logging.info(resource_data)
 
         # Create k8s resource
         ref = k8s.create_reference(
@@ -53,6 +64,8 @@ class TestCertificateAuthority:
         )
         k8s.create_custom_resource(ref, resource_data)
         cr = k8s.wait_resource_consumed_by_controller(ref)
+
+        time.sleep(CREATE_WAIT_AFTER_SECONDS)
 
         assert cr is not None
         assert k8s.get_resource_exists(ref)
@@ -63,11 +76,9 @@ class TestCertificateAuthority:
         resource_arn =  k8s.get_resource_arn(cr)
         assert resource_arn is not None
 
-        time.sleep(CREATE_WAIT_AFTER_SECONDS)
-
         # Check CA exits in AWS
         acmpca_validator = ACMPCAValidator(acmpca_client)
-        acmpca_validator.assert_certificate_authority(resource_arn)
+        acmpca_validator.assert_certificate_authority(resource_arn, "PENDING_CERTIFICATE")
 
         # Check CSR
         acmpca_validator.assert_csr(resource_arn)
@@ -79,4 +90,4 @@ class TestCertificateAuthority:
         time.sleep(DELETE_WAIT_AFTER_SECONDS)
 
         # Check CA no longer exists in AWS
-        acmpca_validator.assert_certificate_authority(resource_id, exists=False)
+        acmpca_validator.assert_certificate_authority(resource_id, "DELETED", exists=False)

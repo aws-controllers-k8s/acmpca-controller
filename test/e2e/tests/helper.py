@@ -21,27 +21,25 @@ class ACMPCAValidator:
     def __init__(self, acmpca_client):
         self.acmpca_client = acmpca_client
 
-    def assert_certificate_authority(self, ca_arn: str, exists=True):
-        #res_found = False
+    def assert_certificate_authority(self, ca_arn: str, status: str, exists=True):
         try:
             aws_res = self.acmpca_client.describe_certificate_authority(CertificateAuthorityArn=ca_arn)
-            assert aws_res["Status"] is "PENDING_CERTIFICATE"
-            assert aws_res["Type"] is "ROOT"
-            assert aws_res["CertificateAuthorityConfiguration"]["KeyAlgorithm"] is "RSA_2048"
-            assert aws_res["CertificateAuthorityConfiguration"]["SigningAlgorithm"] is "SHA256WITHRSA"
-            assert aws_res["CertificateAuthorityConfiguration"]["Subject"]["Organization"] is "Example Organization"
-            assert aws_res["CertificateAuthorityConfiguration"]["Subject"]["OrganizationalUnit"] is "Example"
-            assert aws_res["CertificateAuthorityConfiguration"]["Subject"]["Country"] is "US"
-            assert aws_res["CertificateAuthorityConfiguration"]["Subject"]["State"] is "Virginia"
-            assert aws_res["CertificateAuthorityConfiguration"]["Subject"]["Locality"] is "Arlington"
-            assert aws_res["CertificateAuthorityConfiguration"]["Subject"]["CommonName"] is "www.example.com"
+            assert aws_res["Status"] == status
+            assert aws_res["Type"] == "ROOT"
+            assert aws_res["CertificateAuthorityConfiguration"]["KeyAlgorithm"] == "RSA_2048"
+            assert aws_res["CertificateAuthorityConfiguration"]["SigningAlgorithm"] == "SHA256WITHRSA"
+            assert aws_res["CertificateAuthorityConfiguration"]["Subject"]["Organization"] == "Example Organization"
+            assert aws_res["CertificateAuthorityConfiguration"]["Subject"]["OrganizationalUnit"] == "Example"
+            assert aws_res["CertificateAuthorityConfiguration"]["Subject"]["Country"] == "US"
+            assert aws_res["CertificateAuthorityConfiguration"]["Subject"]["State"] == "Virginia"
+            assert aws_res["CertificateAuthorityConfiguration"]["Subject"]["Locality"] == "Arlington"
+            assert aws_res["CertificateAuthorityConfiguration"]["Subject"]["CommonName"] == "www.example.com"
         except self.acmpca_client.exceptions.ClientError:
             pass
-        #assert res_found is exists
         try:
             aws_res = self.acmpca_client.list_tags(CertificateAuthorityArn=ca_arn)
-            assert aws_res["Tags"]["Key"] is "Name"
-            assert aws_res["Tags"]["Value"] is "Test CA"
+            assert aws_res["Tags"]["Key"] == "Name"
+            assert aws_res["Tags"]["Value"] == "Test CA"
         except self.acmpca_client.exceptions.ClientError:
             pass
     
