@@ -10,6 +10,9 @@ operations: {}
 prefix_config: {}
 resources:
   CertificateAuthority:
+    hooks:
+      sdk_create_post_set_output:
+        template_path: hooks/certificate_authority/sdk_create_post_set_output.go.tpl
     exceptions:
       terminal_codes:
       - InvalidAction
@@ -19,3 +22,9 @@ resources:
       - MissingParameter
       - ValidationError
       - ValidationException
+    fields: 
+      CertificateSigningRequest:
+        is_read_only: true
+        from:
+          operation: GetCertificateAuthorityCsr
+          path: Csr

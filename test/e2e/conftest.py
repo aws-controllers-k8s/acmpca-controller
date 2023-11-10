@@ -42,4 +42,4 @@ def k8s_client():
 
 @pytest.fixture(scope='module')
 def acmpca_client():
-    return boto3.client('acmpca')
+    return boto3.client('acm-pca')
