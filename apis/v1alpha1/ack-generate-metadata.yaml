@@ -1,9 +1,5 @@
 ack_generate_info:
-<<<<<<< HEAD
-  build_date: "2023-11-10T17:22:09Z"
-=======
-  build_date: "2023-11-10T17:30:39Z"
->>>>>>> 18b3556 (Add CertificateSigningRequest Status field and e2e tests)
+  build_date: "2023-11-13T23:38:11Z"
   build_hash: ec69c4a536d3abc565fd66aa097797e0d5ea7f79
   go_version: go1.21.0
   version: v0.26.1-24-gec69c4a-dirty
