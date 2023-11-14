@@ -70,16 +70,26 @@ class TestCertificateAuthority:
 
         # Check CA status is PENDING_CERTIFICATE
         acmpca_validator = ACMPCAValidator(acmpca_client)
-        acmpca_validator.assert_certificate_authority(resource_arn, "PENDING_CERTIFICATE")
+        ca = acmpca_validator.assert_certificate_authority(resource_arn, "PENDING_CERTIFICATE")
+
+        # Check CA fields
+        assert ca["Type"] == "ROOT"
+        assert ca["CertificateAuthorityConfiguration"]["Subject"]["CommonName"] == "www.example.com"
+        assert ca["CertificateAuthorityConfiguration"]["Subject"]["Country"] == "US"
+        assert ca["CertificateAuthorityConfiguration"]["Subject"]["Locality"] == "Arlington"
+        assert ca["CertificateAuthorityConfiguration"]["Subject"]["Organization"] == "Example Organization"
+        assert ca["CertificateAuthorityConfiguration"]["Subject"]["State"] == "Virginia"
+        assert ca["CertificateAuthorityConfiguration"]["KeyAlgorithm"] == "RSA_2048"
+        assert ca["CertificateAuthorityConfiguration"]["SigningAlgorithm"] == "SHA256WITHRSA"
+
+        # Check Tags
+        acmpca_validator.assert_ca_tags(resource_arn, "tag1", "val1")
 
         # Check CSR
         assert 'status' in cr
         assert 'certificateSigningRequest' in cr['status']
         csr = acmpca_validator.get_csr(resource_arn)
         assert cr['status']['certificateSigningRequest'] == csr
-
-        # Check Tags
-        acmpca_validator.assert_ca_tags(resource_arn)
 
         # Delete k8s resource
         _, deleted = k8s.delete_custom_resource(ref)
@@ -88,4 +98,4 @@ class TestCertificateAuthority:
         time.sleep(DELETE_WAIT_AFTER_SECONDS)
 
         # Check CA status is DELETED
-        acmpca_validator.assert_certificate_authority(resource_arn, "DELETED", exists=False)
+        acmpca_validator.assert_certificate_authority(resource_arn, "DELETED")
