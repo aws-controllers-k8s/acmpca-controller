@@ -13,7 +13,16 @@ description: |-
   **About Amazon ACM PCA**
 
 
-  {ADD YOUR DESCRIPTION HERE}
+  AWS Private CA enables creation of private certificate authority (CA) hierarchies, including root and subordinate CAs, without the investment and maintenance costs of operating an on-premises CA. 
+  Your private CAs can issue end-entity X.509 certificates useful in scenarios including:
+  
+   - Creating encrypted TLS communication channels
+  
+   - Authenticating users, computers, API endpoints, and IoT devices
+  
+   - Cryptographically signing code
+  
+   - Implementing Online Certificate Status Protocol (OCSP) for obtaining certificate revocation status
 
 
   **About the AWS Controllers for Kubernetes**
@@ -28,13 +37,11 @@ description: |-
 
   Please follow the following link: [Red Hat OpenShift](https://aws-controllers-k8s.github.io/community/docs/user-docs/openshift/)
 samples:
-- kind: ExampleCustomKind
-  spec: '{}'
-- kind: SecondExampleCustomKind
+- kind: CertificateAuthority
   spec: '{}'
 maintainers:
 - name: "acmpca maintainer team"
   email: "ack-maintainers@amazon.com"
 links:
 - name: Amazon ACM PCA Developer Resources
-  url: https://aws.amazon.com/ACM PCA/developer-resources/
+  url: https://aws.amazon.com/private-ca/resources
