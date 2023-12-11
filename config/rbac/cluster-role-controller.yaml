@@ -52,6 +52,26 @@ rules:
   - patch
   - update
 - apiGroups:
+  - acmpca.services.k8s.aws
+  resources:
+  - certificates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - acmpca.services.k8s.aws
+  resources:
+  - certificates/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - services.k8s.aws
   resources:
   - adoptedresources

@@ -19,7 +19,7 @@ import (
 	svcsdk "github.com/aws/aws-sdk-go/service/acmpca"
 )
 
-func (rm *resourceManager) getCertificateSigningRequest(
+func (rm *resourceManager) getCertificateAuthorityCsr(
 	ctx context.Context,
 	resourceARN string,
 ) (*string, error) {

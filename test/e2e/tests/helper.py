@@ -48,3 +48,12 @@ class ACMPCAValidator:
             return csr
         except self.acmpca_client.exceptions.ClientError:
             pass
+    
+    def get_certificate(self, ca_arn: str, cert_arn: str):
+        try:
+            aws_res = self.acmpca_client.get_certificate(CertificateAuthorityArn=ca_arn, CertificateArn=cert_arn)
+            certificate = aws_res["Certificate"]
+            assert certificate is not None
+            return certificate
+        except self.acmpca_client.exceptions.ClientError:
+            pass
