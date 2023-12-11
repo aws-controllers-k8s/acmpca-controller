@@ -37,6 +37,8 @@ var (
 // (https://docs.aws.amazon.com/privateca/latest/userguide/UsingTemplates.html#template-order-of-operations)
 // to determine what information is used.
 type APIPassthrough struct {
+	// Contains X.509 extension information for a certificate.
+	Extensions *Extensions `json:"extensions,omitempty"`
 	// Contains information about the certificate subject. The Subject field in
 	// the certificate identifies the entity that owns or controls the public key
 	// in the certificate. The entity can be a user, computer, device, or service.
@@ -248,6 +250,7 @@ type CustomAttribute struct {
 type CustomExtension struct {
 	Critical         *bool   `json:"critical,omitempty"`
 	ObjectIdentifier *string `json:"objectIdentifier,omitempty"`
+	Value            *string `json:"value,omitempty"`
 }
 
 // Describes an Electronic Data Interchange (EDI) entity as described in as
@@ -262,13 +265,18 @@ type EDIPartyName struct {
 // other than basic purposes indicated in the KeyUsage extension.
 type ExtendedKeyUsage struct {
 	ExtendedKeyUsageObjectIdentifier *string `json:"extendedKeyUsageObjectIdentifier,omitempty"`
+	ExtendedKeyUsageType             *string `json:"extendedKeyUsageType,omitempty"`
 }
 
 // Contains X.509 extension information for a certificate.
 type Extensions struct {
+	CertificatePolicies []*PolicyInformation `json:"certificatePolicies,omitempty"`
+	CustomExtensions    []*CustomExtension   `json:"customExtensions,omitempty"`
+	ExtendedKeyUsage    []*ExtendedKeyUsage  `json:"extendedKeyUsage,omitempty"`
 	// Defines one or more purposes for which the key contained in the certificate
 	// can be used. Default value for each option is false.
-	KeyUsage *KeyUsage `json:"keyUsage,omitempty"`
+	KeyUsage                *KeyUsage      `json:"keyUsage,omitempty"`
+	SubjectAlternativeNames []*GeneralName `json:"subjectAlternativeNames,omitempty"`
 }
 
 // Describes an ASN.1 X.400 GeneralName as defined in RFC 5280 (https://datatracker.ietf.org/doc/html/rfc5280).
@@ -345,7 +353,19 @@ type Permission struct {
 
 // Defines the X.509 CertificatePolicies extension.
 type PolicyInformation struct {
-	CertPolicyID *string `json:"certPolicyID,omitempty"`
+	CertPolicyID     *string                `json:"certPolicyID,omitempty"`
+	PolicyQualifiers []*PolicyQualifierInfo `json:"policyQualifiers,omitempty"`
+}
+
+// Modifies the CertPolicyId of a PolicyInformation object with a qualifier.
+// Amazon Web Services Private CA supports the certification practice statement
+// (CPS) qualifier.
+type PolicyQualifierInfo struct {
+	PolicyQualifierID *string `json:"policyQualifierID,omitempty"`
+	// Defines a PolicyInformation qualifier. Amazon Web Services Private CA supports
+	// the certification practice statement (CPS) qualifier (https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.4)
+	// defined in RFC 5280.
+	Qualifier *Qualifier `json:"qualifier,omitempty"`
 }
 
 // Defines a PolicyInformation qualifier. Amazon Web Services Private CA supports
@@ -444,4 +464,20 @@ type RevocationConfiguration struct {
 type Tag struct {
 	Key   *string `json:"key,omitempty"`
 	Value *string `json:"value,omitempty"`
+}
+
+// Validity specifies the period of time during which a certificate is valid.
+// Validity can be expressed as an explicit date and time when the validity
+// of a certificate starts or expires, or as a span of time after issuance,
+// stated in days, months, or years. For more information, see Validity (https://tools.ietf.org/html/rfc5280#section-4.1.2.5)
+// in RFC 5280.
+//
+// Amazon Web Services Private CA API consumes the Validity data type differently
+// in two distinct parameters of the IssueCertificate action. The required parameter
+// IssueCertificate:Validity specifies the end of a certificate's validity period.
+// The optional parameter IssueCertificate:ValidityNotBefore specifies a customized
+// starting time for the validity period.
+type Validity struct {
+	Type  *string `json:"type_,omitempty"`
+	Value *int64  `json:"value,omitempty"`
 }

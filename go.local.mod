@@ -13,6 +13,8 @@ require (
 	sigs.k8s.io/controller-runtime v0.14.5
 )
 
+replace github.com/aws-controllers-k8s/runtime => ../runtime
+
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
