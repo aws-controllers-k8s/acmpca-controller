@@ -15,9 +15,12 @@ package certificate
 
 import (
 	"context"
+	"encoding/json"
 
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
@@ -53,19 +56,18 @@ func (rm *resourceManager) writeCertificateToSecret(
 	}
 	secretsClient := clientset.CoreV1().Secrets(namespace)
 
-	// Retrieve secret
-	secret, err := secretsClient.Get(ctx, name, metav1.GetOptions{})
+	secret := corev1.Secret{
+		Data: map[string][]byte{
+			key: []byte(*certificate),
+		},
+	}
+
+	payloadBytes, err := json.Marshal(secret)
 	if err != nil {
-		return ackerr.SecretNotFound
+		return err
 	}
 
-	// Update field
-	if secret.Data == nil {
-		secret.Data = map[string][]byte{}
-	}
-	secret.Data[key] = []byte(*certificate)
-
-	_, err = secretsClient.Update(ctx, secret, metav1.UpdateOptions{})
+	_, err = secretsClient.Patch(ctx, name, types.StrategicMergePatchType, payloadBytes, metav1.PatchOptions{})
 	if err != nil {
 		return err
 	}
