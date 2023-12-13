@@ -58,14 +58,6 @@ type CertificateSpec struct {
 	// or the request will be rejected.
 	CSR    []byte                                   `json:"csr,omitempty"`
 	CSRRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"csrRef,omitempty"`
-	// Alphanumeric string that can be used to distinguish between calls to the
-	// IssueCertificate action. Idempotency tokens for IssueCertificate time out
-	// after five minutes. Therefore, if you call IssueCertificate multiple times
-	// with the same idempotency token within five minutes, Amazon Web Services
-	// Private CA recognizes that you are requesting only one certificate and will
-	// issue only one. If you change the idempotency token for each call, Amazon
-	// Web Services Private CA recognizes that you are requesting multiple certificates.
-	IdempotencyToken *string `json:"idempotencyToken,omitempty"`
 	// The name of the algorithm that will be used to sign the certificate to be
 	// issued.
 	//

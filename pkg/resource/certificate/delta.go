@@ -251,13 +251,6 @@ func newResourceDelta(
 	if !reflect.DeepEqual(a.ko.Spec.CSRRef, b.ko.Spec.CSRRef) {
 		delta.Add("Spec.CSRRef", a.ko.Spec.CSRRef, b.ko.Spec.CSRRef)
 	}
-	if ackcompare.HasNilDifference(a.ko.Spec.IdempotencyToken, b.ko.Spec.IdempotencyToken) {
-		delta.Add("Spec.IdempotencyToken", a.ko.Spec.IdempotencyToken, b.ko.Spec.IdempotencyToken)
-	} else if a.ko.Spec.IdempotencyToken != nil && b.ko.Spec.IdempotencyToken != nil {
-		if *a.ko.Spec.IdempotencyToken != *b.ko.Spec.IdempotencyToken {
-			delta.Add("Spec.IdempotencyToken", a.ko.Spec.IdempotencyToken, b.ko.Spec.IdempotencyToken)
-		}
-	}
 	if ackcompare.HasNilDifference(a.ko.Spec.SigningAlgorithm, b.ko.Spec.SigningAlgorithm) {
 		delta.Add("Spec.SigningAlgorithm", a.ko.Spec.SigningAlgorithm, b.ko.Spec.SigningAlgorithm)
 	} else if a.ko.Spec.SigningAlgorithm != nil && b.ko.Spec.SigningAlgorithm != nil {

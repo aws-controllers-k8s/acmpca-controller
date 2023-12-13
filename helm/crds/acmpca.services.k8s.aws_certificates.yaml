@@ -317,16 +317,6 @@ spec:
                         type: string
                     type: object
                 type: object
-              idempotencyToken:
-                description: Alphanumeric string that can be used to distinguish between
-                  calls to the IssueCertificate action. Idempotency tokens for IssueCertificate
-                  time out after five minutes. Therefore, if you call IssueCertificate
-                  multiple times with the same idempotency token within five minutes,
-                  Amazon Web Services Private CA recognizes that you are requesting
-                  only one certificate and will issue only one. If you change the
-                  idempotency token for each call, Amazon Web Services Private CA
-                  recognizes that you are requesting multiple certificates.
-                type: string
               signingAlgorithm:
                 description: "The name of the algorithm that will be used to sign
                   the certificate to be issued. \n This parameter should not be confused

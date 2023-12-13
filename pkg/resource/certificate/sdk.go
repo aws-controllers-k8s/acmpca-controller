@@ -442,9 +442,6 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.CSR != nil {
 		res.SetCsr(r.ko.Spec.CSR)
 	}
-	if r.ko.Spec.IdempotencyToken != nil {
-		res.SetIdempotencyToken(*r.ko.Spec.IdempotencyToken)
-	}
 	if r.ko.Spec.SigningAlgorithm != nil {
 		res.SetSigningAlgorithm(*r.ko.Spec.SigningAlgorithm)
 	}
@@ -452,24 +449,24 @@ func (rm *resourceManager) newCreateRequestPayload(
 		res.SetTemplateArn(*r.ko.Spec.TemplateARN)
 	}
 	if r.ko.Spec.Validity != nil {
-		f6 := &svcsdk.Validity{}
+		f5 := &svcsdk.Validity{}
 		if r.ko.Spec.Validity.Type != nil {
-			f6.SetType(*r.ko.Spec.Validity.Type)
+			f5.SetType(*r.ko.Spec.Validity.Type)
 		}
 		if r.ko.Spec.Validity.Value != nil {
-			f6.SetValue(*r.ko.Spec.Validity.Value)
+			f5.SetValue(*r.ko.Spec.Validity.Value)
 		}
-		res.SetValidity(f6)
+		res.SetValidity(f5)
 	}
 	if r.ko.Spec.ValidityNotBefore != nil {
-		f7 := &svcsdk.Validity{}
+		f6 := &svcsdk.Validity{}
 		if r.ko.Spec.ValidityNotBefore.Type != nil {
-			f7.SetType(*r.ko.Spec.ValidityNotBefore.Type)
+			f6.SetType(*r.ko.Spec.ValidityNotBefore.Type)
 		}
 		if r.ko.Spec.ValidityNotBefore.Value != nil {
-			f7.SetValue(*r.ko.Spec.ValidityNotBefore.Value)
+			f6.SetValue(*r.ko.Spec.ValidityNotBefore.Value)
 		}
-		res.SetValidityNotBefore(f7)
+		res.SetValidityNotBefore(f6)
 	}
 
 	return res, nil

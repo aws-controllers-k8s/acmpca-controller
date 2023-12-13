@@ -5,6 +5,7 @@ ignore:
       - Permission
   field_paths:
   - CreateCertificateAuthorityInput.IdempotencyToken
+  - IssueCertificateInput.IdempotencyToken
 operations:
   IssueCertificate:
     operation_type:

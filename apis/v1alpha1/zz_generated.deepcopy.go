@@ -620,11 +620,6 @@ func (in *CertificateSpec) DeepCopyInto(out *CertificateSpec) {
 		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.IdempotencyToken != nil {
-		in, out := &in.IdempotencyToken, &out.IdempotencyToken
-		*out = new(string)
-		**out = **in
-	}
 	if in.SigningAlgorithm != nil {
 		in, out := &in.SigningAlgorithm, &out.SigningAlgorithm
 		*out = new(string)
