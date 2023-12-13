@@ -57,5 +57,13 @@ resources:
         references:
           resource: CertificateAuthority
           path: Status.CSR
+      CertificateSerial:
+        from:
+          operation: RevokeCertificate
+          path: CertificateSerial
+      RevocationReason:
+        from:
+          operation: RevokeCertificate
+          path: RevocationReason
     tags:
       ignore: true

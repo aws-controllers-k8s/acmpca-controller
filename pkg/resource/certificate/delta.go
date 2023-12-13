@@ -245,11 +245,25 @@ func newResourceDelta(
 	if !reflect.DeepEqual(a.ko.Spec.CertificateAuthorityRef, b.ko.Spec.CertificateAuthorityRef) {
 		delta.Add("Spec.CertificateAuthorityRef", a.ko.Spec.CertificateAuthorityRef, b.ko.Spec.CertificateAuthorityRef)
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.CertificateSerial, b.ko.Spec.CertificateSerial) {
+		delta.Add("Spec.CertificateSerial", a.ko.Spec.CertificateSerial, b.ko.Spec.CertificateSerial)
+	} else if a.ko.Spec.CertificateSerial != nil && b.ko.Spec.CertificateSerial != nil {
+		if *a.ko.Spec.CertificateSerial != *b.ko.Spec.CertificateSerial {
+			delta.Add("Spec.CertificateSerial", a.ko.Spec.CertificateSerial, b.ko.Spec.CertificateSerial)
+		}
+	}
 	if !bytes.Equal(a.ko.Spec.CSR, b.ko.Spec.CSR) {
 		delta.Add("Spec.CSR", a.ko.Spec.CSR, b.ko.Spec.CSR)
 	}
 	if !reflect.DeepEqual(a.ko.Spec.CSRRef, b.ko.Spec.CSRRef) {
 		delta.Add("Spec.CSRRef", a.ko.Spec.CSRRef, b.ko.Spec.CSRRef)
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.RevocationReason, b.ko.Spec.RevocationReason) {
+		delta.Add("Spec.RevocationReason", a.ko.Spec.RevocationReason, b.ko.Spec.RevocationReason)
+	} else if a.ko.Spec.RevocationReason != nil && b.ko.Spec.RevocationReason != nil {
+		if *a.ko.Spec.RevocationReason != *b.ko.Spec.RevocationReason {
+			delta.Add("Spec.RevocationReason", a.ko.Spec.RevocationReason, b.ko.Spec.RevocationReason)
+		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.SigningAlgorithm, b.ko.Spec.SigningAlgorithm) {
 		delta.Add("Spec.SigningAlgorithm", a.ko.Spec.SigningAlgorithm, b.ko.Spec.SigningAlgorithm)

@@ -610,6 +610,11 @@ func (in *CertificateSpec) DeepCopyInto(out *CertificateSpec) {
 		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.CertificateSerial != nil {
+		in, out := &in.CertificateSerial, &out.CertificateSerial
+		*out = new(string)
+		**out = **in
+	}
 	if in.CSR != nil {
 		in, out := &in.CSR, &out.CSR
 		*out = make([]byte, len(*in))
@@ -619,6 +624,11 @@ func (in *CertificateSpec) DeepCopyInto(out *CertificateSpec) {
 		in, out := &in.CSRRef, &out.CSRRef
 		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
 		(*in).DeepCopyInto(*out)
+	}
+	if in.RevocationReason != nil {
+		in, out := &in.RevocationReason, &out.RevocationReason
+		*out = new(string)
+		**out = **in
 	}
 	if in.SigningAlgorithm != nil {
 		in, out := &in.SigningAlgorithm, &out.SigningAlgorithm

@@ -40,6 +40,19 @@ type CertificateSpec struct {
 	// arn:aws:acm-pca:region:account:certificate-authority/12345678-1234-1234-1234-123456789012
 	CertificateAuthorityARN *string                                  `json:"certificateAuthorityARN,omitempty"`
 	CertificateAuthorityRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"certificateAuthorityRef,omitempty"`
+	// Serial number of the certificate to be revoked. This must be in hexadecimal
+	// format. You can retrieve the serial number by calling GetCertificate (https://docs.aws.amazon.com/privateca/latest/APIReference/API_GetCertificate.html)
+	// with the Amazon Resource Name (ARN) of the certificate you want and the ARN
+	// of your private CA. The GetCertificate action retrieves the certificate in
+	// the PEM format. You can use the following OpenSSL command to list the certificate
+	// in text format and copy the hexadecimal serial number.
+	//
+	// openssl x509 -in file_path -text -noout
+	//
+	// You can also copy the serial number from the console or use the DescribeCertificate
+	// (https://docs.aws.amazon.com/acm/latest/APIReference/API_DescribeCertificate.html)
+	// action in the Certificate Manager API Reference.
+	CertificateSerial *string `json:"certificateSerial,omitempty"`
 	// The certificate signing request (CSR) for the certificate you want to issue.
 	// As an example, you can use the following OpenSSL command to create the CSR
 	// and a 2048 bit RSA private key.
@@ -58,6 +71,8 @@ type CertificateSpec struct {
 	// or the request will be rejected.
 	CSR    []byte                                   `json:"csr,omitempty"`
 	CSRRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"csrRef,omitempty"`
+	// Specifies why you revoked the certificate.
+	RevocationReason *string `json:"revocationReason,omitempty"`
 	// The name of the algorithm that will be used to sign the certificate to be
 	// issued.
 	//

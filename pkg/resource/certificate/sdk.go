@@ -514,6 +514,12 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	if r.ko.Spec.CertificateAuthorityARN != nil {
 		res.SetCertificateAuthorityArn(*r.ko.Spec.CertificateAuthorityARN)
 	}
+	if r.ko.Spec.CertificateSerial != nil {
+		res.SetCertificateSerial(*r.ko.Spec.CertificateSerial)
+	}
+	if r.ko.Spec.RevocationReason != nil {
+		res.SetRevocationReason(*r.ko.Spec.RevocationReason)
+	}
 
 	return res, nil
 }
