@@ -116,8 +116,12 @@ func newResourceDelta(
 					}
 				}
 			}
-			if !reflect.DeepEqual(a.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess, b.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess) {
+			if len(a.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess) != len(b.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess) {
 				delta.Add("Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess", a.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess, b.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess)
+			} else if len(a.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess) > 0 {
+				if !reflect.DeepEqual(a.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess, b.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess) {
+					delta.Add("Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess", a.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess, b.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess)
+				}
 			}
 		}
 		if ackcompare.HasNilDifference(a.ko.Spec.CertificateAuthorityConfiguration.KeyAlgorithm, b.ko.Spec.CertificateAuthorityConfiguration.KeyAlgorithm) {
@@ -151,8 +155,12 @@ func newResourceDelta(
 					delta.Add("Spec.CertificateAuthorityConfiguration.Subject.Country", a.ko.Spec.CertificateAuthorityConfiguration.Subject.Country, b.ko.Spec.CertificateAuthorityConfiguration.Subject.Country)
 				}
 			}
-			if !reflect.DeepEqual(a.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes, b.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes) {
+			if len(a.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes) != len(b.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes) {
 				delta.Add("Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes", a.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes, b.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes)
+			} else if len(a.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes) > 0 {
+				if !reflect.DeepEqual(a.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes, b.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes) {
+					delta.Add("Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes", a.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes, b.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes)
+				}
 			}
 			if ackcompare.HasNilDifference(a.ko.Spec.CertificateAuthorityConfiguration.Subject.DistinguishedNameQualifier, b.ko.Spec.CertificateAuthorityConfiguration.Subject.DistinguishedNameQualifier) {
 				delta.Add("Spec.CertificateAuthorityConfiguration.Subject.DistinguishedNameQualifier", a.ko.Spec.CertificateAuthorityConfiguration.Subject.DistinguishedNameQualifier, b.ko.Spec.CertificateAuthorityConfiguration.Subject.DistinguishedNameQualifier)
