@@ -5,8 +5,17 @@ ignore:
       - Permission
   field_paths:
   - CreateCertificateAuthorityInput.IdempotencyToken
+  - IssueCertificateInput.IdempotencyToken
+operations:
+  IssueCertificate:
+    operation_type:
+    - Create
+    resource_name: Certificate
+  RevokeCertificate:
+    operation_type:
+    - Delete
+    resource_name: Certificate
 model_name: acm-pca
-operations: {}
 prefix_config: {}
 resources:
   CertificateAuthority:
@@ -23,8 +32,38 @@ resources:
       - ValidationError
       - ValidationException
     fields: 
-      CertificateSigningRequest:
+      CSR:
         is_read_only: true
+        type: 'bytes'
+  Certificate:
+    hooks:
+      sdk_read_one_post_set_output:
+        template_path: hooks/certificate/sdk_read_one_post_set_output.go.tpl
+    exceptions:
+      terminal_codes:
+      - InvalidAction
+      - InvalidParameterCombination
+      - InvalidParameterValue
+      - InvalidQueryParameter
+      - MissingParameter
+      - ValidationError
+      - ValidationException
+    fields:
+      CertificateAuthorityARN:
+        references:
+          resource: CertificateAuthority
+          path: Status.ACKResourceMetadata.ARN
+      CSR:
+        references:
+          resource: CertificateAuthority
+          path: Status.CSR
+      CertificateSerial:
         from:
-          operation: GetCertificateAuthorityCsr
-          path: Csr
+          operation: RevokeCertificate
+          path: CertificateSerial
+      RevocationReason:
+        from:
+          operation: RevokeCertificate
+          path: RevocationReason
+    tags:
+      ignore: true
