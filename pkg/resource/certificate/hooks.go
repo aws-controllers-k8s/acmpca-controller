@@ -68,6 +68,7 @@ func (rm *resourceManager) writeCertificateToSecret(
 	}
 
 	_, err = secretsClient.Patch(ctx, name, types.StrategicMergePatchType, payloadBytes, metav1.PatchOptions{})
+	rm.metrics.RecordAPICall("PATCH", "writeCertificateToSecret", err)
 	if err != nil {
 		return err
 	}
