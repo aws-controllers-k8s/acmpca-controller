@@ -31,7 +31,7 @@ from e2e.fixtures import k8s_secret
 RESOURCE_PLURAL = "certificates"
 
 CREATE_WAIT_AFTER_SECONDS = 10
-UPDATE_WAIT_AFTER_SECONDS = 30
+UPDATE_WAIT_AFTER_SECONDS = 10
 DELETE_WAIT_AFTER_SECONDS = 10
 
 @pytest.fixture(scope="module")
