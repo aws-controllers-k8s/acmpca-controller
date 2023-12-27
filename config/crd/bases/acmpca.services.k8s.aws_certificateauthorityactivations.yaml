@@ -37,12 +37,9 @@ spec:
             description: CertificateAuthorityActivationSpec defines the desired state
               of CertificateAuthorityActivation.
             properties:
-              activationARN:
-                type: string
               certificate:
-                description: The PEM-encoded certificate for a private CA. This may
-                  be a self-signed certificate in the case of a root CA, or it may
-                  be signed by another CA that you control.
+                description: SecretKeyReference combines a k8s corev1.SecretReference
+                  with a specific key within the referred-to Secret
                 properties:
                   key:
                     description: Key is the key within the secret
@@ -86,8 +83,6 @@ spec:
                   supplied when you import a subordinate CA. When you import a root
                   CA, there is no chain."
                 format: byte
-                type: string
-              status:
                 type: string
             required:
             - certificate
@@ -157,6 +152,8 @@ spec:
                   - type
                   type: object
                 type: array
+              status:
+                type: string
             type: object
         type: object
     served: true

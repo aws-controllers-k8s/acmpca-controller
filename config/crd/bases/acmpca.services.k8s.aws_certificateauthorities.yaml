@@ -352,6 +352,8 @@ spec:
                         type: string
                     type: object
                 type: object
+              status:
+                type: string
               tags:
                 description: Key-value pairs that will be attached to the new private
                   CA. You can associate up to 50 tags with a private CA. For information

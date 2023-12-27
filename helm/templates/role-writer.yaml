@@ -13,6 +13,8 @@ rules:
 
   - certificateauthorities
 
+  - certificateauthorityactivations
+
   verbs:
   - create
   - delete
@@ -26,6 +28,7 @@ rules:
   resources:
   - certificates
   - certificateauthorities
+  - certificateauthorityactivations
   verbs:
   - get
   - patch

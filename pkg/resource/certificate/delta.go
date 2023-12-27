@@ -49,14 +49,26 @@ func newResourceDelta(
 		if ackcompare.HasNilDifference(a.ko.Spec.APIPassthrough.Extensions, b.ko.Spec.APIPassthrough.Extensions) {
 			delta.Add("Spec.APIPassthrough.Extensions", a.ko.Spec.APIPassthrough.Extensions, b.ko.Spec.APIPassthrough.Extensions)
 		} else if a.ko.Spec.APIPassthrough.Extensions != nil && b.ko.Spec.APIPassthrough.Extensions != nil {
-			if !reflect.DeepEqual(a.ko.Spec.APIPassthrough.Extensions.CertificatePolicies, b.ko.Spec.APIPassthrough.Extensions.CertificatePolicies) {
+			if len(a.ko.Spec.APIPassthrough.Extensions.CertificatePolicies) != len(b.ko.Spec.APIPassthrough.Extensions.CertificatePolicies) {
 				delta.Add("Spec.APIPassthrough.Extensions.CertificatePolicies", a.ko.Spec.APIPassthrough.Extensions.CertificatePolicies, b.ko.Spec.APIPassthrough.Extensions.CertificatePolicies)
+			} else if len(a.ko.Spec.APIPassthrough.Extensions.CertificatePolicies) > 0 {
+				if !reflect.DeepEqual(a.ko.Spec.APIPassthrough.Extensions.CertificatePolicies, b.ko.Spec.APIPassthrough.Extensions.CertificatePolicies) {
+					delta.Add("Spec.APIPassthrough.Extensions.CertificatePolicies", a.ko.Spec.APIPassthrough.Extensions.CertificatePolicies, b.ko.Spec.APIPassthrough.Extensions.CertificatePolicies)
+				}
 			}
-			if !reflect.DeepEqual(a.ko.Spec.APIPassthrough.Extensions.CustomExtensions, b.ko.Spec.APIPassthrough.Extensions.CustomExtensions) {
+			if len(a.ko.Spec.APIPassthrough.Extensions.CustomExtensions) != len(b.ko.Spec.APIPassthrough.Extensions.CustomExtensions) {
 				delta.Add("Spec.APIPassthrough.Extensions.CustomExtensions", a.ko.Spec.APIPassthrough.Extensions.CustomExtensions, b.ko.Spec.APIPassthrough.Extensions.CustomExtensions)
+			} else if len(a.ko.Spec.APIPassthrough.Extensions.CustomExtensions) > 0 {
+				if !reflect.DeepEqual(a.ko.Spec.APIPassthrough.Extensions.CustomExtensions, b.ko.Spec.APIPassthrough.Extensions.CustomExtensions) {
+					delta.Add("Spec.APIPassthrough.Extensions.CustomExtensions", a.ko.Spec.APIPassthrough.Extensions.CustomExtensions, b.ko.Spec.APIPassthrough.Extensions.CustomExtensions)
+				}
 			}
-			if !reflect.DeepEqual(a.ko.Spec.APIPassthrough.Extensions.ExtendedKeyUsage, b.ko.Spec.APIPassthrough.Extensions.ExtendedKeyUsage) {
+			if len(a.ko.Spec.APIPassthrough.Extensions.ExtendedKeyUsage) != len(b.ko.Spec.APIPassthrough.Extensions.ExtendedKeyUsage) {
 				delta.Add("Spec.APIPassthrough.Extensions.ExtendedKeyUsage", a.ko.Spec.APIPassthrough.Extensions.ExtendedKeyUsage, b.ko.Spec.APIPassthrough.Extensions.ExtendedKeyUsage)
+			} else if len(a.ko.Spec.APIPassthrough.Extensions.ExtendedKeyUsage) > 0 {
+				if !reflect.DeepEqual(a.ko.Spec.APIPassthrough.Extensions.ExtendedKeyUsage, b.ko.Spec.APIPassthrough.Extensions.ExtendedKeyUsage) {
+					delta.Add("Spec.APIPassthrough.Extensions.ExtendedKeyUsage", a.ko.Spec.APIPassthrough.Extensions.ExtendedKeyUsage, b.ko.Spec.APIPassthrough.Extensions.ExtendedKeyUsage)
+				}
 			}
 			if ackcompare.HasNilDifference(a.ko.Spec.APIPassthrough.Extensions.KeyUsage, b.ko.Spec.APIPassthrough.Extensions.KeyUsage) {
 				delta.Add("Spec.APIPassthrough.Extensions.KeyUsage", a.ko.Spec.APIPassthrough.Extensions.KeyUsage, b.ko.Spec.APIPassthrough.Extensions.KeyUsage)
@@ -125,8 +137,12 @@ func newResourceDelta(
 					}
 				}
 			}
-			if !reflect.DeepEqual(a.ko.Spec.APIPassthrough.Extensions.SubjectAlternativeNames, b.ko.Spec.APIPassthrough.Extensions.SubjectAlternativeNames) {
+			if len(a.ko.Spec.APIPassthrough.Extensions.SubjectAlternativeNames) != len(b.ko.Spec.APIPassthrough.Extensions.SubjectAlternativeNames) {
 				delta.Add("Spec.APIPassthrough.Extensions.SubjectAlternativeNames", a.ko.Spec.APIPassthrough.Extensions.SubjectAlternativeNames, b.ko.Spec.APIPassthrough.Extensions.SubjectAlternativeNames)
+			} else if len(a.ko.Spec.APIPassthrough.Extensions.SubjectAlternativeNames) > 0 {
+				if !reflect.DeepEqual(a.ko.Spec.APIPassthrough.Extensions.SubjectAlternativeNames, b.ko.Spec.APIPassthrough.Extensions.SubjectAlternativeNames) {
+					delta.Add("Spec.APIPassthrough.Extensions.SubjectAlternativeNames", a.ko.Spec.APIPassthrough.Extensions.SubjectAlternativeNames, b.ko.Spec.APIPassthrough.Extensions.SubjectAlternativeNames)
+				}
 			}
 		}
 		if ackcompare.HasNilDifference(a.ko.Spec.APIPassthrough.Subject, b.ko.Spec.APIPassthrough.Subject) {
@@ -146,8 +162,12 @@ func newResourceDelta(
 					delta.Add("Spec.APIPassthrough.Subject.Country", a.ko.Spec.APIPassthrough.Subject.Country, b.ko.Spec.APIPassthrough.Subject.Country)
 				}
 			}
-			if !reflect.DeepEqual(a.ko.Spec.APIPassthrough.Subject.CustomAttributes, b.ko.Spec.APIPassthrough.Subject.CustomAttributes) {
+			if len(a.ko.Spec.APIPassthrough.Subject.CustomAttributes) != len(b.ko.Spec.APIPassthrough.Subject.CustomAttributes) {
 				delta.Add("Spec.APIPassthrough.Subject.CustomAttributes", a.ko.Spec.APIPassthrough.Subject.CustomAttributes, b.ko.Spec.APIPassthrough.Subject.CustomAttributes)
+			} else if len(a.ko.Spec.APIPassthrough.Subject.CustomAttributes) > 0 {
+				if !reflect.DeepEqual(a.ko.Spec.APIPassthrough.Subject.CustomAttributes, b.ko.Spec.APIPassthrough.Subject.CustomAttributes) {
+					delta.Add("Spec.APIPassthrough.Subject.CustomAttributes", a.ko.Spec.APIPassthrough.Subject.CustomAttributes, b.ko.Spec.APIPassthrough.Subject.CustomAttributes)
+				}
 			}
 			if ackcompare.HasNilDifference(a.ko.Spec.APIPassthrough.Subject.DistinguishedNameQualifier, b.ko.Spec.APIPassthrough.Subject.DistinguishedNameQualifier) {
 				delta.Add("Spec.APIPassthrough.Subject.DistinguishedNameQualifier", a.ko.Spec.APIPassthrough.Subject.DistinguishedNameQualifier, b.ko.Spec.APIPassthrough.Subject.DistinguishedNameQualifier)

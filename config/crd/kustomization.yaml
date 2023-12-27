@@ -4,3 +4,4 @@ resources:
   - common
   - bases/acmpca.services.k8s.aws_certificates.yaml
   - bases/acmpca.services.k8s.aws_certificateauthorities.yaml
+  - bases/acmpca.services.k8s.aws_certificateauthorityactivations.yaml

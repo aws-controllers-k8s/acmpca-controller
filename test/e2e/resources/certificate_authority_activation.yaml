@@ -1,0 +1,13 @@
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: CertificateAuthorityActivation
+metadata:
+  name: $NAME
+spec:
+  #certificateAuthorityRef:
+    #from:
+      #name: $CA_NAME
+  certificateAuthorityARN: $CA_ARN
+  certificate:
+    namespace: $CERTIFICATE_SECRET_NAMESPACE
+    name: $CERTIFICATE_SECRET_NAME
+    key: $CERTIFICATE_SECRET_KEY

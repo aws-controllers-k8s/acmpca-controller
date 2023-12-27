@@ -31,6 +31,7 @@ from e2e.fixtures import k8s_secret
 RESOURCE_PLURAL = "certificates"
 
 CREATE_WAIT_AFTER_SECONDS = 10
+UPDATE_WAIT_AFTER_SECONDS = 30
 DELETE_WAIT_AFTER_SECONDS = 10
 
 @pytest.fixture(scope="module")
@@ -102,6 +103,17 @@ def test_create_ca(acmpca_client):
 
     yield (ca_ref, ca_cr, ca_name)
 
+    # Update CA
+    ca_cr["spec"]["status"] = "DISABLED"
+
+    # Patch k8s resource
+    patch_res = k8s.patch_custom_resource(ca_ref, ca_cr)
+    logging.info(patch_res)
+    time.sleep(UPDATE_WAIT_AFTER_SECONDS) 
+    
+    # Check CA status is DISABLED
+    acmpca_validator.assert_certificate_authority(ca_resource_arn, "DISABLED")
+
     #Delete k8s resource
     _, deleted = k8s.delete_custom_resource(ca_ref)
     assert deleted is True
@@ -114,7 +126,7 @@ def test_create_ca(acmpca_client):
 @service_marker
 class TestRootCA:
 
-    def test_create_certificate(self, acmpca_client, create_secret, test_create_ca):
+    def test_ca_activation(self, acmpca_client, create_secret, test_create_ca):
         
         (ca_ref, ca_cr, ca_name) = test_create_ca
         ca_arn = ca_cr['status']['ackResourceMetadata']['arn']
@@ -161,7 +173,39 @@ class TestRootCA:
         #logging.info(api_response)
 
         acmpca_validator = ACMPCAValidator(acmpca_client)
-        certificate = acmpca_validator.get_certificate(ca_arn=ca_arn, cert_arn=resource_arn)
 
         assert 'certificate' in api_response
-        assert base64.b64decode(api_response['certificate']).decode("ascii") == certificate
+        assert base64.b64decode(api_response['certificate']).decode("ascii") == acmpca_validator.get_certificate(ca_arn=ca_arn, cert_arn=resource_arn)
+
+        #activation 
+        activation_name = random_suffix_name("certificate-authority-activation", 50)
+        
+        replacements = REPLACEMENT_VALUES.copy()
+        replacements["NAME"] = activation_name
+        replacements["CA_NAME"] = ca_name
+        replacements["CA_ARN"] = ca_arn
+        replacements["CERTIFICATE_SECRET_NAMESPACE"] = secret.ns
+        replacements["CERTIFICATE_SECRET_NAME"] = secret.name
+        replacements["CERTIFICATE_SECRET_KEY"] = secret.key
+        
+        # Load Activation CR
+        act_resource_data = load_acmpca_resource(
+            "certificate_authority_activation",
+            additional_replacements=replacements,
+        )
+
+        # Create k8s resource
+        act_ref = k8s.create_reference(
+            CRD_GROUP, CRD_VERSION, "certificateauthorityactivations",
+            activation_name, namespace="default",
+        )
+        k8s.create_custom_resource(act_ref, act_resource_data)
+        act_cr = k8s.wait_resource_consumed_by_controller(act_ref)
+
+        time.sleep(CREATE_WAIT_AFTER_SECONDS)
+
+        assert act_cr is not None
+        assert k8s.get_resource_exists(act_ref)
+        logging.info(act_cr)
+
+        acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE") 
