@@ -95,7 +95,7 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 					return nil, fmt.Errorf("status field not found on CertificateAuthorityActivation status")
 				}
 
-				if status == "ACTIVE" {
+				if status == svcsdk.CertificateAuthorityStatusActive {
 					return nil, ackerr.Terminal
 				}
 			}
@@ -115,7 +115,7 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 	r.ko.Status.Status = resp.CertificateAuthority.Status
 
 	if numFound == 1 {
-		if *r.ko.Status.Status == "CREATING" || *r.ko.Status.Status == "PENDING_CERTIFICATE" {
+		if *r.ko.Status.Status == svcsdk.CertificateAuthorityStatusCreating || *r.ko.Status.Status == svcsdk.CertificateAuthorityStatusPendingCertificate {
 			return nil, ackerr.NotFound
 		}
 	}
