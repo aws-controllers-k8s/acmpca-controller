@@ -6,6 +6,7 @@ ignore:
   field_paths:
   - CreateCertificateAuthorityInput.IdempotencyToken
   - IssueCertificateInput.IdempotencyToken
+  - ImportCertificateAuthorityCertificateInput.Certificate
 operations:
   IssueCertificate:
     operation_type:
@@ -15,6 +16,14 @@ operations:
     operation_type:
     - Delete
     resource_name: Certificate
+  ImportCertificateAuthorityCertificate:
+    operation_type:
+    - Create
+    resource_name: CertificateAuthorityActivation
+  UpdateCertificateAuthority:
+    operation_type:
+    - Update
+    resource_name: CertificateAuthority
 model_name: acm-pca
 prefix_config: {}
 resources:
@@ -35,6 +44,8 @@ resources:
       CSR:
         is_read_only: true
         type: 'bytes'
+      Status:
+        type: string
   Certificate:
     hooks:
       sdk_read_one_post_set_output:
@@ -65,5 +76,27 @@ resources:
         from:
           operation: RevokeCertificate
           path: RevocationReason
+    tags:
+      ignore: true
+  CertificateAuthorityActivation:
+    hooks:
+      sdk_create_post_build_request:
+        template_path: hooks/certificate_authority_activation/sdk_create_post_build_request.go.tpl
+      sdk_create_post_set_output:
+        template_path: hooks/certificate_authority_activation/sdk_create_post_set_output.go.tpl
+    fields:
+      CertificateAuthorityARN:
+        is_primary_key: true
+        references:
+          resource: CertificateAuthority
+          path: Status.ACKResourceMetadata.ARN
+      Certificate:
+        type: string
+        is_secret: true
+      Status:
+        is_read_only: true
+        type: string
+    find_operation:
+      custom_method_name: customFindCertificateAuthorityActivation
     tags:
       ignore: true

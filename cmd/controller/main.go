@@ -37,6 +37,7 @@ import (
 
 	_ "github.com/aws-controllers-k8s/acmpca-controller/pkg/resource/certificate"
 	_ "github.com/aws-controllers-k8s/acmpca-controller/pkg/resource/certificate_authority"
+	_ "github.com/aws-controllers-k8s/acmpca-controller/pkg/resource/certificate_authority_activation"
 
 	"github.com/aws-controllers-k8s/acmpca-controller/pkg/version"
 )

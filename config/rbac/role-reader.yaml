@@ -11,6 +11,7 @@ rules:
   resources:
   - certificates
   - certificateauthorities
+  - certificateauthorityactivations
   verbs:
   - get
   - list
