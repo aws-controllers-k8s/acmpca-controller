@@ -40,6 +40,31 @@ type CertificateAuthorityActivationSpec struct {
 	// This parameter must be supplied when you import a subordinate CA. When you
 	// import a root CA, there is no chain.
 	CertificateChain []byte `json:"certificateChain,omitempty"`
+	// Contains information to enable Online Certificate Status Protocol (OCSP)
+	// support, to enable a certificate revocation list (CRL), to enable both, or
+	// to enable neither. If this parameter is not supplied, existing capibilites
+	// remain unchanged. For more information, see the OcspConfiguration (https://docs.aws.amazon.com/privateca/latest/APIReference/API_OcspConfiguration.html)
+	// and CrlConfiguration (https://docs.aws.amazon.com/privateca/latest/APIReference/API_CrlConfiguration.html)
+	// types.
+	//
+	// The following requirements apply to revocation configurations.
+	//
+	//   - A configuration disabling CRLs or OCSP must contain only the Enabled=False
+	//     parameter, and will fail if other parameters such as CustomCname or ExpirationInDays
+	//     are included.
+	//
+	//   - In a CRL configuration, the S3BucketName parameter must conform to Amazon
+	//     S3 bucket naming rules (https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html).
+	//
+	//   - A configuration containing a custom Canonical Name (CNAME) parameter
+	//     for CRLs or OCSP must conform to RFC2396 (https://www.ietf.org/rfc/rfc2396.txt)
+	//     restrictions on the use of special characters in a CNAME.
+	//
+	//   - In a CRL or OCSP configuration, the value of a CNAME parameter must
+	//     not include a protocol prefix such as "http://" or "https://".
+	RevocationConfiguration *RevocationConfiguration `json:"revocationConfiguration,omitempty"`
+	// Status of your private CA.
+	Status *string `json:"status,omitempty"`
 }
 
 // CertificateAuthorityActivationStatus defines the observed state of CertificateAuthorityActivation
@@ -55,8 +80,6 @@ type CertificateAuthorityActivationStatus struct {
 	// resource
 	// +kubebuilder:validation:Optional
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
-	// +kubebuilder:validation:Optional
-	Status *string `json:"status,omitempty"`
 }
 
 // CertificateAuthorityActivation is the Schema for the CertificateAuthorityActivations API

@@ -361,11 +361,6 @@ func (rm *resourceManager) sdkFind(
 	} else {
 		ko.Spec.RevocationConfiguration = nil
 	}
-	if resp.CertificateAuthority.Status != nil {
-		ko.Spec.Status = resp.CertificateAuthority.Status
-	} else {
-		ko.Spec.Status = nil
-	}
 	if resp.CertificateAuthority.UsageMode != nil {
 		ko.Spec.UsageMode = resp.CertificateAuthority.UsageMode
 	} else {
@@ -745,82 +740,8 @@ func (rm *resourceManager) sdkUpdate(
 	desired *resource,
 	latest *resource,
 	delta *ackcompare.Delta,
-) (updated *resource, err error) {
-	rlog := ackrtlog.FromContext(ctx)
-	exit := rlog.Trace("rm.sdkUpdate")
-	defer func() {
-		exit(err)
-	}()
-	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
-	if err != nil {
-		return nil, err
-	}
-
-	var resp *svcsdk.UpdateCertificateAuthorityOutput
-	_ = resp
-	resp, err = rm.sdkapi.UpdateCertificateAuthorityWithContext(ctx, input)
-	rm.metrics.RecordAPICall("UPDATE", "UpdateCertificateAuthority", err)
-	if err != nil {
-		return nil, err
-	}
-	// Merge in the information we read from the API call above to the copy of
-	// the original Kubernetes object we passed to the function
-	ko := desired.ko.DeepCopy()
-
-	rm.setStatusDefaults(ko)
-	return &resource{ko}, nil
-}
-
-// newUpdateRequestPayload returns an SDK-specific struct for the HTTP request
-// payload of the Update API call for the resource
-func (rm *resourceManager) newUpdateRequestPayload(
-	ctx context.Context,
-	r *resource,
-	delta *ackcompare.Delta,
-) (*svcsdk.UpdateCertificateAuthorityInput, error) {
-	res := &svcsdk.UpdateCertificateAuthorityInput{}
-
-	if r.ko.Status.ACKResourceMetadata != nil && r.ko.Status.ACKResourceMetadata.ARN != nil {
-		res.SetCertificateAuthorityArn(string(*r.ko.Status.ACKResourceMetadata.ARN))
-	}
-	if r.ko.Spec.RevocationConfiguration != nil {
-		f1 := &svcsdk.RevocationConfiguration{}
-		if r.ko.Spec.RevocationConfiguration.CRLConfiguration != nil {
-			f1f0 := &svcsdk.CrlConfiguration{}
-			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME != nil {
-				f1f0.SetCustomCname(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME)
-			}
-			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled != nil {
-				f1f0.SetEnabled(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled)
-			}
-			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays != nil {
-				f1f0.SetExpirationInDays(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays)
-			}
-			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName != nil {
-				f1f0.SetS3BucketName(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName)
-			}
-			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL != nil {
-				f1f0.SetS3ObjectAcl(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL)
-			}
-			f1.SetCrlConfiguration(f1f0)
-		}
-		if r.ko.Spec.RevocationConfiguration.OCSPConfiguration != nil {
-			f1f1 := &svcsdk.OcspConfiguration{}
-			if r.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled != nil {
-				f1f1.SetEnabled(*r.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled)
-			}
-			if r.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME != nil {
-				f1f1.SetOcspCustomCname(*r.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME)
-			}
-			f1.SetOcspConfiguration(f1f1)
-		}
-		res.SetRevocationConfiguration(f1)
-	}
-	if r.ko.Spec.Status != nil {
-		res.SetStatus(*r.ko.Spec.Status)
-	}
-
-	return res, nil
+) (*resource, error) {
+	return nil, ackerr.NewTerminalError(ackerr.NotImplemented)
 }
 
 // sdkDelete deletes the supplied resource in the backend AWS service API

@@ -103,17 +103,6 @@ def test_create_ca(acmpca_client):
 
     yield (ca_ref, ca_cr, ca_name)
 
-    # Update CA
-    ca_cr["spec"]["status"] = "DISABLED"
-
-    # Patch k8s resource
-    patch_res = k8s.patch_custom_resource(ca_ref, ca_cr)
-    logging.info(patch_res)
-    time.sleep(UPDATE_WAIT_AFTER_SECONDS) 
-    
-    # Check CA status is DISABLED
-    acmpca_validator.assert_certificate_authority(ca_resource_arn, "DISABLED")
-
     #Delete k8s resource
     _, deleted = k8s.delete_custom_resource(ca_ref)
     assert deleted is True
@@ -177,7 +166,7 @@ class TestRootCA:
         assert 'certificate' in api_response
         assert base64.b64decode(api_response['certificate']).decode("ascii") == acmpca_validator.get_certificate(ca_arn=ca_arn, cert_arn=resource_arn)
 
-        #activation 
+        #CAActivation 
         activation_name = random_suffix_name("certificate-authority-activation", 50)
         
         replacements = REPLACEMENT_VALUES.copy()
@@ -188,7 +177,7 @@ class TestRootCA:
         replacements["CERTIFICATE_SECRET_NAME"] = secret.name
         replacements["CERTIFICATE_SECRET_KEY"] = secret.key
         
-        # Load Activation CR
+        # Load CAActivation CR
         act_resource_data = load_acmpca_resource(
             "certificate_authority_activation",
             additional_replacements=replacements,
@@ -209,3 +198,14 @@ class TestRootCA:
         logging.info(act_cr)
 
         acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE") 
+
+        # Update CAActivation
+        act_cr["spec"]["status"] = "DISABLED"
+
+        # Patch k8s resource
+        patch_res = k8s.patch_custom_resource(act_ref, act_cr)
+        logging.info(patch_res)
+        time.sleep(UPDATE_WAIT_AFTER_SECONDS) 
+        
+        # Check CA status is DISABLED
+        acmpca_validator.assert_certificate_authority(ca_arn, "DISABLED")

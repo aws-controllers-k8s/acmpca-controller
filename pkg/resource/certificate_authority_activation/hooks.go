@@ -112,15 +112,20 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 		return nil, err
 	}
 
-	r.ko.Status.Status = resp.CertificateAuthority.Status
+	ko := r.ko.DeepCopy()
+
+	if resp.CertificateAuthority.Status != nil {
+		ko.Spec.Status = resp.CertificateAuthority.Status
+	} else {
+		ko.Spec.Status = nil
+	}
 
 	if numFound == 1 {
-		if *r.ko.Status.Status == svcsdk.CertificateAuthorityStatusCreating || *r.ko.Status.Status == svcsdk.CertificateAuthorityStatusPendingCertificate {
+		if *ko.Spec.Status == svcsdk.CertificateAuthorityStatusCreating || *ko.Spec.Status == svcsdk.CertificateAuthorityStatusPendingCertificate {
 			return nil, ackerr.NotFound
 		}
 	}
 
-	ko := r.ko.DeepCopy()
 	rm.setStatusDefaults(ko)
 	return &resource{ko}, nil
 }
