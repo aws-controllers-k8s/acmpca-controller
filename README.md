@@ -1,23 +1,12 @@
-# ACK service controller for AWS Private Certificate Authority
+# ACK service controller for AWS Certificate Manager Private Certificate Authority
 
 This repository contains source code for the AWS Controllers for Kubernetes
-(ACK) service controller for AWS Private Certificate Authority.
+(ACK) service controller for ACM-PCA.
 
 Please [log issues][ack-issues] and feedback on the main AWS Controllers for
 Kubernetes Github project.
 
 [ack-issues]: https://github.com/aws/aws-controllers-k8s/issues
-
-## Resources Supported
-The ACK service controller for AWS Private Certificate Authority supports the following resources in `PREVIEW`:
-- CertificateAuthority
-- Certificate
-- CertificateAuthorityActivation
-
-## Pricing
-Learn more about [AWS Private Certificate Authority Pricing][pricing].
-
-[pricing]: https://aws.amazon.com/private-ca/pricing
 
 ## Contributing
 

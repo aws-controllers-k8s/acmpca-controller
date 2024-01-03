@@ -12,6 +12,10 @@ operations:
     operation_type:
     - Create
     resource_name: Certificate
+  RevokeCertificate:
+    operation_type:
+    - Delete
+    resource_name: Certificate
   ImportCertificateAuthorityCertificate:
     operation_type:
     - Create
@@ -62,6 +66,14 @@ resources:
         references:
           resource: CertificateAuthority
           path: Status.CSR
+      CertificateSerial:
+        from:
+          operation: RevokeCertificate
+          path: CertificateSerial
+      RevocationReason:
+        from:
+          operation: RevokeCertificate
+          path: RevocationReason
     tags:
       ignore: true
   CertificateAuthorityActivation:
