@@ -159,12 +159,15 @@ class TestRootCA:
         # Check certificate is in secret
         _api_client = _get_k8s_api_client()
         api_response = client.CoreV1Api(_api_client).read_namespaced_secret(secret.name, secret.ns).data
-        #logging.info(api_response)
 
         acmpca_validator = ACMPCAValidator(acmpca_client)
+        cert = acmpca_validator.get_certificate(ca_arn=ca_arn, cert_arn=resource_arn)
 
         assert 'certificate' in api_response
-        assert base64.b64decode(api_response['certificate']).decode("ascii") == acmpca_validator.get_certificate(ca_arn=ca_arn, cert_arn=resource_arn)
+        assert base64.b64decode(api_response['certificate']).decode("ascii") == cert
+
+        logging.info(cr['status'].values())
+        assert cert not in cr['status'].values()
 
         #CAActivation 
         activation_name = random_suffix_name("certificate-authority-activation", 50)
