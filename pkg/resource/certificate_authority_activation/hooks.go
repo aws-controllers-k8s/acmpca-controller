@@ -121,7 +121,7 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 	}
 
 	if numFound == 1 {
-		if *ko.Spec.Status == svcsdk.CertificateAuthorityStatusCreating || *ko.Spec.Status == svcsdk.CertificateAuthorityStatusPendingCertificate {
+		if ko.Spec.Status == nil || *ko.Spec.Status == svcsdk.CertificateAuthorityStatusCreating || *ko.Spec.Status == svcsdk.CertificateAuthorityStatusPendingCertificate {
 			return nil, ackerr.NotFound
 		}
 	}
