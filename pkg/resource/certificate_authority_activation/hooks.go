@@ -45,7 +45,7 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 	// If any required fields in the input shape are missing, AWS resource is
 	// not created yet. Return NotFound here to indicate to callers that the
 	// resource isn't yet created.
-	if r.ko.Spec.CertificateAuthorityARN == nil {
+	if r.ko.Spec.CertificateAuthorityARN == nil && r.ko.Spec.CertificateAuthorityRef.From.Name == nil {
 		return nil, ackerr.NotFound
 	}
 
@@ -64,8 +64,24 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 		return nil, err
 	}
 
+	if r.ko.Spec.CertificateAuthorityARN == nil && r.ko.Spec.CertificateAuthorityRef != nil {
+		var caResource = schema.GroupVersionResource{Group: "acmpca.services.k8s.aws", Version: "v1alpha1", Resource: "certificateauthorities"}
+		ca, err := dynClient.Resource(caResource).Namespace("default").Get(ctx, *r.ko.Spec.CertificateAuthorityRef.From.Name, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		certificateAuthorityARN, found, err := unstructured.NestedString(ca.UnstructuredContent(), "status", "ackResourceMetadata", "arn")
+		if err != nil {
+			return nil, err
+		}
+		if !found {
+			return nil, fmt.Errorf("arn field not found on CertificateAuthority status")
+		}
+		r.ko.Spec.CertificateAuthorityARN = &certificateAuthorityARN
+	}
+
 	var caActivationResource = schema.GroupVersionResource{Group: "acmpca.services.k8s.aws", Version: "v1alpha1", Resource: "certificateauthorityactivations"}
-	list, err := dynClient.Resource(caActivationResource).Namespace("").List(ctx, metav1.ListOptions{})
+	list, err := dynClient.Resource(caActivationResource).Namespace("default").List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +96,25 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 		}
 
 		if !found {
-			return nil, fmt.Errorf("certificateAuthorityARN field not found on CertificateAuthorityActivation spec")
+			certificateAuthorityRef, found, err := unstructured.NestedString(item.UnstructuredContent(), "spec", "certificateAuthorityRef", "from", "name")
+			if err != nil {
+				return nil, err
+			}
+			if !found {
+				return nil, fmt.Errorf("certificateAuthorityARN or certificateAuthorityRef field not found on CertificateAuthorityActivation spec")
+			}
+			var caResource = schema.GroupVersionResource{Group: "acmpca.services.k8s.aws", Version: "v1alpha1", Resource: "certificateauthorities"}
+			ca, err := dynClient.Resource(caResource).Namespace("default").Get(ctx, certificateAuthorityRef, metav1.GetOptions{})
+			if err != nil {
+				return nil, err
+			}
+			certificateAuthorityARN, found, err = unstructured.NestedString(ca.UnstructuredContent(), "status", "ackResourceMetadata", "arn")
+			if err != nil {
+				return nil, err
+			}
+			if !found {
+				return nil, fmt.Errorf("arn field not found on CertificateAuthority status")
+			}
 		}
 
 		if certificateAuthorityARN == *r.ko.Spec.CertificateAuthorityARN {
