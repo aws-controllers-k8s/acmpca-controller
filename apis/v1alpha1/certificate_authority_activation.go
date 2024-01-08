@@ -63,8 +63,7 @@ type CertificateAuthorityActivationSpec struct {
 	//   - In a CRL or OCSP configuration, the value of a CNAME parameter must
 	//     not include a protocol prefix such as "http://" or "https://".
 	RevocationConfiguration *RevocationConfiguration `json:"revocationConfiguration,omitempty"`
-	// Status of your private CA.
-	Status *string `json:"status,omitempty"`
+	Status                  *string                  `json:"status,omitempty"`
 }
 
 // CertificateAuthorityActivationStatus defines the observed state of CertificateAuthorityActivation

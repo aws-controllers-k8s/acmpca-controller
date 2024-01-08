@@ -7,6 +7,7 @@ ignore:
   - CreateCertificateAuthorityInput.IdempotencyToken
   - IssueCertificateInput.IdempotencyToken
   - ImportCertificateAuthorityCertificateInput.Certificate
+  - UpdateCertificateAuthorityInput.Status
 operations:
   IssueCertificate:
     operation_type:
@@ -80,6 +81,8 @@ resources:
     hooks:
       sdk_create_post_build_request:
         template_path: hooks/certificate_authority_activation/sdk_create_post_build_request.go.tpl
+      sdk_update_post_build_request:
+        template_path: hooks/certificate_authority_activation/sdk_update_post_build_request.go.tpl
     fields:
       CertificateAuthorityARN:
         is_primary_key: true
@@ -90,9 +93,7 @@ resources:
         type: string
         is_secret: true
       Status:
-        from:
-          operation: UpdateCertificateAuthority
-          path: Status
+        type: string
       RevocationConfiguration:
         from:
           operation: UpdateCertificateAuthority

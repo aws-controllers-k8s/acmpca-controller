@@ -177,7 +177,6 @@ spec:
                     type: object
                 type: object
               status:
-                description: Status of your private CA.
                 type: string
             required:
             - certificate

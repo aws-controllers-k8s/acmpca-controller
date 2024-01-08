@@ -135,6 +135,9 @@ func (rm *resourceManager) sdkUpdate(
 	if err != nil {
 		return nil, err
 	}
+	if desired.ko.Spec.Status != nil && (*desired.ko.Spec.Status == svcsdk.CertificateAuthorityStatusActive || *desired.ko.Spec.Status == svcsdk.CertificateAuthorityStatusDisabled) {
+		input.SetStatus(*desired.ko.Spec.Status)
+	}
 
 	var resp *svcsdk.UpdateCertificateAuthorityOutput
 	_ = resp
@@ -195,9 +198,6 @@ func (rm *resourceManager) newUpdateRequestPayload(
 			f1.SetOcspConfiguration(f1f1)
 		}
 		res.SetRevocationConfiguration(f1)
-	}
-	if r.ko.Spec.Status != nil {
-		res.SetStatus(*r.ko.Spec.Status)
 	}
 
 	return res, nil
