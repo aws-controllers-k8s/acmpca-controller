@@ -103,7 +103,7 @@ def test_create_ca(acmpca_client):
 
     yield (ca_ref, ca_cr, ca_name)
 
-    #Delete k8s resource
+    #Delete CA k8s resource
     _, deleted = k8s.delete_custom_resource(ca_ref)
     assert deleted is True
 
@@ -212,3 +212,11 @@ class TestRootCA:
         
         # Check CA status is DISABLED
         acmpca_validator.assert_certificate_authority(ca_arn, "DISABLED")
+
+        #Delete Certificate k8s resource
+        _, deleted = k8s.delete_custom_resource(ref)
+        assert deleted is True
+
+        #Delete CAActivation k8s resource
+        _, deleted = k8s.delete_custom_resource(act_ref)
+        assert deleted is True
