@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"sync"
 
+	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	svcsdk "github.com/aws/aws-sdk-go/service/acmpca"
@@ -125,6 +126,43 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 			return nil, ackerr.NotFound
 		}
 	}
+
+	rm.setStatusDefaults(ko)
+	return &resource{ko}, nil
+}
+
+func (rm *resourceManager) customUpdateCertificateAuthorityActivation(
+	ctx context.Context,
+	desired *resource,
+	latest *resource,
+	delta *ackcompare.Delta,
+) (updated *resource, err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.sdkUpdate")
+	defer func() {
+		exit(err)
+	}()
+
+	input := &svcsdk.UpdateCertificateAuthorityInput{}
+
+	if desired.ko.Spec.CertificateAuthorityARN != nil {
+		input.SetCertificateAuthorityArn(*desired.ko.Spec.CertificateAuthorityARN)
+	}
+
+	if desired.ko.Spec.Status != nil && (*desired.ko.Spec.Status == svcsdk.CertificateAuthorityStatusActive || *desired.ko.Spec.Status == svcsdk.CertificateAuthorityStatusDisabled) {
+		input.SetStatus(*desired.ko.Spec.Status)
+	}
+
+	var resp *svcsdk.UpdateCertificateAuthorityOutput
+	_ = resp
+	resp, err = rm.sdkapi.UpdateCertificateAuthorityWithContext(ctx, input)
+	rm.metrics.RecordAPICall("UPDATE", "UpdateCertificateAuthority", err)
+	if err != nil {
+		return nil, err
+	}
+	// Merge in the information we read from the API call above to the copy of
+	// the original Kubernetes object we passed to the function
+	ko := desired.ko.DeepCopy()
 
 	rm.setStatusDefaults(ko)
 	return &resource{ko}, nil

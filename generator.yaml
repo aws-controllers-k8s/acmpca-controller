@@ -9,6 +9,10 @@ ignore:
   - ImportCertificateAuthorityCertificateInput.Certificate
   - UpdateCertificateAuthorityInput.Status
 operations:
+  UpdateCertificateAuthority:
+    operation_type:
+    - Update
+    resource_name: CertificateAuthority
   IssueCertificate:
     operation_type:
     - Create
@@ -20,10 +24,6 @@ operations:
   ImportCertificateAuthorityCertificate:
     operation_type:
     - Create
-    resource_name: CertificateAuthorityActivation
-  UpdateCertificateAuthority:
-    operation_type:
-    - Update
     resource_name: CertificateAuthorityActivation
 model_name: acm-pca
 prefix_config: {}
@@ -96,5 +96,7 @@ resources:
         type: string
     find_operation:
       custom_method_name: customFindCertificateAuthorityActivation
+    update_operation:
+      custom_method_name: customUpdateCertificateAuthorityActivation
     tags:
       ignore: true

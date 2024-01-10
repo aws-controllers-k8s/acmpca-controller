@@ -125,49 +125,8 @@ func (rm *resourceManager) sdkUpdate(
 	desired *resource,
 	latest *resource,
 	delta *ackcompare.Delta,
-) (updated *resource, err error) {
-	rlog := ackrtlog.FromContext(ctx)
-	exit := rlog.Trace("rm.sdkUpdate")
-	defer func() {
-		exit(err)
-	}()
-	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
-	if err != nil {
-		return nil, err
-	}
-	if desired.ko.Spec.Status != nil && (*desired.ko.Spec.Status == svcsdk.CertificateAuthorityStatusActive || *desired.ko.Spec.Status == svcsdk.CertificateAuthorityStatusDisabled) {
-		input.SetStatus(*desired.ko.Spec.Status)
-	}
-
-	var resp *svcsdk.UpdateCertificateAuthorityOutput
-	_ = resp
-	resp, err = rm.sdkapi.UpdateCertificateAuthorityWithContext(ctx, input)
-	rm.metrics.RecordAPICall("UPDATE", "UpdateCertificateAuthority", err)
-	if err != nil {
-		return nil, err
-	}
-	// Merge in the information we read from the API call above to the copy of
-	// the original Kubernetes object we passed to the function
-	ko := desired.ko.DeepCopy()
-
-	rm.setStatusDefaults(ko)
-	return &resource{ko}, nil
-}
-
-// newUpdateRequestPayload returns an SDK-specific struct for the HTTP request
-// payload of the Update API call for the resource
-func (rm *resourceManager) newUpdateRequestPayload(
-	ctx context.Context,
-	r *resource,
-	delta *ackcompare.Delta,
-) (*svcsdk.UpdateCertificateAuthorityInput, error) {
-	res := &svcsdk.UpdateCertificateAuthorityInput{}
-
-	if r.ko.Spec.CertificateAuthorityARN != nil {
-		res.SetCertificateAuthorityArn(*r.ko.Spec.CertificateAuthorityARN)
-	}
-
-	return res, nil
+) (*resource, error) {
+	return rm.customUpdateCertificateAuthorityActivation(ctx, desired, latest, delta)
 }
 
 // sdkDelete deletes the supplied resource in the backend AWS service API
