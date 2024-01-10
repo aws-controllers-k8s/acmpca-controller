@@ -166,39 +166,6 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	if r.ko.Spec.CertificateAuthorityARN != nil {
 		res.SetCertificateAuthorityArn(*r.ko.Spec.CertificateAuthorityARN)
 	}
-	if r.ko.Spec.RevocationConfiguration != nil {
-		f1 := &svcsdk.RevocationConfiguration{}
-		if r.ko.Spec.RevocationConfiguration.CRLConfiguration != nil {
-			f1f0 := &svcsdk.CrlConfiguration{}
-			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME != nil {
-				f1f0.SetCustomCname(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME)
-			}
-			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled != nil {
-				f1f0.SetEnabled(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled)
-			}
-			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays != nil {
-				f1f0.SetExpirationInDays(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays)
-			}
-			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName != nil {
-				f1f0.SetS3BucketName(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName)
-			}
-			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL != nil {
-				f1f0.SetS3ObjectAcl(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL)
-			}
-			f1.SetCrlConfiguration(f1f0)
-		}
-		if r.ko.Spec.RevocationConfiguration.OCSPConfiguration != nil {
-			f1f1 := &svcsdk.OcspConfiguration{}
-			if r.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled != nil {
-				f1f1.SetEnabled(*r.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled)
-			}
-			if r.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME != nil {
-				f1f1.SetOcspCustomCname(*r.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME)
-			}
-			f1.SetOcspConfiguration(f1f1)
-		}
-		res.SetRevocationConfiguration(f1)
-	}
 
 	return res, nil
 }

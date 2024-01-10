@@ -63,67 +63,6 @@ func newResourceDelta(
 	if !bytes.Equal(a.ko.Spec.CertificateChain, b.ko.Spec.CertificateChain) {
 		delta.Add("Spec.CertificateChain", a.ko.Spec.CertificateChain, b.ko.Spec.CertificateChain)
 	}
-	if ackcompare.HasNilDifference(a.ko.Spec.RevocationConfiguration, b.ko.Spec.RevocationConfiguration) {
-		delta.Add("Spec.RevocationConfiguration", a.ko.Spec.RevocationConfiguration, b.ko.Spec.RevocationConfiguration)
-	} else if a.ko.Spec.RevocationConfiguration != nil && b.ko.Spec.RevocationConfiguration != nil {
-		if ackcompare.HasNilDifference(a.ko.Spec.RevocationConfiguration.CRLConfiguration, b.ko.Spec.RevocationConfiguration.CRLConfiguration) {
-			delta.Add("Spec.RevocationConfiguration.CRLConfiguration", a.ko.Spec.RevocationConfiguration.CRLConfiguration, b.ko.Spec.RevocationConfiguration.CRLConfiguration)
-		} else if a.ko.Spec.RevocationConfiguration.CRLConfiguration != nil && b.ko.Spec.RevocationConfiguration.CRLConfiguration != nil {
-			if ackcompare.HasNilDifference(a.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME, b.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME) {
-				delta.Add("Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME", a.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME, b.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME)
-			} else if a.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME != nil && b.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME != nil {
-				if *a.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME != *b.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME {
-					delta.Add("Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME", a.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME, b.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME)
-				}
-			}
-			if ackcompare.HasNilDifference(a.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled, b.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled) {
-				delta.Add("Spec.RevocationConfiguration.CRLConfiguration.Enabled", a.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled, b.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled)
-			} else if a.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled != nil && b.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled != nil {
-				if *a.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled != *b.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled {
-					delta.Add("Spec.RevocationConfiguration.CRLConfiguration.Enabled", a.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled, b.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled)
-				}
-			}
-			if ackcompare.HasNilDifference(a.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays, b.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays) {
-				delta.Add("Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays", a.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays, b.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays)
-			} else if a.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays != nil && b.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays != nil {
-				if *a.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays != *b.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays {
-					delta.Add("Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays", a.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays, b.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays)
-				}
-			}
-			if ackcompare.HasNilDifference(a.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName, b.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName) {
-				delta.Add("Spec.RevocationConfiguration.CRLConfiguration.S3BucketName", a.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName, b.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName)
-			} else if a.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName != nil && b.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName != nil {
-				if *a.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName != *b.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName {
-					delta.Add("Spec.RevocationConfiguration.CRLConfiguration.S3BucketName", a.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName, b.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName)
-				}
-			}
-			if ackcompare.HasNilDifference(a.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL, b.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL) {
-				delta.Add("Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL", a.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL, b.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL)
-			} else if a.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL != nil && b.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL != nil {
-				if *a.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL != *b.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL {
-					delta.Add("Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL", a.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL, b.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL)
-				}
-			}
-		}
-		if ackcompare.HasNilDifference(a.ko.Spec.RevocationConfiguration.OCSPConfiguration, b.ko.Spec.RevocationConfiguration.OCSPConfiguration) {
-			delta.Add("Spec.RevocationConfiguration.OCSPConfiguration", a.ko.Spec.RevocationConfiguration.OCSPConfiguration, b.ko.Spec.RevocationConfiguration.OCSPConfiguration)
-		} else if a.ko.Spec.RevocationConfiguration.OCSPConfiguration != nil && b.ko.Spec.RevocationConfiguration.OCSPConfiguration != nil {
-			if ackcompare.HasNilDifference(a.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled, b.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled) {
-				delta.Add("Spec.RevocationConfiguration.OCSPConfiguration.Enabled", a.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled, b.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled)
-			} else if a.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled != nil && b.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled != nil {
-				if *a.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled != *b.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled {
-					delta.Add("Spec.RevocationConfiguration.OCSPConfiguration.Enabled", a.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled, b.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled)
-				}
-			}
-			if ackcompare.HasNilDifference(a.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME, b.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME) {
-				delta.Add("Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME", a.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME, b.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME)
-			} else if a.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME != nil && b.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME != nil {
-				if *a.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME != *b.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME {
-					delta.Add("Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME", a.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME, b.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME)
-				}
-			}
-		}
-	}
 	if ackcompare.HasNilDifference(a.ko.Spec.Status, b.ko.Spec.Status) {
 		delta.Add("Spec.Status", a.ko.Spec.Status, b.ko.Spec.Status)
 	} else if a.ko.Spec.Status != nil && b.ko.Spec.Status != nil {

@@ -403,11 +403,6 @@ func (in *CertificateAuthorityActivationSpec) DeepCopyInto(out *CertificateAutho
 		*out = make([]byte, len(*in))
 		copy(*out, *in)
 	}
-	if in.RevocationConfiguration != nil {
-		in, out := &in.RevocationConfiguration, &out.RevocationConfiguration
-		*out = new(RevocationConfiguration)
-		(*in).DeepCopyInto(*out)
-	}
 	if in.Status != nil {
 		in, out := &in.Status, &out.Status
 		*out = new(string)

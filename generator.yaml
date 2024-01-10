@@ -94,10 +94,6 @@ resources:
         is_secret: true
       Status:
         type: string
-      RevocationConfiguration:
-        from:
-          operation: UpdateCertificateAuthority
-          path: RevocationConfiguration
     find_operation:
       custom_method_name: customFindCertificateAuthorityActivation
     tags:
