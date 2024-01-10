@@ -162,11 +162,16 @@ class TestRootCA:
         #logging.info(api_response)
 
         acmpca_validator = ACMPCAValidator(acmpca_client)
+        cert = acmpca_validator.get_certificate(ca_arn=ca_arn, cert_arn=resource_arn)
 
         assert 'certificate' in api_response
-        assert base64.b64decode(api_response['certificate']).decode("ascii") == acmpca_validator.get_certificate(ca_arn=ca_arn, cert_arn=resource_arn)
+        assert base64.b64decode(api_response['certificate']).decode("ascii") == cert
 
+        logging.info(cr['status'].values())
+        assert cert not in cr['status'].values()
+        
         #CAActivation 
+  
         activation_name = random_suffix_name("certificate-authority-activation", 50)
         
         replacements = REPLACEMENT_VALUES.copy()

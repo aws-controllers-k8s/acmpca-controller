@@ -19,14 +19,13 @@ import (
 	"sync"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
+	client "github.com/aws-controllers-k8s/acmpca-controller/pkg/client"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	svcsdk "github.com/aws/aws-sdk-go/service/acmpca"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/rest"
 )
 
 var (
@@ -55,15 +54,7 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 	defer mu.Unlock()
 
 	// List all the CertificateAuthorityActivations
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	dynClient, err := dynamic.NewForConfig(config)
-	if err != nil {
-		return nil, err
-	}
+	dynClient, err := client.GetClient()
 
 	var caActivationResource = schema.GroupVersionResource{Group: "acmpca.services.k8s.aws", Version: "v1alpha1", Resource: "certificateauthorityactivations"}
 	list, err := dynClient.Resource(caActivationResource).Namespace("").List(ctx, metav1.ListOptions{})
