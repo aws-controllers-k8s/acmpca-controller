@@ -16,7 +16,7 @@ package client
 import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
-	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 )
 
@@ -41,7 +41,7 @@ func GetDynamicClient() (client *dynamic.DynamicClient, err error) {
 
 func GetSecretsClient(
 	namespace string,
-) (client v1.SecretInterface, err error) {
+) (client corev1.SecretInterface, err error) {
 
 	config, err := rest.InClusterConfig()
 	if err != nil {
