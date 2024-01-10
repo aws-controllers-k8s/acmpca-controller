@@ -493,35 +493,9 @@ func (rm *resourceManager) sdkDelete(
 	defer func() {
 		exit(err)
 	}()
-	input, err := rm.newDeleteRequestPayload(r)
-	if err != nil {
-		return nil, err
-	}
-	var resp *svcsdk.RevokeCertificateOutput
-	_ = resp
-	resp, err = rm.sdkapi.RevokeCertificateWithContext(ctx, input)
-	rm.metrics.RecordAPICall("DELETE", "RevokeCertificate", err)
-	return nil, err
-}
+	// TODO(jaypipes): Figure this out...
+	return nil, nil
 
-// newDeleteRequestPayload returns an SDK-specific struct for the HTTP request
-// payload of the Delete API call for the resource
-func (rm *resourceManager) newDeleteRequestPayload(
-	r *resource,
-) (*svcsdk.RevokeCertificateInput, error) {
-	res := &svcsdk.RevokeCertificateInput{}
-
-	if r.ko.Spec.CertificateAuthorityARN != nil {
-		res.SetCertificateAuthorityArn(*r.ko.Spec.CertificateAuthorityARN)
-	}
-	if r.ko.Spec.CertificateSerial != nil {
-		res.SetCertificateSerial(*r.ko.Spec.CertificateSerial)
-	}
-	if r.ko.Spec.RevocationReason != nil {
-		res.SetRevocationReason(*r.ko.Spec.RevocationReason)
-	}
-
-	return res, nil
 }
 
 // setStatusDefaults sets default properties into supplied custom resource
