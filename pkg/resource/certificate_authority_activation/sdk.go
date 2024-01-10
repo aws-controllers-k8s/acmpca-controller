@@ -97,16 +97,6 @@ func (rm *resourceManager) sdkCreate(
 	ko := desired.ko.DeepCopy()
 
 	rm.setStatusDefaults(ko)
-	readOneInput := &svcsdk.DescribeCertificateAuthorityInput{}
-	readOneInput.CertificateAuthorityArn = ko.Spec.CertificateAuthorityARN
-
-	var readOneResp *svcsdk.DescribeCertificateAuthorityOutput
-	readOneResp, err = rm.sdkapi.DescribeCertificateAuthorityWithContext(ctx, readOneInput)
-	rm.metrics.RecordAPICall("READ_ONE", "DescribeCertificateAuthority", err)
-	if err != nil {
-		return nil, err
-	}
-	ko.Status.Status = readOneResp.CertificateAuthority.Status
 	return &resource{ko}, nil
 }
 
@@ -136,7 +126,7 @@ func (rm *resourceManager) sdkUpdate(
 	latest *resource,
 	delta *ackcompare.Delta,
 ) (*resource, error) {
-	return nil, ackerr.NewTerminalError(ackerr.NotImplemented)
+	return rm.customUpdateCertificateAuthorityActivation(ctx, desired, latest, delta)
 }
 
 // sdkDelete deletes the supplied resource in the backend AWS service API

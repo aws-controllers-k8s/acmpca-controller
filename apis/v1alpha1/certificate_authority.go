@@ -82,7 +82,6 @@ type CertificateAuthoritySpec struct {
 	// and CrlConfiguration (https://docs.aws.amazon.com/privateca/latest/APIReference/API_CrlConfiguration.html)
 	// types.
 	RevocationConfiguration *RevocationConfiguration `json:"revocationConfiguration,omitempty"`
-	Status                  *string                  `json:"status,omitempty"`
 	// Key-value pairs that will be attached to the new private CA. You can associate
 	// up to 50 tags with a private CA. For information using tags with IAM to manage
 	// permissions, see Controlling Access Using IAM Tags (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_iam-tags.html).

@@ -323,13 +323,6 @@ func newResourceDelta(
 			}
 		}
 	}
-	if ackcompare.HasNilDifference(a.ko.Spec.Status, b.ko.Spec.Status) {
-		delta.Add("Spec.Status", a.ko.Spec.Status, b.ko.Spec.Status)
-	} else if a.ko.Spec.Status != nil && b.ko.Spec.Status != nil {
-		if *a.ko.Spec.Status != *b.ko.Spec.Status {
-			delta.Add("Spec.Status", a.ko.Spec.Status, b.ko.Spec.Status)
-		}
-	}
 	if !ackcompare.MapStringStringEqual(ToACKTags(a.ko.Spec.Tags), ToACKTags(b.ko.Spec.Tags)) {
 		delta.Add("Spec.Tags", a.ko.Spec.Tags, b.ko.Spec.Tags)
 	}

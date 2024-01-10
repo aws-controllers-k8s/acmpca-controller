@@ -63,6 +63,13 @@ func newResourceDelta(
 	if !bytes.Equal(a.ko.Spec.CertificateChain, b.ko.Spec.CertificateChain) {
 		delta.Add("Spec.CertificateChain", a.ko.Spec.CertificateChain, b.ko.Spec.CertificateChain)
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.Status, b.ko.Spec.Status) {
+		delta.Add("Spec.Status", a.ko.Spec.Status, b.ko.Spec.Status)
+	} else if a.ko.Spec.Status != nil && b.ko.Spec.Status != nil {
+		if *a.ko.Spec.Status != *b.ko.Spec.Status {
+			delta.Add("Spec.Status", a.ko.Spec.Status, b.ko.Spec.Status)
+		}
+	}
 
 	return delta
 }

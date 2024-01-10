@@ -39,7 +39,8 @@ type CertificateAuthorityActivationSpec struct {
 	//
 	// This parameter must be supplied when you import a subordinate CA. When you
 	// import a root CA, there is no chain.
-	CertificateChain []byte `json:"certificateChain,omitempty"`
+	CertificateChain []byte  `json:"certificateChain,omitempty"`
+	Status           *string `json:"status,omitempty"`
 }
 
 // CertificateAuthorityActivationStatus defines the observed state of CertificateAuthorityActivation
@@ -55,8 +56,6 @@ type CertificateAuthorityActivationStatus struct {
 	// resource
 	// +kubebuilder:validation:Optional
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
-	// +kubebuilder:validation:Optional
-	Status *string `json:"status,omitempty"`
 }
 
 // CertificateAuthorityActivation is the Schema for the CertificateAuthorityActivations API

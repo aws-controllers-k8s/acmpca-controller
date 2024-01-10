@@ -361,11 +361,6 @@ func (rm *resourceManager) sdkFind(
 	} else {
 		ko.Spec.RevocationConfiguration = nil
 	}
-	if resp.CertificateAuthority.Status != nil {
-		ko.Spec.Status = resp.CertificateAuthority.Status
-	} else {
-		ko.Spec.Status = nil
-	}
 	if resp.CertificateAuthority.UsageMode != nil {
 		ko.Spec.UsageMode = resp.CertificateAuthority.UsageMode
 	} else {
@@ -815,9 +810,6 @@ func (rm *resourceManager) newUpdateRequestPayload(
 			f1.SetOcspConfiguration(f1f1)
 		}
 		res.SetRevocationConfiguration(f1)
-	}
-	if r.ko.Spec.Status != nil {
-		res.SetStatus(*r.ko.Spec.Status)
 	}
 
 	return res, nil
