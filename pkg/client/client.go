@@ -21,7 +21,8 @@ import (
 )
 
 var (
-	dynClient *dynamic.DynamicClient
+	dynClient     *dynamic.DynamicClient
+	secretsClient corev1.SecretInterface
 )
 
 func GetDynamicClient() (client *dynamic.DynamicClient, err error) {
@@ -42,15 +43,16 @@ func GetDynamicClient() (client *dynamic.DynamicClient, err error) {
 func GetSecretsClient(
 	namespace string,
 ) (client corev1.SecretInterface, err error) {
-
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		return nil, err
+	if secretsClient == nil {
+		config, err := rest.InClusterConfig()
+		if err != nil {
+			return nil, err
+		}
+		clientset, err := kubernetes.NewForConfig(config)
+		if err != nil {
+			return nil, err
+		}
+		secretsClient = clientset.CoreV1().Secrets(namespace)
 	}
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return nil, err
-	}
-	secretsClient := clientset.CoreV1().Secrets(namespace)
 	return secretsClient, nil
 }
