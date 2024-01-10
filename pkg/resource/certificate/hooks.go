@@ -17,12 +17,11 @@ import (
 	"context"
 	"encoding/json"
 
+	client "github.com/aws-controllers-k8s/acmpca-controller/pkg/client"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 )
 
 func (rm *resourceManager) writeCertificateToSecret(
@@ -46,15 +45,10 @@ func (rm *resourceManager) writeCertificateToSecret(
 		return ackerr.SecretNotFound
 	}
 
-	config, err := rest.InClusterConfig()
+	secretsClient, err := client.GetSecretsClient(namespace)
 	if err != nil {
 		return err
 	}
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return err
-	}
-	secretsClient := clientset.CoreV1().Secrets(namespace)
 
 	secret := corev1.Secret{
 		Data: map[string][]byte{

@@ -53,7 +53,10 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 	defer mu.Unlock()
 
 	// List all the CertificateAuthorityActivations
-	dynClient, err := client.GetClient()
+	dynClient, err := client.GetDynamicClient()
+	if err != nil {
+		return nil, err
+	}
 
 	var caActivationResource = schema.GroupVersionResource{Group: "acmpca.services.k8s.aws", Version: "v1alpha1", Resource: "certificateauthorityactivations"}
 	list, err := dynClient.Resource(caActivationResource).Namespace("").List(ctx, metav1.ListOptions{})

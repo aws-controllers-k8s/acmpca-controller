@@ -15,6 +15,8 @@ package client
 
 import (
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
+	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 )
 
@@ -22,7 +24,7 @@ var (
 	dynClient *dynamic.DynamicClient
 )
 
-func GetClient() (client *dynamic.DynamicClient, err error) {
+func GetDynamicClient() (client *dynamic.DynamicClient, err error) {
 	if dynClient == nil {
 		config, err := rest.InClusterConfig()
 		if err != nil {
@@ -35,4 +37,20 @@ func GetClient() (client *dynamic.DynamicClient, err error) {
 		}
 	}
 	return dynClient, nil
+}
+
+func GetSecretsClient(
+	namespace string,
+) (client v1.SecretInterface, err error) {
+
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return nil, err
+	}
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+	secretsClient := clientset.CoreV1().Secrets(namespace)
+	return secretsClient, nil
 }
