@@ -161,3 +161,39 @@ func (rm *resourceManager) customUpdateCertificateAuthorityActivation(
 	rm.setStatusDefaults(ko)
 	return &resource{ko}, nil
 }
+
+func (rm *resourceManager) customDeleteCertificateAuthorityActivation(
+	ctx context.Context,
+	r *resource,
+) (err error) {
+
+	input := &svcsdk.DescribeCertificateAuthorityInput{}
+	input.CertificateAuthorityArn = r.ko.Spec.CertificateAuthorityARN
+
+	var resp *svcsdk.DescribeCertificateAuthorityOutput
+	resp, err = rm.sdkapi.DescribeCertificateAuthorityWithContext(ctx, input)
+	rm.metrics.RecordAPICall("READ_ONE", "DescribeCertificateAuthority", err)
+	if err != nil {
+		return err
+	}
+
+	if *resp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusDeleted && *resp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusDisabled {
+		input := &svcsdk.UpdateCertificateAuthorityInput{}
+
+		if r.ko.Spec.CertificateAuthorityARN != nil {
+			input.SetCertificateAuthorityArn(*r.ko.Spec.CertificateAuthorityARN)
+		}
+
+		input.SetStatus(svcsdk.CertificateAuthorityStatusDisabled)
+
+		var resp *svcsdk.UpdateCertificateAuthorityOutput
+		_ = resp
+		resp, err = rm.sdkapi.UpdateCertificateAuthorityWithContext(ctx, input)
+		rm.metrics.RecordAPICall("UPDATE", "UpdateCertificateAuthority", err)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
