@@ -1,0 +1,70 @@
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: CertificateAuthority
+metadata:
+  name: <CA NAME>
+spec:
+  certificateAuthorityType: ROOT
+  certificateAuthorityConfiguration:
+    subject:
+      country: <COUNTRY>
+      organization: <ORG>
+      organizationalUnit: <ORG UNIT>
+      distinguishedNameQualifier: <DISTINGUISHED NAME QUALIFIER>
+      state: <STATE>
+      commonName: <COMMON NAME>
+      serialNumber: <SERIAL NUMBER>
+      locality: <LOCALITY>
+      title: <TITLE>
+      surname: <SURNAME>
+      givenName: <GIVEN NAME>
+      initials: <INITIALS>
+      pseudonym: <PSEUDONYM>
+      generationQualifier: <GENERATIONAL QUALIFIER>
+    keyAlgorithm: RSA_2048
+    signingAlgorithm: SHA256WITHRSA
+  tags:
+    - key: <KEY>
+      value: <VALUE>
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: certificate-secret
+  nampspace: default
+data:
+  certificate: ""
+---
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: Certificate
+metadata:
+  name: <CERT NAME>
+  annotations:
+    ack.aws.k8s.io/secret-namespace: default
+    ack.aws.k8s.io/secret-name: certificate-secret
+    ack.aws.k8s.io/secret-key: certificate
+spec:
+  certificateAuthorityRef:
+    from:
+      name: <CA NAME>
+  certificateSigningRequestRef:
+    from:
+      name: <CA NAME>
+  signingAlgorithm: SHA256WITHRSA
+  templateARN: arn:aws:acm-pca:::template/RootCACertificate/V1
+  validity:
+    type_: DAYS
+    value: 100
+---
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: CertificateAuthorityActivation
+metadata:
+  name: <CA ACTIVATION NAME>
+spec:
+  certificateAuthorityRef:
+    from:
+      name: <CA NAME>
+  certificate:
+    namespace: default
+    name: certificate-secret
+    key: certificate
+  status: ACTIVE
