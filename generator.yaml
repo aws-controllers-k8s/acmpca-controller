@@ -38,6 +38,14 @@ resources:
       - ValidationError
       - ValidationException
     fields: 
+      CertificateAuthorityConfiguration:
+        is_immutable: true
+      CertificateAuthorityType:
+        is_immutable: true
+      KeyStorageSecurityStandard:
+        is_immutable: true
+      UsageMode:
+        is_immutable: true
       CSR:
         is_read_only: true
         type: 'bytes'

@@ -746,6 +746,10 @@ func (rm *resourceManager) sdkUpdate(
 	defer func() {
 		exit(err)
 	}()
+	if immutableFieldChanges := rm.getImmutableFieldChanges(delta); len(immutableFieldChanges) > 0 {
+		msg := fmt.Sprintf("Immutable Spec fields have been modified: %s", strings.Join(immutableFieldChanges, ","))
+		return nil, ackerr.NewTerminalError(fmt.Errorf(msg))
+	}
 	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
 	if err != nil {
 		return nil, err
@@ -825,6 +829,7 @@ func (rm *resourceManager) sdkDelete(
 	defer func() {
 		exit(err)
 	}()
+
 	input, err := rm.newDeleteRequestPayload(r)
 	if err != nil {
 		return nil, err
@@ -968,4 +973,25 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	default:
 		return false
 	}
+}
+
+// getImmutableFieldChanges returns list of immutable fields from the
+func (rm *resourceManager) getImmutableFieldChanges(
+	delta *ackcompare.Delta,
+) []string {
+	var fields []string
+	if delta.DifferentAt("Spec.CertificateAuthorityConfiguration") {
+		fields = append(fields, "CertificateAuthorityConfiguration")
+	}
+	if delta.DifferentAt("Spec.CertificateAuthorityType") {
+		fields = append(fields, "CertificateAuthorityType")
+	}
+	if delta.DifferentAt("Spec.KeyStorageSecurityStandard") {
+		fields = append(fields, "KeyStorageSecurityStandard")
+	}
+	if delta.DifferentAt("Spec.UsageMode") {
+		fields = append(fields, "UsageMode")
+	}
+
+	return fields
 }
