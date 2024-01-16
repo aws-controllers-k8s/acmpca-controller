@@ -825,6 +825,7 @@ func (rm *resourceManager) sdkDelete(
 	defer func() {
 		exit(err)
 	}()
+
 	input, err := rm.newDeleteRequestPayload(r)
 	if err != nil {
 		return nil, err
