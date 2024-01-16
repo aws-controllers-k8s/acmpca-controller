@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: certificate-secret
-  nampspace: default
+  namespace: default
 data:
   certificate: ""
 ---
