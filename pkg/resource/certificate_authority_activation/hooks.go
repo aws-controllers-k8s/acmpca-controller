@@ -42,11 +42,8 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 		exit(err)
 	}()
 
-	// If any required fields in the input shape are missing, AWS resource is
-	// not created yet. Return NotFound here to indicate to callers that the
-	// resource isn't yet created.
 	if r.ko.Spec.CertificateAuthorityARN == nil && r.ko.Spec.CertificateAuthorityRef.From.Name == nil {
-		return nil, ackerr.NotFound
+		return nil, ackerr.Terminal
 	}
 
 	// lock runtime
