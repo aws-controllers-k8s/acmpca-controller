@@ -205,16 +205,31 @@ class TestRootCA:
         acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE") 
 
         # Update CAActivation
-        act_cr["spec"]["status"] = "DISABLED"
+        patch = {"spec": {"status": "DISABLED"}}
 
         # Patch k8s resource
-        patch_res = k8s.patch_custom_resource(act_ref, act_cr)
-        logging.info(patch_res)
+        _ = k8s.patch_custom_resource(act_ref, patch)
         time.sleep(UPDATE_WAIT_AFTER_SECONDS) 
+        act_cr = k8s.get_resource(act_ref)
+
+        assert act_cr["spec"]["status"] == "DISABLED"
         
         # Check CA status is DISABLED
         acmpca_validator.assert_certificate_authority(ca_arn, "DISABLED")
 
+        # Update CAActivation
+        patch = {"spec": {"status": "ACTIVE"}}
+
+        # Patch k8s resource
+        _ = k8s.patch_custom_resource(act_ref, patch)
+        time.sleep(UPDATE_WAIT_AFTER_SECONDS) 
+        act_cr = k8s.get_resource(act_ref)
+
+        assert act_cr["spec"]["status"] == "ACTIVE"
+        
+        # Check CA status is ACTIVE
+        acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE")
+        
         #Delete Certificate k8s resource
         _, deleted = k8s.delete_custom_resource(ref)
         assert deleted is True
@@ -222,3 +237,8 @@ class TestRootCA:
         #Delete CAActivation k8s resource
         _, deleted = k8s.delete_custom_resource(act_ref)
         assert deleted is True
+
+        time.sleep(DELETE_WAIT_AFTER_SECONDS) 
+
+        # Check CA status is DISABLED after deleting CAActivation resource
+        acmpca_validator.assert_certificate_authority(ca_arn, "DISABLED")
