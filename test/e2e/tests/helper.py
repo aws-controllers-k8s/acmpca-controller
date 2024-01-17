@@ -39,6 +39,16 @@ class ACMPCAValidator:
             assert tag in ca_tags
         except self.acmpca_client.exceptions.ClientError:
             pass
+    
+    def assert_not_in_ca_tags(self, ca_arn: str, key: str, val: str):
+        try:
+            aws_res = self.acmpca_client.list_tags(CertificateAuthorityArn=ca_arn, MaxResults=10)
+            ca_tags = aws_res["Tags"]
+            logging.info(aws_res["Tags"])
+            tag = {'Key': key, 'Value': val}
+            assert tag not in ca_tags
+        except self.acmpca_client.exceptions.ClientError:
+            pass
 
     def get_csr(self, ca_arn: str):
         try:
