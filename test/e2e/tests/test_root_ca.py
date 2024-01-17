@@ -95,7 +95,7 @@ def test_create_ca(acmpca_client):
     # Check Tags
     acmpca_validator.assert_ca_tags(ca_resource_arn, "tag1", "val1")
 
-    # Update CAActivation
+    # Update CA
     patch = {"spec": {"tags": [{'key': 'tag2', 'value': 'val2'}]}}
 
     # Patch k8s resource
