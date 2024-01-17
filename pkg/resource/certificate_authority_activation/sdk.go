@@ -139,6 +139,7 @@ func (rm *resourceManager) sdkDelete(
 	defer func() {
 		exit(err)
 	}()
+
 	// TODO(jaypipes): Figure this out...
 	return nil, nil
 

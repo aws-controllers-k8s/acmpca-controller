@@ -368,6 +368,34 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	rm.setStatusDefaults(ko)
+	resourceARN := (*string)(ko.Status.ACKResourceMetadata.ARN)
+	tags, err := rm.getTags(ctx, *resourceARN)
+	if err != nil {
+		return nil, err
+	}
+	ko.Spec.Tags = tags
+
+	if ko.Spec.KeyStorageSecurityStandard == nil {
+		ko.Spec.KeyStorageSecurityStandard = aws.String("FIPS_140_2_LEVEL_3_OR_HIGHER")
+	}
+
+	if ko.Spec.UsageMode == nil {
+		ko.Spec.UsageMode = aws.String("GENERAL_PURPOSE")
+	}
+
+	if ko.Spec.RevocationConfiguration == nil {
+		revocationConfiguration := &svcapitypes.RevocationConfiguration{}
+
+		revocationConfigurationCRLConfiguration := &svcapitypes.CRLConfiguration{}
+		revocationConfigurationCRLConfiguration.Enabled = aws.Bool(false)
+		revocationConfiguration.CRLConfiguration = revocationConfigurationCRLConfiguration
+
+		revocationConfigurationOCSPConfiguration := &svcapitypes.OCSPConfiguration{}
+		revocationConfigurationOCSPConfiguration.Enabled = aws.Bool(false)
+		revocationConfiguration.OCSPConfiguration = revocationConfigurationOCSPConfiguration
+
+		ko.Spec.RevocationConfiguration = revocationConfiguration
+	}
 	return &resource{ko}, nil
 }
 
@@ -749,6 +777,13 @@ func (rm *resourceManager) sdkUpdate(
 	if immutableFieldChanges := rm.getImmutableFieldChanges(delta); len(immutableFieldChanges) > 0 {
 		msg := fmt.Sprintf("Immutable Spec fields have been modified: %s", strings.Join(immutableFieldChanges, ","))
 		return nil, ackerr.NewTerminalError(fmt.Errorf(msg))
+	}
+	latest, err = rm.sdkFind(ctx, latest)
+	if delta.DifferentAt("Spec.Tags") {
+		err := rm.syncTags(ctx, desired, latest)
+		if err != nil {
+			return nil, err
+		}
 	}
 	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
 	if err != nil {

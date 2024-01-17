@@ -95,6 +95,19 @@ def test_create_ca(acmpca_client):
     # Check Tags
     acmpca_validator.assert_ca_tags(ca_resource_arn, "tag1", "val1")
 
+    # Update CAActivation
+    patch = {"spec": {"tags": [{'key': 'tag2', 'value': 'val2'}]}}
+
+    # Patch k8s resource
+    patch_res = k8s.patch_custom_resource(ca_ref, patch)
+    logging.info(patch_res)
+    time.sleep(UPDATE_WAIT_AFTER_SECONDS) 
+    ca_cr = k8s.get_resource(ca_ref)
+    logging.info(ca_cr)
+
+    # Check Tags
+    acmpca_validator.assert_ca_tags(ca_resource_arn, "tag2", "val2")
+
     # Check CSR
     assert 'status' in ca_cr
     assert 'csr' in ca_cr['status']
