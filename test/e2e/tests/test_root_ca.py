@@ -107,6 +107,7 @@ def test_create_ca(acmpca_client):
 
     # Check Tags
     acmpca_validator.assert_ca_tags(ca_resource_arn, "tag2", "val2")
+    acmpca_validator.assert_not_in_ca_tags(ca_resource_arn, "tag1", "val1")
 
     # Check CSR
     assert 'status' in ca_cr
