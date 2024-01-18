@@ -91,7 +91,7 @@ func (rm *resourceManager) sdkFind(
 	ko := r.ko.DeepCopy()
 
 	rm.setStatusDefaults(ko)
-	err = rm.writeCertificateToSecret(ctx, resp.Certificate, ko.ObjectMeta.GetAnnotations())
+	err = rm.writeCertificateToSecret(ctx, resp.Certificate, r)
 	if err != nil {
 		return nil, err
 	}
