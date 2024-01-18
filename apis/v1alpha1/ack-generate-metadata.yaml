@@ -1,5 +1,5 @@
 ack_generate_info:
-  build_date: "2024-01-18T18:01:45Z"
+  build_date: "2024-01-18T18:56:15Z"
   build_hash: aaa641c23ab78b505ef6f369ce371ac73a163dec
   go_version: go1.21.5
   version: v0.28.0

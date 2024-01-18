@@ -42,7 +42,7 @@ func (rm *resourceManager) writeCertificateToSecret(
 
 	key, found := annotations["acmpca.services.k8s.aws/output-secret-key"]
 	if !found {
-		return ackerr.SecretNotFound
+		key = "certificate"
 	}
 
 	secretsClient, err := client.GetSecretsClient(namespace)

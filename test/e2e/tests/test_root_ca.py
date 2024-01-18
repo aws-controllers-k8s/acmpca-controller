@@ -39,7 +39,7 @@ def create_secret(k8s_secret):
     secret = k8s_secret(
         "default",
         "certificate-secret",
-        "certificate",
+        "key",
         "value"
     )
     yield secret
@@ -130,7 +130,7 @@ class TestRootCA:
         replacements["CA_NAME"] = ca_name
         replacements["CERTIFICATE_SEC_NS"] = secret.ns
         replacements["CERTIFICATE_SEC_NAME"] = secret.name
-        replacements["CERTIFICATE_SEC_KEY"] = secret.key
+        #replacements["CERTIFICATE_SEC_KEY"] = secret.key
         replacements["TEMPLATE_ARN"] = "arn:aws:acm-pca:::template/RootCACertificate/V1"
 
         # Load Certificate CR
@@ -180,7 +180,7 @@ class TestRootCA:
         replacements["CA_ARN"] = ca_arn
         replacements["CERTIFICATE_SECRET_NAMESPACE"] = secret.ns
         replacements["CERTIFICATE_SECRET_NAME"] = secret.name
-        replacements["CERTIFICATE_SECRET_KEY"] = secret.key
+        replacements["CERTIFICATE_SECRET_KEY"] = "certificate" #secret.key
         
         # Load CAActivation CR
         act_resource_data = load_acmpca_resource(
