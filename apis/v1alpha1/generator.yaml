@@ -59,10 +59,22 @@ resources:
         references:
           resource: CertificateAuthority
           path: Status.ACKResourceMetadata.ARN
+        is_immutable: true
       CSR:
         references:
           resource: CertificateAuthority
           path: Status.CSR
+        is_immutable: true
+      APIPassthrough:
+        is_immutable: true
+      SigningAlgorithm:
+        is_immutable: true
+      TemplateARN:
+        is_immutable: true
+      Validity:
+        is_immutable: true
+      ValidityNotBefore:
+        is_immutable: true
     tags:
       ignore: true
   CertificateAuthorityActivation:
