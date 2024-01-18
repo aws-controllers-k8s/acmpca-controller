@@ -128,7 +128,7 @@ class TestRootCA:
         replacements = {}
         replacements["NAME"] = cert_name
         replacements["CA_NAME"] = ca_name
-        replacements["CERTIFICATE_SEC_NS"] = secret.ns
+        #replacements["CERTIFICATE_SEC_NS"] = secret.ns
         replacements["CERTIFICATE_SEC_NAME"] = secret.name
         #replacements["CERTIFICATE_SEC_KEY"] = secret.key
         replacements["TEMPLATE_ARN"] = "arn:aws:acm-pca:::template/RootCACertificate/V1"

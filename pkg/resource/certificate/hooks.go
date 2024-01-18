@@ -27,12 +27,14 @@ import (
 func (rm *resourceManager) writeCertificateToSecret(
 	ctx context.Context,
 	certificate *string,
-	annotations map[string]string,
+	r *resource,
 ) (err error) {
+
+	annotations := r.ko.ObjectMeta.GetAnnotations()
 
 	namespace, found := annotations["acmpca.services.k8s.aws/output-secret-namespace"]
 	if !found {
-		namespace = "default"
+		namespace = r.MetaObject().GetNamespace()
 	}
 
 	name, found := annotations["acmpca.services.k8s.aws/output-secret-name"]
