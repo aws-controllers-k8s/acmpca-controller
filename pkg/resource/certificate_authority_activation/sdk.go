@@ -139,7 +139,6 @@ func (rm *resourceManager) sdkDelete(
 	defer func() {
 		exit(err)
 	}()
-
 	return rm.customDeleteCertificateAuthorityActivation(ctx, r)
 }
 
