@@ -30,17 +30,17 @@ func (rm *resourceManager) writeCertificateToSecret(
 	annotations map[string]string,
 ) (err error) {
 
-	namespace, found := annotations["ack.aws.k8s.io/secret-namespace"]
+	namespace, found := annotations["acmpca.services.k8s.aws/output-secret-namespace"]
 	if !found {
 		namespace = "default"
 	}
 
-	name, found := annotations["ack.aws.k8s.io/secret-name"]
+	name, found := annotations["acmpca.services.k8s.aws/output-secret-name"]
 	if !found {
 		return ackerr.SecretNotFound
 	}
 
-	key, found := annotations["ack.aws.k8s.io/secret-key"]
+	key, found := annotations["acmpca.services.k8s.aws/output-secret-key"]
 	if !found {
 		return ackerr.SecretNotFound
 	}
