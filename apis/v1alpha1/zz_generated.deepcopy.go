@@ -400,8 +400,8 @@ func (in *CertificateAuthorityActivationSpec) DeepCopyInto(out *CertificateAutho
 	}
 	if in.CertificateChain != nil {
 		in, out := &in.CertificateChain, &out.CertificateChain
-		*out = make([]byte, len(*in))
-		copy(*out, *in)
+		*out = new(corev1alpha1.SecretKeyReference)
+		**out = **in
 	}
 	if in.Status != nil {
 		in, out := &in.Status, &out.Status

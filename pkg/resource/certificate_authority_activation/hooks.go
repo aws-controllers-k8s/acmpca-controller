@@ -15,17 +15,20 @@ package certificate_authority_activation
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sync"
 
-	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	client "github.com/aws-controllers-k8s/acmpca-controller/pkg/client"
+	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	svcsdk "github.com/aws/aws-sdk-go/service/acmpca"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 var (
@@ -160,4 +163,59 @@ func (rm *resourceManager) customUpdateCertificateAuthorityActivation(
 
 	rm.setStatusDefaults(ko)
 	return &resource{ko}, nil
+}
+
+func (rm *resourceManager) writeCertificateChainToSecret(
+	ctx context.Context,
+	certificate string,
+	certificateChain string,
+	r *resource,
+) (err error) {
+
+	annotations := r.ko.ObjectMeta.GetAnnotations()
+
+	namespace, found := annotations["acmpca.services.k8s.aws/output-chain-namespace"]
+	if !found {
+		namespace = r.MetaObject().GetNamespace()
+	}
+
+	name, found := annotations["acmpca.services.k8s.aws/output-chain-name"]
+	if !found {
+		return ackerr.SecretNotFound
+	}
+
+	key, found := annotations["acmpca.services.k8s.aws/output-chain-key"]
+	if !found {
+		key = "certificateChain"
+	}
+
+	completeCertificateChain := certificate
+
+	if certificateChain != "" {
+		completeCertificateChain = certificate + "\n" + certificateChain
+	}
+
+	secretsClient, err := client.GetSecretsClient(namespace)
+	if err != nil {
+		return err
+	}
+
+	secret := corev1.Secret{
+		Data: map[string][]byte{
+			key: []byte(completeCertificateChain),
+		},
+	}
+
+	payloadBytes, err := json.Marshal(secret)
+	if err != nil {
+		return err
+	}
+
+	_, err = secretsClient.Patch(ctx, name, types.StrategicMergePatchType, payloadBytes, metav1.PatchOptions{})
+	rm.metrics.RecordAPICall("PATCH", "writeCertificateChainToSecret", err)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
