@@ -45,6 +45,16 @@ def create_secret(k8s_secret):
     yield secret
 
 @pytest.fixture(scope="module")
+def create_certificate_chain_secret(k8s_secret):
+    secret = k8s_secret(
+        "default",
+        "certificate-chain-secret",
+        "certificateChain",
+        "test"
+    )
+    yield secret
+
+@pytest.fixture(scope="module")
 def test_create_ca(acmpca_client):
     ca_name = random_suffix_name("certificate-authority", 50)
     replacements = {}
@@ -115,7 +125,7 @@ def test_create_ca(acmpca_client):
 @service_marker
 class TestRootCA:
 
-    def test_ca_activation(self, acmpca_client, create_secret, test_create_ca):
+    def test_ca_activation(self, acmpca_client, create_secret, create_certificate_chain_secret, test_create_ca):
         
         (ca_ref, ca_cr, ca_name) = test_create_ca
         ca_arn = ca_cr['status']['ackResourceMetadata']['arn']
@@ -124,7 +134,10 @@ class TestRootCA:
 
         secret = create_secret
         logging.info(secret)
-        
+
+        certificate_chain_secret = create_certificate_chain_secret
+        logging.info(certificate_chain_secret)
+
         replacements = {}
         replacements["NAME"] = cert_name
         replacements["CA_NAME"] = ca_name
@@ -181,6 +194,9 @@ class TestRootCA:
         replacements["CERTIFICATE_SECRET_NAMESPACE"] = secret.ns
         replacements["CERTIFICATE_SECRET_NAME"] = secret.name
         replacements["CERTIFICATE_SECRET_KEY"] = secret.key
+        replacements["CERTIFICATE_CHAIN_SEC_NS"] = certificate_chain_secret.ns
+        replacements["CERTIFICATE_CHAIN_SEC_NAME"] = certificate_chain_secret.name
+        replacements["CERTIFICATE_CHAIN_SEC_KEY"] = certificate_chain_secret.key
         
         # Load CAActivation CR
         act_resource_data = load_acmpca_resource(
@@ -203,6 +219,14 @@ class TestRootCA:
         logging.info(act_cr)
 
         acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE") 
+
+        # Check certificate chain is in secret
+        _api_client = _get_k8s_api_client()
+        api_response = client.CoreV1Api(_api_client).read_namespaced_secret(certificate_chain_secret.name, certificate_chain_secret.ns).data
+        #logging.info(api_response)
+
+        assert certificate_chain_secret.key in api_response
+        assert base64.b64decode(api_response[certificate_chain_secret.key]).decode("ascii") == cert
 
         # Update CAActivation
         act_cr["spec"]["status"] = "DISABLED"
