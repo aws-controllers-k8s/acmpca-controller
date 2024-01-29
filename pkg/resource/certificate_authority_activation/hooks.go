@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"sync"
 
-	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	client "github.com/aws-controllers-k8s/acmpca-controller/pkg/client"
+	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	svcsdk "github.com/aws/aws-sdk-go/service/acmpca"
