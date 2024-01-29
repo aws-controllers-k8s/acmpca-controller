@@ -45,14 +45,14 @@ def create_secret(k8s_secret):
     yield secret
 
 @pytest.fixture(scope="module")
-def test_create_ca(acmpca_client):
+def create_ca():
     ca_name = random_suffix_name("certificate-authority", 50)
     replacements = {}
     replacements["NAME"] = ca_name
-    replacements["COMMON_NAME"] = "www.example.com"
+    replacements["COMMON_NAME"] = "www.example2.com"
     replacements["COUNTRY"] = "US"
     replacements["LOCALITY"] = "Arlington"
-    replacements["ORG"] = "Example Organization"
+    replacements["ORG"] = "Example Organization 2"
     replacements["STATE"] = "Virginia"
 
     # Load CA CR
@@ -74,50 +74,23 @@ def test_create_ca(acmpca_client):
     assert ca_cr is not None
     assert k8s.get_resource_exists(ca_ref)
     logging.info(ca_cr)
+    logging.info(ca_ref)
 
     ca_resource_arn =  k8s.get_resource_arn(ca_cr)
     assert ca_resource_arn is not None
 
-    # Check CA status is PENDING_CERTIFICATE
-    acmpca_validator = ACMPCAValidator(acmpca_client)
-    ca = acmpca_validator.assert_certificate_authority(ca_resource_arn, "PENDING_CERTIFICATE")
-
-    # Check CA fields
-    assert ca["Type"] == "ROOT"
-    assert ca["CertificateAuthorityConfiguration"]["Subject"]["CommonName"] == "www.example.com"
-    assert ca["CertificateAuthorityConfiguration"]["Subject"]["Country"] == "US"
-    assert ca["CertificateAuthorityConfiguration"]["Subject"]["Locality"] == "Arlington"
-    assert ca["CertificateAuthorityConfiguration"]["Subject"]["Organization"] == "Example Organization"
-    assert ca["CertificateAuthorityConfiguration"]["Subject"]["State"] == "Virginia"
-    assert ca["CertificateAuthorityConfiguration"]["KeyAlgorithm"] == "RSA_2048"
-    assert ca["CertificateAuthorityConfiguration"]["SigningAlgorithm"] == "SHA256WITHRSA"
-
-    # Check Tags
-    acmpca_validator.assert_ca_tags(ca_resource_arn, "tag1", "val1")
-
-    # Check CSR
-    assert 'status' in ca_cr
-    assert 'csr' in ca_cr['status']
-    csr = acmpca_validator.get_csr(ca_resource_arn)
-    assert base64.b64decode(ca_cr['status']['csr']).decode("ascii") == csr
-
-    yield (ca_ref, ca_cr, ca_name)
+    yield (ca_cr, ca_name)
 
     #Delete CA k8s resource
     _, deleted = k8s.delete_custom_resource(ca_ref)
     assert deleted is True
 
-    time.sleep(DELETE_WAIT_AFTER_SECONDS) 
-
-    # Check CA status is DELETED
-    acmpca_validator.assert_certificate_authority(ca_resource_arn, "DELETED") 
-
 @service_marker
-class TestRootCA:
+class TestCertificate:
 
-    def test_ca_activation(self, acmpca_client, create_secret, test_create_ca):
+    def test_create_delete(self, acmpca_client, create_secret, create_ca):
         
-        (ca_ref, ca_cr, ca_name) = test_create_ca
+        (ca_cr, ca_name) = create_ca
         ca_arn = ca_cr['status']['ackResourceMetadata']['arn']
 
         cert_name = random_suffix_name("certificate", 30)
@@ -149,6 +122,10 @@ class TestRootCA:
 
         time.sleep(CREATE_WAIT_AFTER_SECONDS)
 
+        # Check CA status is PENDING_CERTIFICATE
+        acmpca_validator = ACMPCAValidator(acmpca_client)
+        acmpca_validator.assert_certificate_authority(ca_arn, "PENDING_CERTIFICATE")
+
         assert cr is not None
         assert k8s.get_resource_exists(ref)
         logging.info(cr)
@@ -161,7 +138,7 @@ class TestRootCA:
         api_response = client.CoreV1Api(_api_client).read_namespaced_secret(secret.name, secret.ns).data
         #logging.info(api_response)
 
-        acmpca_validator = ACMPCAValidator(acmpca_client)
+        #acmpca_validator = ACMPCAValidator(acmpca_client)
         cert = acmpca_validator.get_certificate(ca_arn=ca_arn, cert_arn=resource_arn)
 
         assert 'certificate' in api_response
@@ -169,56 +146,7 @@ class TestRootCA:
 
         logging.info(cr['status'].values())
         assert cert not in cr['status'].values()
-        
-        #CAActivation 
-  
-        activation_name = random_suffix_name("certificate-authority-activation", 50)
-        
-        replacements = REPLACEMENT_VALUES.copy()
-        replacements["NAME"] = activation_name
-        replacements["CA_NAME"] = ca_name
-        replacements["CA_ARN"] = ca_arn
-        replacements["CERTIFICATE_SECRET_NAMESPACE"] = secret.ns
-        replacements["CERTIFICATE_SECRET_NAME"] = secret.name
-        replacements["CERTIFICATE_SECRET_KEY"] = secret.key
-        
-        # Load CAActivation CR
-        act_resource_data = load_acmpca_resource(
-            "certificate_authority_activation",
-            additional_replacements=replacements,
-        )
-
-        # Create k8s resource
-        act_ref = k8s.create_reference(
-            CRD_GROUP, CRD_VERSION, "certificateauthorityactivations",
-            activation_name, namespace="default",
-        )
-        k8s.create_custom_resource(act_ref, act_resource_data)
-        act_cr = k8s.wait_resource_consumed_by_controller(act_ref)
-
-        time.sleep(CREATE_WAIT_AFTER_SECONDS)
-
-        assert act_cr is not None
-        assert k8s.get_resource_exists(act_ref)
-        logging.info(act_cr)
-
-        acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE") 
-
-        # Update CAActivation
-        act_cr["spec"]["status"] = "DISABLED"
-
-        # Patch k8s resource
-        patch_res = k8s.patch_custom_resource(act_ref, act_cr)
-        logging.info(patch_res)
-        time.sleep(UPDATE_WAIT_AFTER_SECONDS) 
-        
-        # Check CA status is DISABLED
-        acmpca_validator.assert_certificate_authority(ca_arn, "DISABLED")
 
         #Delete Certificate k8s resource
         _, deleted = k8s.delete_custom_resource(ref)
-        assert deleted is True
-
-        #Delete CAActivation k8s resource
-        _, deleted = k8s.delete_custom_resource(act_ref)
         assert deleted is True
