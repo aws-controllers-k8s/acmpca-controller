@@ -10,11 +10,8 @@ rules:
   - acmpca.services.k8s.aws
   resources:
   - certificates
-
   - certificateauthorities
-
   - certificateauthorityactivations
-
   verbs:
   - create
   - delete
