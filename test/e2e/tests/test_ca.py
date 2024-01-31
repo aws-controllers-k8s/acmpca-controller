@@ -34,42 +34,59 @@ CREATE_WAIT_AFTER_SECONDS = 10
 UPDATE_WAIT_AFTER_SECONDS = 10
 DELETE_WAIT_AFTER_SECONDS = 10
 
+@pytest.fixture(scope="module")
+def create_ca(acmpca_client):
+    ca_name = random_suffix_name("certificate-authority", 50)
+    replacements = {}
+    replacements["NAME"] = ca_name
+    replacements["COMMON_NAME"] = "www.example.com"
+    replacements["COUNTRY"] = "US"
+    replacements["LOCALITY"] = "Arlington"
+    replacements["ORG"] = "Example Organization"
+    replacements["STATE"] = "Virginia"
+
+    # Load CA CR
+    ca_resource_data = load_acmpca_resource(
+        "certificate_authority",
+        additional_replacements=replacements,
+    )
+
+    # Create k8s resource
+    ca_ref = k8s.create_reference(
+        CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+        ca_name, namespace="default",
+    )
+    k8s.create_custom_resource(ca_ref, ca_resource_data)
+    ca_cr = k8s.wait_resource_consumed_by_controller(ca_ref)
+
+    time.sleep(CREATE_WAIT_AFTER_SECONDS)
+
+    assert ca_cr is not None
+    assert k8s.get_resource_exists(ca_ref)
+    logging.info(ca_ref)
+
+    ca_resource_arn =  k8s.get_resource_arn(ca_cr)
+    assert ca_resource_arn is not None
+
+    yield (ca_cr, ca_resource_arn)
+
+    #Delete CA k8s resource
+    _, deleted = k8s.delete_custom_resource(ca_ref)
+    assert deleted is True
+
+    time.sleep(DELETE_WAIT_AFTER_SECONDS) 
+
+    # Check CA status is DELETED
+    acmpca_validator = ACMPCAValidator(acmpca_client)
+    acmpca_validator.assert_certificate_authority(ca_resource_arn, "DELETED")
+
 @service_marker
 class TestCertificateAuthority:
 
-    def test_create_delete(self, acmpca_client):
+    def test_create_delete(self, acmpca_client, create_ca):
         
-        ca_name = random_suffix_name("certificate-authority", 50)
-        replacements = {}
-        replacements["NAME"] = ca_name
-        replacements["COMMON_NAME"] = "www.example.com"
-        replacements["COUNTRY"] = "US"
-        replacements["LOCALITY"] = "Arlington"
-        replacements["ORG"] = "Example Organization"
-        replacements["STATE"] = "Virginia"
-
-        # Load CA CR
-        ca_resource_data = load_acmpca_resource(
-            "certificate_authority",
-            additional_replacements=replacements,
-        )
-
-        # Create k8s resource
-        ca_ref = k8s.create_reference(
-            CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
-            ca_name, namespace="default",
-        )
-        k8s.create_custom_resource(ca_ref, ca_resource_data)
-        ca_cr = k8s.wait_resource_consumed_by_controller(ca_ref)
-
-        time.sleep(CREATE_WAIT_AFTER_SECONDS)
-
-        assert ca_cr is not None
-        assert k8s.get_resource_exists(ca_ref)
-        logging.info(ca_ref)
-
-        ca_resource_arn =  k8s.get_resource_arn(ca_cr)
-        assert ca_resource_arn is not None
+        (ca_cr, ca_resource_arn) = create_ca
+        #ca_arn = ca_cr['status']['ackResourceMetadata']['arn']
 
         # Check CA status is PENDING_CERTIFICATE
         acmpca_validator = ACMPCAValidator(acmpca_client)
@@ -93,12 +110,3 @@ class TestCertificateAuthority:
         assert 'csr' in ca_cr['status']
         csr = acmpca_validator.get_csr(ca_resource_arn)
         assert base64.b64decode(ca_cr['status']['csr']).decode("ascii") == csr
-
-        #Delete CA k8s resource
-        _, deleted = k8s.delete_custom_resource(ca_ref)
-        assert deleted is True
-
-        time.sleep(DELETE_WAIT_AFTER_SECONDS) 
-
-        # Check CA status is DELETED
-        acmpca_validator.assert_certificate_authority(ca_resource_arn, "DELETED")
