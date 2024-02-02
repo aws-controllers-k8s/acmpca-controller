@@ -138,7 +138,6 @@ class TestCertificateAuthorityActivation:
         api_response = client.CoreV1Api(_api_client).read_namespaced_secret(secret.name, secret.ns).data
         #logging.info(api_response)
 
-        #acmpca_validator = ACMPCAValidator(acmpca_client)
         cert = acmpca_validator.get_certificate(ca_arn=ca_arn, cert_arn=resource_arn)
 
         assert 'certificate' in api_response
