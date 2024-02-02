@@ -86,7 +86,6 @@ class TestCertificateAuthority:
     def test_create_delete(self, acmpca_client, create_ca):
         
         (ca_cr, ca_resource_arn) = create_ca
-        #ca_arn = ca_cr['status']['ackResourceMetadata']['arn']
 
         # Check CA status is PENDING_CERTIFICATE
         acmpca_validator = ACMPCAValidator(acmpca_client)
