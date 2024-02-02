@@ -35,7 +35,7 @@ UPDATE_WAIT_AFTER_SECONDS = 10
 DELETE_WAIT_AFTER_SECONDS = 10
 
 @pytest.fixture(scope="module")
-def create_ca(acmpca_client):
+def simple_certificate_authority(acmpca_client):
     ca_name = random_suffix_name("certificate-authority", 50)
     replacements = {}
     replacements["NAME"] = ca_name
