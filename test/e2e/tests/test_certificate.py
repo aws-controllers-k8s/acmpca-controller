@@ -45,7 +45,7 @@ def create_secret(k8s_secret):
     yield secret
 
 @pytest.fixture(scope="module")
-def create_ca():
+def simple_certificate_authority():
     ca_name = random_suffix_name("certificate-authority", 50)
     replacements = {}
     replacements["NAME"] = ca_name
@@ -88,9 +88,9 @@ def create_ca():
 @service_marker
 class TestCertificate:
 
-    def test_create_delete(self, acmpca_client, create_secret, create_ca):
+    def test_create_delete(self, acmpca_client, create_secret, simple_certificate_authority):
         
-        (ca_cr, ca_name) = create_ca
+        (ca_cr, ca_name) = simple_certificate_authority
         ca_arn = ca_cr['status']['ackResourceMetadata']['arn']
 
         cert_name = random_suffix_name("certificate", 30)

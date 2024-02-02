@@ -83,9 +83,9 @@ def simple_certificate_authority(acmpca_client):
 @service_marker
 class TestCertificateAuthority:
 
-    def test_create_delete(self, acmpca_client, create_ca):
+    def test_create_delete(self, acmpca_client, simple_certificate_authority):
         
-        (ca_cr, ca_resource_arn) = create_ca
+        (ca_cr, ca_resource_arn) = simple_certificate_authority
 
         # Check CA status is PENDING_CERTIFICATE
         acmpca_validator = ACMPCAValidator(acmpca_client)
