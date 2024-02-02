@@ -58,7 +58,7 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 
 	if r.ko.Spec.CertificateAuthorityARN == nil && r.ko.Spec.CertificateAuthorityRef != nil {
 		var caResource = schema.GroupVersionResource{Group: "acmpca.services.k8s.aws", Version: "v1alpha1", Resource: "certificateauthorities"}
-		ca, err := dynClient.Resource(caResource).Namespace("default").Get(ctx, *r.ko.Spec.CertificateAuthorityRef.From.Name, metav1.GetOptions{})
+		ca, err := dynClient.Resource(caResource).Namespace(r.MetaObject().GetNamespace()).Get(ctx, *r.ko.Spec.CertificateAuthorityRef.From.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -73,7 +73,7 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 	}
 
 	var caActivationResource = schema.GroupVersionResource{Group: "acmpca.services.k8s.aws", Version: "v1alpha1", Resource: "certificateauthorityactivations"}
-	list, err := dynClient.Resource(caActivationResource).Namespace("default").List(ctx, metav1.ListOptions{})
+	list, err := dynClient.Resource(caActivationResource).Namespace(r.MetaObject().GetNamespace()).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 				return nil, fmt.Errorf("certificateAuthorityARN or certificateAuthorityRef field not found on CertificateAuthorityActivation spec")
 			}
 			var caResource = schema.GroupVersionResource{Group: "acmpca.services.k8s.aws", Version: "v1alpha1", Resource: "certificateauthorities"}
-			ca, err := dynClient.Resource(caResource).Namespace("default").Get(ctx, certificateAuthorityRef, metav1.GetOptions{})
+			ca, err := dynClient.Resource(caResource).Namespace(r.MetaObject().GetNamespace()).Get(ctx, certificateAuthorityRef, metav1.GetOptions{})
 			if err != nil {
 				return nil, err
 			}
