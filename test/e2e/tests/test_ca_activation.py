@@ -145,7 +145,6 @@ def simple_ca_activation(simple_root_certificate):
     replacements = REPLACEMENT_VALUES.copy()
     replacements["NAME"] = activation_name
     replacements["CA_NAME"] = ca_name
-    replacements["CA_ARN"] = ca_arn
     replacements["CERTIFICATE_SECRET_NAMESPACE"] = secret.ns
     replacements["CERTIFICATE_SECRET_NAME"] = secret.name
     replacements["CERTIFICATE_SECRET_KEY"] = secret.key
