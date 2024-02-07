@@ -3,7 +3,9 @@ kind: CertificateAuthorityActivation
 metadata:
   name: $NAME
 spec:
-  certificateAuthorityARN: $CA_ARN
+  certificateAuthorityRef:
+    from:
+      name: $CA_NAME
   certificate:
     namespace: $CERTIFICATE_SECRET_NAMESPACE
     name: $CERTIFICATE_SECRET_NAME
