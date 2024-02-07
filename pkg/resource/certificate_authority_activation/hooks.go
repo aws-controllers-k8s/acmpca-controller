@@ -208,7 +208,7 @@ func (rm *resourceManager) customDeleteCertificateAuthorityActivation(
 		return nil, err
 	}
 
-	if *resp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusDeleted && *resp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusDisabled {
+	if resp.CertificateAuthority.Status != nil && *resp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusDeleted && *resp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusDisabled {
 		input := &svcsdk.UpdateCertificateAuthorityInput{}
 
 		if r.ko.Spec.CertificateAuthorityARN != nil {
