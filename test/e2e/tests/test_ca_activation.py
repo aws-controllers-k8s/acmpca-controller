@@ -137,7 +137,7 @@ def simple_root_certificate(acmpca_client, create_secret, simple_certificate_aut
     assert deleted is True
 
 @pytest.fixture(scope="module")
-def simple_ca_activation(simple_root_certificate):
+def simple_ca_activation(simple_root_certificate, acmpca_client):
 
     (ca_name, ca_arn, secret) = simple_root_certificate
     activation_name = random_suffix_name("certificate-authority-activation", 50)
@@ -174,6 +174,13 @@ def simple_ca_activation(simple_root_certificate):
     #Delete CAActivation k8s resource
     _, deleted = k8s.delete_custom_resource(act_ref)
     assert deleted is True
+
+    time.sleep(DELETE_WAIT_AFTER_SECONDS)
+
+    # Check CA is DISABLED after CAActivation is deleted
+    acmpca_validator = ACMPCAValidator(acmpca_client)
+    acmpca_validator.assert_certificate_authority(ca_arn, "DISABLED")
+
 
 @pytest.fixture(scope="module")
 def simple_ca_activation_with_ref(simple_root_certificate):
@@ -212,7 +219,7 @@ def simple_ca_activation_with_ref(simple_root_certificate):
 
     #Delete CAActivation k8s resource
     _, deleted = k8s.delete_custom_resource(act_ref)
-    assert deleted is True
+    assert deleted is True 
     
 
 @service_marker
@@ -236,6 +243,18 @@ class TestCertificateAuthorityActivation:
         
         # Check CA status is DISABLED
         acmpca_validator.assert_certificate_authority(ca_arn, "DISABLED")
+        # Update CAActivation
+        patch = {"spec": {"status": "ACTIVE"}}
+
+        # Patch k8s resource
+        _ = k8s.patch_custom_resource(act_ref, patch)
+        time.sleep(UPDATE_WAIT_AFTER_SECONDS) 
+        act_cr = k8s.get_resource(act_ref)
+
+        assert act_cr["spec"]["status"] == "ACTIVE"
+
+        # Check CA status is ACTIVE
+        acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE")
     
     def test_ca_activation_with_ref(self, acmpca_client, simple_ca_activation_with_ref):
         
