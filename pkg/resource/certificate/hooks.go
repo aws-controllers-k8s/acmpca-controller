@@ -32,17 +32,17 @@ func (rm *resourceManager) writeCertificateToSecret(
 
 	annotations := r.ko.ObjectMeta.GetAnnotations()
 
-	namespace, found := annotations["acmpca.services.k8s.aws/output-secret-namespace"]
+	namespace, found := annotations["acmpca.services.k8s.aws/output-certificate-namespace"]
 	if !found {
 		namespace = r.MetaObject().GetNamespace()
 	}
 
-	name, found := annotations["acmpca.services.k8s.aws/output-secret-name"]
+	name, found := annotations["acmpca.services.k8s.aws/output-certificate-name"]
 	if !found {
 		return ackerr.SecretNotFound
 	}
 
-	key, found := annotations["acmpca.services.k8s.aws/output-secret-key"]
+	key, found := annotations["acmpca.services.k8s.aws/output-certificate-key"]
 	if !found {
 		key = "certificate"
 	}
