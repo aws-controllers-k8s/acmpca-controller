@@ -115,13 +115,13 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 		if certificateAuthorityARN == *r.ko.Spec.CertificateAuthorityARN {
 			numFound++
 			if numFound > 1 {
-				status, found, err := unstructured.NestedString(item.Object, "status", "status")
+				status, found, err := unstructured.NestedString(item.Object, "spec", "status")
 				if err != nil {
 					return nil, err
 				}
 
 				if !found {
-					return nil, fmt.Errorf("status field not found on CertificateAuthorityActivation status")
+					return nil, fmt.Errorf("status field not found on CertificateAuthorityActivation spec")
 				}
 
 				if status == svcsdk.CertificateAuthorityStatusActive {

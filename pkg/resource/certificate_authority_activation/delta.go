@@ -42,6 +42,7 @@ func newResourceDelta(
 		delta.Add("", a, b)
 		return delta
 	}
+	customSetDefaults(a, b)
 
 	if ackcompare.HasNilDifference(a.ko.Spec.Certificate, b.ko.Spec.Certificate) {
 		delta.Add("Spec.Certificate", a.ko.Spec.Certificate, b.ko.Spec.Certificate)

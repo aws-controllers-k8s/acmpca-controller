@@ -57,3 +57,31 @@ class ACMPCAValidator:
             return certificate
         except self.acmpca_client.exceptions.ClientError:
             pass
+
+    def disable_ca(self, ca_arn: str):
+        try:
+            aws_res = self.acmpca_client.update_certificate_authority(CertificateAuthorityArn=ca_arn, Status="DISABLED")
+        except self.acmpca_client.exceptions.ClientError:
+            pass
+
+    def delete_pending_cas(self):
+        try:
+            aws_res =  self.acmpca_client.list_certificate_authorities()
+            ca_list = aws_res["CertificateAuthorities"]
+            for ca in ca_list:
+                if ca['Status'] == "DISABLED" or ca['Status'] == "PENDING_CERTIFICATE":
+                    self.acmpca_client.delete_certificate_authority(CertificateAuthorityArn=ca['Arn'], PermanentDeletionTimeInDays=7)
+            nextToken = aws_res['NextToken']
+            while nextToken is not None:
+                aws_res =  self.acmpca_client.list_certificate_authorities(NextToken=nextToken)
+                ca_list = aws_res["CertificateAuthorities"]
+                for ca in ca_list:
+                    if ca['Status'] == "DISABLED" or ca['Status'] == "PENDING_CERTIFICATE":
+                        self.acmpca_client.delete_certificate_authority(CertificateAuthorityArn=ca['Arn'], PermanentDeletionTimeInDays=7)
+                if 'NextToken' in aws_res:
+                    nextToken = aws_res['NextToken']
+                else:
+                    nextToken = None
+            return True
+        except self.acmpca_client.exceptions.ClientError:
+            return False
