@@ -7,9 +7,6 @@ metadata:
     acmpca.services.k8s.aws/output-chain-name: $CERTIFICATE_CHAIN_SEC_NAME
     acmpca.services.k8s.aws/output-chain-key: $CERTIFICATE_CHAIN_SEC_KEY
 spec:
-  #certificateAuthorityRef:
-    #from:
-      #name: $CA_NAME
   certificateAuthorityARN: $CA_ARN
   certificate:
     namespace: $CERTIFICATE_SECRET_NAMESPACE
