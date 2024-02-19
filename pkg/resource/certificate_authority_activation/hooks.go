@@ -118,7 +118,7 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 				}
 
 				if !found {
-					return nil, fmt.Errorf("status field not found on CertificateAuthorityActivation status")
+					return nil, fmt.Errorf("status field not found on CertificateAuthorityActivation spec")
 				}
 
 				if status == svcsdk.CertificateAuthorityStatusActive {
