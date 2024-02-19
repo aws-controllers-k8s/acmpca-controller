@@ -68,7 +68,7 @@ def simple_certificate_authority(acmpca_client):
     ca_resource_arn =  k8s.get_resource_arn(ca_cr)
     assert ca_resource_arn is not None
 
-    yield (ca_cr, ca_resource_arn)
+    yield (ca_cr, ca_ref, ca_resource_arn)
 
     #Delete CA k8s resource
     _, deleted = k8s.delete_custom_resource(ca_ref)
@@ -85,7 +85,7 @@ class TestCertificateAuthority:
 
     def test_create_delete(self, acmpca_client, simple_certificate_authority):
         
-        (ca_cr, ca_resource_arn) = simple_certificate_authority
+        (ca_cr, ca_ref, ca_resource_arn) = simple_certificate_authority
 
         # Check CA status is PENDING_CERTIFICATE
         acmpca_validator = ACMPCAValidator(acmpca_client)
@@ -109,3 +109,27 @@ class TestCertificateAuthority:
         assert 'csr' in ca_cr['status']
         csr = acmpca_validator.get_csr(ca_resource_arn)
         assert base64.b64decode(ca_cr['status']['csr']).decode("ascii") == csr
+    
+    def test_update_tags(self, acmpca_client, simple_certificate_authority):
+        
+        (ca_cr, ca_ref, ca_resource_arn) = simple_certificate_authority
+
+        # Check CA status is PENDING_CERTIFICATE
+        acmpca_validator = ACMPCAValidator(acmpca_client)
+        ca = acmpca_validator.assert_certificate_authority(ca_resource_arn, "PENDING_CERTIFICATE")
+
+        # Update CA tags
+        # Update CAActivation
+        ca_cr["spec"]["tags"] = [{
+                'key': 'tag2',
+                'value': 'val2'
+            }]
+
+        # Patch k8s resource
+        patch_res = k8s.patch_custom_resource(ca_ref, ca_cr)
+        logging.info(patch_res)
+        time.sleep(UPDATE_WAIT_AFTER_SECONDS) 
+
+        # Check Tags
+        acmpca_validator.assert_ca_tags(ca_resource_arn, "tag2", "val2")
+        acmpca_validator.assert_not_in_ca_tags(ca_resource_arn, "tag1", "val1")
