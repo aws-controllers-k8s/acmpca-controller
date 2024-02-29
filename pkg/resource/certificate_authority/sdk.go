@@ -783,6 +783,9 @@ func (rm *resourceManager) sdkUpdate(
 		if err != nil {
 			return nil, err
 		}
+		if !delta.DifferentExcept("Spec.Tags") {
+			return desired, nil
+		}
 	}
 	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
 	if err != nil {
