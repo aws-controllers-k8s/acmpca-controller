@@ -153,9 +153,7 @@ func (rm *resourceManager) sdkDelete(
 	defer func() {
 		exit(err)
 	}()
-	// TODO(jaypipes): Figure this out...
-	return nil, nil
-
+	return rm.customDeleteCertificateAuthorityActivation(ctx, r)
 }
 
 // setStatusDefaults sets default properties into supplied custom resource
