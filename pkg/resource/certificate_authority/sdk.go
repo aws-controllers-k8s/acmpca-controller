@@ -778,7 +778,6 @@ func (rm *resourceManager) sdkUpdate(
 		msg := fmt.Sprintf("Immutable Spec fields have been modified: %s", strings.Join(immutableFieldChanges, ","))
 		return nil, ackerr.NewTerminalError(fmt.Errorf(msg))
 	}
-	latest, err = rm.sdkFind(ctx, latest)
 	if delta.DifferentAt("Spec.Tags") {
 		err := rm.syncTags(ctx, desired, latest)
 		if err != nil {
@@ -864,7 +863,6 @@ func (rm *resourceManager) sdkDelete(
 	defer func() {
 		exit(err)
 	}()
-
 	input, err := rm.newDeleteRequestPayload(r)
 	if err != nil {
 		return nil, err
