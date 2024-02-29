@@ -67,3 +67,15 @@ class ACMPCAValidator:
             return certificate
         except self.acmpca_client.exceptions.ClientError:
             pass
+
+    def delete_pending_cas(self):
+        try:
+            aws_res =  self.acmpca_client.list_certificate_authorities()
+            ca_list = aws_res["CertificateAuthorities"]
+            for ca in ca_list:
+                if ca['Status'] == "PENDING_CERTIFICATE":
+                    self.acmpca_client.delete_certificate_authority(CertificateAuthorityArn=ca['Arn'], PermanentDeletionTimeInDays=7)
+            return True
+        except self.acmpca_client.exceptions.ClientError:
+            return False
+            pass

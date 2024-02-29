@@ -100,5 +100,7 @@ resources:
       custom_method_name: customFindCertificateAuthorityActivation
     update_operation:
       custom_method_name: customUpdateCertificateAuthorityActivation
+    delete_operation:
+      custom_method_name: customDeleteCertificateAuthorityActivation
     tags:
       ignore: true
