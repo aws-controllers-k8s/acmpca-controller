@@ -27,6 +27,7 @@ from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_acmpca_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e.tests.helper import ACMPCAValidator
 from e2e.fixtures import k8s_secret
+from acktest import tags
 
 RESOURCE_PLURAL = "certificateauthorities"
 
@@ -102,7 +103,22 @@ class TestCertificateAuthority:
         assert ca["CertificateAuthorityConfiguration"]["SigningAlgorithm"] == "SHA256WITHRSA"
 
         # Check Tags
-        acmpca_validator.assert_ca_tags(ca_resource_arn, "tag1", "val1")
+        expected_tags = [
+            {
+                "key": "tag1",
+                "value": "val1"
+            },
+        ]
+        observed_tags = acmpca_validator.get_ca_tags(ca_resource_arn)
+        tags_dict = tags.to_dict(
+            expected_tags,
+            key_member_name="key",
+            value_member_name="value"
+        )
+        tags.assert_equal_without_ack_tags(
+            expected=tags_dict,
+            actual=observed_tags,
+        )
 
         # Check CSR
         assert 'status' in ca_cr
@@ -119,17 +135,32 @@ class TestCertificateAuthority:
         ca = acmpca_validator.assert_certificate_authority(ca_resource_arn, "PENDING_CERTIFICATE")
 
         # Update CA tags
-        # Update CAActivation
-        ca_cr["spec"]["tags"] = [{
-                'key': 'tag2',
-                'value': 'val2'
-            }]
+        new_tags = [
+            {
+                "key": "tag2",
+                "value": "val2"
+            },
+        ]
 
-        # Patch k8s resource
-        patch_res = k8s.patch_custom_resource(ca_ref, ca_cr)
+        updates = {
+            "spec": {
+                "tags": new_tags
+            },
+        }
+        patch_res = k8s.patch_custom_resource(ca_ref, updates)
         logging.info(patch_res)
         time.sleep(UPDATE_WAIT_AFTER_SECONDS) 
 
         # Check Tags
-        acmpca_validator.assert_ca_tags(ca_resource_arn, "tag2", "val2")
-        acmpca_validator.assert_not_in_ca_tags(ca_resource_arn, "tag1", "val1")
+        observed_tags = acmpca_validator.get_ca_tags(ca_resource_arn)
+        tags_dict = tags.to_dict(
+            new_tags,
+            key_member_name="key",
+            value_member_name="value"
+        )
+        logging.info(observed_tags)
+        logging.info(tags_dict)
+        tags.assert_equal_without_ack_tags(
+            expected=tags_dict,
+            actual=observed_tags,
+        )
