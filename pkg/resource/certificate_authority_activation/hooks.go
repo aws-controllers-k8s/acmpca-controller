@@ -205,17 +205,17 @@ func (rm *resourceManager) writeCertificateChainToSecret(
 
 	annotations := r.ko.ObjectMeta.GetAnnotations()
 
-	namespace, found := annotations["acmpca.services.k8s.aws/output-chain-namespace"]
+	namespace, found := annotations["acmpca.services.k8s.aws/chain-secret-namespace"]
 	if !found {
 		namespace = r.MetaObject().GetNamespace()
 	}
 
-	name, found := annotations["acmpca.services.k8s.aws/output-chain-name"]
+	name, found := annotations["acmpca.services.k8s.aws/chain-secret-name"]
 	if !found {
 		return ackerr.SecretNotFound
 	}
 
-	key, found := annotations["acmpca.services.k8s.aws/output-chain-key"]
+	key, found := annotations["acmpca.services.k8s.aws/chain-secret-key"]
 	if !found {
 		key = "certificateChain"
 	}
@@ -248,7 +248,7 @@ func (rm *resourceManager) writeCertificateChainToSecret(
 		return err
 	}
 
-  return nil
+	return nil
 }
 
 func (rm *resourceManager) customDeleteCertificateAuthorityActivation(
