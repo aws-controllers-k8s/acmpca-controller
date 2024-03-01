@@ -304,7 +304,7 @@ class TestCertificateAuthorityActivation:
         acmpca_validator.assert_certificate_authority(ca_arn, "DISABLED")
 
     def test_ca_activation_deletion(self, acmpca_client, simple_root_certificate):
-        (ca_name, ca_arn, secret) = simple_root_certificate
+        (ca_name, ca_arn, secret, cert_arn) = simple_root_certificate
         activation_name = random_suffix_name("certificate-authority-activation", 50)
             
         replacements = REPLACEMENT_VALUES.copy()
