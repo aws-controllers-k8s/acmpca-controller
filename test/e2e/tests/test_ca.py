@@ -18,6 +18,7 @@ import time
 import logging
 import base64
 import pytest
+import re
 
 from acktest.resources import random_suffix_name
 from acktest.k8s import resource as k8s
@@ -39,11 +40,12 @@ DELETE_WAIT_AFTER_SECONDS = 10
 def simple_certificate_authority(acmpca_client):
     ca_name = random_suffix_name("certificate-authority", 50)
     replacements = {}
+    suffix = random_suffix_name("", 2)
     replacements["NAME"] = ca_name
-    replacements["COMMON_NAME"] = "www.example.com"
+    replacements["COMMON_NAME"] = "www.example" + suffix + ".com"
     replacements["COUNTRY"] = "US"
     replacements["LOCALITY"] = "Arlington"
-    replacements["ORG"] = "Example Organization"
+    replacements["ORG"] = "Example Organization " + suffix
     replacements["STATE"] = "Virginia"
 
     # Load CA CR
@@ -94,10 +96,10 @@ class TestCertificateAuthority:
 
         # Check CA fields
         assert ca["Type"] == "ROOT"
-        assert ca["CertificateAuthorityConfiguration"]["Subject"]["CommonName"] == "www.example.com"
+        assert re.search("^www[.]example.{2}[.]com$", ca["CertificateAuthorityConfiguration"]["Subject"]["CommonName"])
         assert ca["CertificateAuthorityConfiguration"]["Subject"]["Country"] == "US"
         assert ca["CertificateAuthorityConfiguration"]["Subject"]["Locality"] == "Arlington"
-        assert ca["CertificateAuthorityConfiguration"]["Subject"]["Organization"] == "Example Organization"
+        assert re.search("^Example Organization .{2}$", ca["CertificateAuthorityConfiguration"]["Subject"]["Organization"])
         assert ca["CertificateAuthorityConfiguration"]["Subject"]["State"] == "Virginia"
         assert ca["CertificateAuthorityConfiguration"]["KeyAlgorithm"] == "RSA_2048"
         assert ca["CertificateAuthorityConfiguration"]["SigningAlgorithm"] == "SHA256WITHRSA"
