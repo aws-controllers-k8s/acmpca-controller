@@ -321,10 +321,45 @@ func (rm *resourceManager) sdkFind(
 	} else {
 		ko.Spec.CertificateAuthorityConfiguration = nil
 	}
+	if resp.CertificateAuthority.CreatedAt != nil {
+		ko.Status.CreatedAt = &metav1.Time{*resp.CertificateAuthority.CreatedAt}
+	} else {
+		ko.Status.CreatedAt = nil
+	}
+	if resp.CertificateAuthority.FailureReason != nil {
+		ko.Status.FailureReason = resp.CertificateAuthority.FailureReason
+	} else {
+		ko.Status.FailureReason = nil
+	}
 	if resp.CertificateAuthority.KeyStorageSecurityStandard != nil {
 		ko.Spec.KeyStorageSecurityStandard = resp.CertificateAuthority.KeyStorageSecurityStandard
 	} else {
 		ko.Spec.KeyStorageSecurityStandard = nil
+	}
+	if resp.CertificateAuthority.LastStateChangeAt != nil {
+		ko.Status.LastStateChangeAt = &metav1.Time{*resp.CertificateAuthority.LastStateChangeAt}
+	} else {
+		ko.Status.LastStateChangeAt = nil
+	}
+	if resp.CertificateAuthority.NotAfter != nil {
+		ko.Status.NotAfter = &metav1.Time{*resp.CertificateAuthority.NotAfter}
+	} else {
+		ko.Status.NotAfter = nil
+	}
+	if resp.CertificateAuthority.NotBefore != nil {
+		ko.Status.NotBefore = &metav1.Time{*resp.CertificateAuthority.NotBefore}
+	} else {
+		ko.Status.NotBefore = nil
+	}
+	if resp.CertificateAuthority.OwnerAccount != nil {
+		ko.Status.OwnerAccount = resp.CertificateAuthority.OwnerAccount
+	} else {
+		ko.Status.OwnerAccount = nil
+	}
+	if resp.CertificateAuthority.RestorableUntil != nil {
+		ko.Status.RestorableUntil = &metav1.Time{*resp.CertificateAuthority.RestorableUntil}
+	} else {
+		ko.Status.RestorableUntil = nil
 	}
 	if resp.CertificateAuthority.RevocationConfiguration != nil {
 		f10 := &svcapitypes.RevocationConfiguration{}
@@ -360,6 +395,11 @@ func (rm *resourceManager) sdkFind(
 		ko.Spec.RevocationConfiguration = f10
 	} else {
 		ko.Spec.RevocationConfiguration = nil
+	}
+	if resp.CertificateAuthority.Serial != nil {
+		ko.Status.Serial = resp.CertificateAuthority.Serial
+	} else {
+		ko.Status.Serial = nil
 	}
 	if resp.CertificateAuthority.Status != nil {
 		ko.Status.Status = resp.CertificateAuthority.Status

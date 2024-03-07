@@ -593,6 +593,41 @@ func (in *CertificateAuthorityStatus) DeepCopyInto(out *CertificateAuthorityStat
 		*out = make([]byte, len(*in))
 		copy(*out, *in)
 	}
+	if in.CreatedAt != nil {
+		in, out := &in.CreatedAt, &out.CreatedAt
+		*out = (*in).DeepCopy()
+	}
+	if in.FailureReason != nil {
+		in, out := &in.FailureReason, &out.FailureReason
+		*out = new(string)
+		**out = **in
+	}
+	if in.LastStateChangeAt != nil {
+		in, out := &in.LastStateChangeAt, &out.LastStateChangeAt
+		*out = (*in).DeepCopy()
+	}
+	if in.NotAfter != nil {
+		in, out := &in.NotAfter, &out.NotAfter
+		*out = (*in).DeepCopy()
+	}
+	if in.NotBefore != nil {
+		in, out := &in.NotBefore, &out.NotBefore
+		*out = (*in).DeepCopy()
+	}
+	if in.OwnerAccount != nil {
+		in, out := &in.OwnerAccount, &out.OwnerAccount
+		*out = new(string)
+		**out = **in
+	}
+	if in.RestorableUntil != nil {
+		in, out := &in.RestorableUntil, &out.RestorableUntil
+		*out = (*in).DeepCopy()
+	}
+	if in.Serial != nil {
+		in, out := &in.Serial, &out.Serial
+		*out = new(string)
+		**out = **in
+	}
 	if in.Status != nil {
 		in, out := &in.Status, &out.Status
 		*out = new(string)

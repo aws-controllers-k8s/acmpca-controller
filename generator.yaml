@@ -60,6 +60,46 @@ resources:
         from:
           operation: DescribeCertificateAuthority
           path: CertificateAuthority.Status
+      CreatedAt:
+        is_read_only: true
+        from:
+          operation: DescribeCertificateAuthority
+          path: CertificateAuthority.CreatedAt
+      FailureReason:
+        is_read_only: true
+        from:
+          operation: DescribeCertificateAuthority
+          path: CertificateAuthority.FailureReason
+      LastStateChangeAt:
+        is_read_only: true
+        from:
+          operation: DescribeCertificateAuthority
+          path: CertificateAuthority.LastStateChangeAt
+      NotAfter:
+        is_read_only: true
+        from:
+          operation: DescribeCertificateAuthority
+          path: CertificateAuthority.NotAfter
+      NotBefore:
+        is_read_only: true
+        from:
+          operation: DescribeCertificateAuthority
+          path: CertificateAuthority.NotBefore
+      RestorableUntil:
+        is_read_only: true
+        from:
+          operation: DescribeCertificateAuthority
+          path: CertificateAuthority.RestorableUntil
+      Serial:
+        is_read_only: true
+        from:
+          operation: DescribeCertificateAuthority
+          path: CertificateAuthority.Serial
+      OwnerAccount:
+        is_read_only: true
+        from:
+          operation: DescribeCertificateAuthority
+          path: CertificateAuthority.OwnerAccount
   Certificate:
     hooks:
       sdk_read_one_post_set_output:
