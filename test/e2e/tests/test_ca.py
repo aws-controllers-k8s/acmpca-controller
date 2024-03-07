@@ -94,7 +94,7 @@ class TestCertificateAuthority:
         acmpca_validator = ACMPCAValidator(acmpca_client)
         ca = acmpca_validator.assert_certificate_authority(ca_resource_arn, "PENDING_CERTIFICATE")
 
-        # Check CA fields
+        # Check CA Spec fields
         assert ca["Type"] == "ROOT"
         assert re.search("^www[.]example.{2}[.]com$", ca["CertificateAuthorityConfiguration"]["Subject"]["CommonName"])
         assert ca["CertificateAuthorityConfiguration"]["Subject"]["Country"] == "US"
@@ -122,11 +122,14 @@ class TestCertificateAuthority:
             actual=observed_tags,
         )
 
-        # Check CSR
+        # Check CA Status fields
         assert 'status' in ca_cr
         assert 'csr' in ca_cr['status']
         csr = acmpca_validator.get_csr(ca_resource_arn)
         assert base64.b64decode(ca_cr['status']['csr']).decode("ascii") == csr
+
+        assert 'status' in ca_cr['status']
+        assert ca_cr['status']['status'] == "PENDING_CERTIFICATE"
     
     def test_update_tags(self, acmpca_client, simple_certificate_authority):
         

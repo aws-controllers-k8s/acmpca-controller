@@ -110,6 +110,9 @@ type CertificateAuthorityStatus struct {
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
 	// +kubebuilder:validation:Optional
 	CSR []byte `json:"csr,omitempty"`
+	// Status of your private CA.
+	// +kubebuilder:validation:Optional
+	Status *string `json:"status,omitempty"`
 }
 
 // CertificateAuthority is the Schema for the CertificateAuthorities API

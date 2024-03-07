@@ -14,5 +14,5 @@ roleRef:
   name: acmpca-leader-election-role
 subjects:
 - kind: ServiceAccount
-  name: {{ include "ack-acmpca-controller.service-account.name" . }}
+  name: {{ include "service-account.name" . }}
   namespace: {{ .Release.Namespace }}{{- end }}

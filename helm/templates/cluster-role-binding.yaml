@@ -2,21 +2,20 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "ack-acmpca-controller.app.fullname" . }}
+  name: {{ include "app.fullname" . }}
 roleRef:
   kind: ClusterRole
   apiGroup: rbac.authorization.k8s.io
   name: ack-acmpca-controller
 subjects:
 - kind: ServiceAccount
-  name: {{ include "ack-acmpca-controller.service-account.name" . }}
+  name: {{ include "service-account.name" . }}
   namespace: {{ .Release.Namespace }}
-{{ else if eq .Values.installScope "namespace" }}
-{{ $wn := include "ack-acmpca-controller.watch-namespace" . }}
-{{ $namespaces := split "," $wn }}
-{{ $fullname := include "ack-acmpca-controller.app.fullname" . }}
+{{ else if .Values.watchNamespace }}
+{{ $namespaces := split "," .Values.watchNamespace }}
+{{ $fullname := include "app.fullname" .  }}
 {{ $releaseNamespace := .Release.Namespace }}
-{{ $serviceAccountName := include "ack-acmpca-controller.service-account.name" . }}
+{{ $serviceAccountName := include "service-account.name" .  }}
 {{ range $namespaces }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1

@@ -361,6 +361,11 @@ func (rm *resourceManager) sdkFind(
 	} else {
 		ko.Spec.RevocationConfiguration = nil
 	}
+	if resp.CertificateAuthority.Status != nil {
+		ko.Status.Status = resp.CertificateAuthority.Status
+	} else {
+		ko.Status.Status = nil
+	}
 	if resp.CertificateAuthority.UsageMode != nil {
 		ko.Spec.UsageMode = resp.CertificateAuthority.UsageMode
 	} else {

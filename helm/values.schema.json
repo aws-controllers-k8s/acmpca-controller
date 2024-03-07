@@ -223,18 +223,12 @@
       "enum": ["delete", "retain"]
     },
     "reconcile": {
-      "description": "Reconcile settings. This is used to configure the controller's reconciliation behavior. e.g resyncPeriod and maxConcurrentSyncs",
+      "description": "Reconcile resync settings. Parameters to tune the controller's drift remediation period.",
       "properties": {
         "defaultResyncPeriod": {
           "type": "number"
         },
         "resourceResyncPeriods": {
-          "type": "object"
-        },
-        "defaultMaxConcurentSyncs": {
-          "type": "number"
-        },
-        "resourceMaxConcurrentSyncs": {
           "type": "object"
         }
       },
