@@ -75,6 +75,8 @@ resources:
         is_immutable: true
       ValidityNotBefore:
         is_immutable: true
+      Validity.Type:
+        go_tag: json:"type,omitempty"
     tags:
       ignore: true
   CertificateAuthorityActivation:

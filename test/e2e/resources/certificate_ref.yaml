@@ -16,5 +16,5 @@ spec:
   signingAlgorithm: SHA256WITHRSA
   templateARN: $TEMPLATE_ARN
   validity:
-    type_: DAYS
+    type: DAYS
     value: 100

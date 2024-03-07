@@ -478,6 +478,6 @@ type Tag struct {
 // The optional parameter IssueCertificate:ValidityNotBefore specifies a customized
 // starting time for the validity period.
 type Validity struct {
-	Type  *string `json:"type_,omitempty"`
+	Type  *string `json:"type,omitempty"`
 	Value *int64  `json:"value,omitempty"`
 }
