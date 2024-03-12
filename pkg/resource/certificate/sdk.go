@@ -91,7 +91,7 @@ func (rm *resourceManager) sdkFind(
 	ko := r.ko.DeepCopy()
 
 	rm.setStatusDefaults(ko)
-	err = rm.writeCertificateToSecret(ctx, resp.Certificate, ko.ObjectMeta.GetAnnotations())
+	err = rm.writeCertificateToSecret(ctx, resp.Certificate, r)
 	if err != nil {
 		return nil, err
 	}
@@ -616,4 +616,34 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	default:
 		return false
 	}
+}
+
+// getImmutableFieldChanges returns list of immutable fields from the
+func (rm *resourceManager) getImmutableFieldChanges(
+	delta *ackcompare.Delta,
+) []string {
+	var fields []string
+	if delta.DifferentAt("Spec.APIPassthrough") {
+		fields = append(fields, "APIPassthrough")
+	}
+	if delta.DifferentAt("Spec.CSR") {
+		fields = append(fields, "CSR")
+	}
+	if delta.DifferentAt("Spec.CertificateAuthorityARN") {
+		fields = append(fields, "CertificateAuthorityARN")
+	}
+	if delta.DifferentAt("Spec.SigningAlgorithm") {
+		fields = append(fields, "SigningAlgorithm")
+	}
+	if delta.DifferentAt("Spec.TemplateARN") {
+		fields = append(fields, "TemplateARN")
+	}
+	if delta.DifferentAt("Spec.Validity") {
+		fields = append(fields, "Validity")
+	}
+	if delta.DifferentAt("Spec.ValidityNotBefore") {
+		fields = append(fields, "ValidityNotBefore")
+	}
+
+	return fields
 }
