@@ -27,8 +27,14 @@ prefix_config: {}
 resources:
   CertificateAuthority:
     hooks:
+      delta_pre_compare:
+        code: customSetDefaults(a, b)
       sdk_create_post_set_output:
         template_path: hooks/certificate_authority/sdk_create_post_set_output.go.tpl
+      sdk_update_pre_build_request:
+        template_path: hooks/certificate_authority/sdk_update_pre_build_request.go.tpl
+      sdk_read_one_post_set_output:
+        template_path: hooks/certificate_authority/sdk_read_one_post_set_output.go.tpl
     exceptions:
       terminal_codes:
       - InvalidAction
@@ -39,9 +45,62 @@ resources:
       - ValidationError
       - ValidationException
     fields: 
+      CertificateAuthorityConfiguration:
+        is_immutable: true
+      CertificateAuthorityType:
+        is_immutable: true
+      KeyStorageSecurityStandard:
+        is_immutable: true
+      UsageMode:
+        is_immutable: true
       CSR:
         is_read_only: true
         type: 'bytes'
+      Status:
+        is_read_only: true
+        from:
+          operation: DescribeCertificateAuthority
+          path: CertificateAuthority.Status
+      CreatedAt:
+        is_read_only: true
+        from:
+          operation: DescribeCertificateAuthority
+          path: CertificateAuthority.CreatedAt
+      FailureReason:
+        is_read_only: true
+        from:
+          operation: DescribeCertificateAuthority
+          path: CertificateAuthority.FailureReason
+      LastStateChangeAt:
+        is_read_only: true
+        from:
+          operation: DescribeCertificateAuthority
+          path: CertificateAuthority.LastStateChangeAt
+      NotAfter:
+        is_read_only: true
+        from:
+          operation: DescribeCertificateAuthority
+          path: CertificateAuthority.NotAfter
+      NotBefore:
+        is_read_only: true
+        from:
+          operation: DescribeCertificateAuthority
+          path: CertificateAuthority.NotBefore
+      RestorableUntil:
+        is_read_only: true
+        from:
+          operation: DescribeCertificateAuthority
+          path: CertificateAuthority.RestorableUntil
+      Serial:
+        is_read_only: true
+        from:
+          operation: DescribeCertificateAuthority
+          path: CertificateAuthority.Serial
+      OwnerAccount:
+        is_read_only: true
+        from:
+          operation: DescribeCertificateAuthority
+          path: CertificateAuthority.OwnerAccount
   Certificate:
     hooks:
       sdk_read_one_post_set_output:

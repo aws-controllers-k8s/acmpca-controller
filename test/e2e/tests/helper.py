@@ -30,13 +30,12 @@ class ACMPCAValidator:
         except self.acmpca_client.exceptions.ClientError:
             pass
 
-    def assert_ca_tags(self, ca_arn: str, key: str, val: str):
+    def get_ca_tags(self, ca_arn: str):
         try:
-            aws_res = self.acmpca_client.list_tags(CertificateAuthorityArn=ca_arn, MaxResults=10)
+            aws_res = self.acmpca_client.list_tags(CertificateAuthorityArn=ca_arn)
             ca_tags = aws_res["Tags"]
-            logging.info(aws_res["Tags"])
-            tag = {'Key': key, 'Value': val}
-            assert tag in ca_tags
+            logging.info(ca_tags)
+            return ca_tags
         except self.acmpca_client.exceptions.ClientError:
             pass
 

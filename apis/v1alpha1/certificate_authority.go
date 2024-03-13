@@ -110,6 +110,36 @@ type CertificateAuthorityStatus struct {
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
 	// +kubebuilder:validation:Optional
 	CSR []byte `json:"csr,omitempty"`
+	// Date and time at which your private CA was created.
+	// +kubebuilder:validation:Optional
+	CreatedAt *metav1.Time `json:"createdAt,omitempty"`
+	// Reason the request to create your private CA failed.
+	// +kubebuilder:validation:Optional
+	FailureReason *string `json:"failureReason,omitempty"`
+	// Date and time at which your private CA was last updated.
+	// +kubebuilder:validation:Optional
+	LastStateChangeAt *metav1.Time `json:"lastStateChangeAt,omitempty"`
+	// Date and time after which your private CA certificate is not valid.
+	// +kubebuilder:validation:Optional
+	NotAfter *metav1.Time `json:"notAfter,omitempty"`
+	// Date and time before which your private CA certificate is not valid.
+	// +kubebuilder:validation:Optional
+	NotBefore *metav1.Time `json:"notBefore,omitempty"`
+	// The Amazon Web Services account ID that owns the certificate authority.
+	// +kubebuilder:validation:Optional
+	OwnerAccount *string `json:"ownerAccount,omitempty"`
+	// The period during which a deleted CA can be restored. For more information,
+	// see the PermanentDeletionTimeInDays parameter of the DeleteCertificateAuthorityRequest
+	// (https://docs.aws.amazon.com/privateca/latest/APIReference/API_DeleteCertificateAuthorityRequest.html)
+	// action.
+	// +kubebuilder:validation:Optional
+	RestorableUntil *metav1.Time `json:"restorableUntil,omitempty"`
+	// Serial number of your private CA.
+	// +kubebuilder:validation:Optional
+	Serial *string `json:"serial,omitempty"`
+	// Status of your private CA.
+	// +kubebuilder:validation:Optional
+	Status *string `json:"status,omitempty"`
 }
 
 // CertificateAuthority is the Schema for the CertificateAuthorities API
