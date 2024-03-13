@@ -390,7 +390,7 @@ spec:
                   The end of the validity period configured on a certificate must not exceed
                   the limit set on its parents in the CA hierarchy.
                 properties:
-                  type_:
+                  type:
                     type: string
                   value:
                     format: int64
@@ -416,7 +416,7 @@ spec:
                   in this API reference and Validity (https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.5)
                   in RFC 5280.
                 properties:
-                  type_:
+                  type:
                     type: string
                   value:
                     format: int64

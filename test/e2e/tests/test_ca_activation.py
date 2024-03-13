@@ -116,7 +116,7 @@ def simple_root_certificate(acmpca_client, create_secret, simple_certificate_aut
 
     # Load Certificate CR
     resource_data = load_acmpca_resource(
-        "certificate",
+        "certificate_ref",
         additional_replacements=replacements,
     )
 

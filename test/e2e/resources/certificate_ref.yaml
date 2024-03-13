@@ -7,7 +7,9 @@ metadata:
     acmpca.services.k8s.aws/certificate-secret-name: $CERTIFICATE_SEC_NAME
     acmpca.services.k8s.aws/certificate-secret-key: $CERTIFICATE_SEC_KEY
 spec:
-  certificateAuthorityARN: $CA_ARN
+  certificateAuthorityRef:
+    from:
+      name: $CA_NAME
   csrRef:
     from:
       name: $CA_NAME
