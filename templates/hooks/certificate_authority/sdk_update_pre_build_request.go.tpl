@@ -3,7 +3,7 @@
 		if err != nil {
 			return nil, err
 		}
-		if !delta.DifferentExcept("Spec.Tags") {
-			return desired, nil
-		}
 	}
+	if !delta.DifferentExcept("Spec.Tags") {
+        return desired, nil
+    }
