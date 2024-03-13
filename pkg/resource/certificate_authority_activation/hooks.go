@@ -200,14 +200,14 @@ func (rm *resourceManager) writeCertificateChainToSecret(
 	ctx context.Context,
 	certificate string,
 	certificateChain string,
-	r *resource,
+	objectMeta metav1.ObjectMeta,
 ) (err error) {
 
-	annotations := r.ko.ObjectMeta.GetAnnotations()
+	annotations := objectMeta.GetAnnotations()
 
 	namespace, found := annotations["acmpca.services.k8s.aws/chain-secret-namespace"]
 	if !found {
-		namespace = r.MetaObject().GetNamespace()
+		namespace = objectMeta.GetNamespace()
 	}
 
 	name, found := annotations["acmpca.services.k8s.aws/chain-secret-name"]

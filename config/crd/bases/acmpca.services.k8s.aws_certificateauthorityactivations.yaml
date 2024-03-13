@@ -86,8 +86,9 @@ spec:
                     type: object
                 type: object
               certificateChain:
-                description: SecretKeyReference combines a k8s corev1.SecretReference
-                  with a specific key within the referred-to Secret
+                description: |-
+                  SecretKeyReference combines a k8s corev1.SecretReference with a
+                  specific key within the referred-to Secret
                 properties:
                   key:
                     description: Key is the key within the secret
