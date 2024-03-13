@@ -30,13 +30,12 @@ class ACMPCAValidator:
         except self.acmpca_client.exceptions.ClientError:
             pass
 
-    def assert_ca_tags(self, ca_arn: str, key: str, val: str):
+    def get_ca_tags(self, ca_arn: str):
         try:
-            aws_res = self.acmpca_client.list_tags(CertificateAuthorityArn=ca_arn, MaxResults=10)
+            aws_res = self.acmpca_client.list_tags(CertificateAuthorityArn=ca_arn)
             ca_tags = aws_res["Tags"]
-            logging.info(aws_res["Tags"])
-            tag = {'Key': key, 'Value': val}
-            assert tag in ca_tags
+            logging.info(ca_tags)
+            return ca_tags
         except self.acmpca_client.exceptions.ClientError:
             pass
 
@@ -56,16 +55,4 @@ class ACMPCAValidator:
             assert certificate is not None
             return certificate
         except self.acmpca_client.exceptions.ClientError:
-            pass
-
-    def delete_pending_cas(self):
-        try:
-            aws_res =  self.acmpca_client.list_certificate_authorities()
-            ca_list = aws_res["CertificateAuthorities"]
-            for ca in ca_list:
-                if ca['Status'] == "PENDING_CERTIFICATE":
-                    self.acmpca_client.delete_certificate_authority(CertificateAuthorityArn=ca['Arn'], PermanentDeletionTimeInDays=7)
-            return True
-        except self.acmpca_client.exceptions.ClientError:
-            return False
             pass
