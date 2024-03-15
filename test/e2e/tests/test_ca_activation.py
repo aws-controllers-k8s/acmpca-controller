@@ -277,6 +277,11 @@ class TestCertificateAuthorityActivation:
         acmpca_validator = ACMPCAValidator(acmpca_client)
         acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE")
 
+        # Check Spec field 'Status' is ACTIVE
+        assert 'spec' in act_cr
+        assert 'status' in act_cr['spec']
+        assert act_cr['spec']['status'] == "ACTIVE"
+
         cert = acmpca_validator.get_certificate(ca_arn=ca_arn, cert_arn=cert_arn)
 
         # Check certificate chain is in secret
