@@ -316,7 +316,7 @@ class TestCertificateAuthorityActivation:
         acmpca_validator = ACMPCAValidator(acmpca_client)
         acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE")
 
-        # Update CAActivation
+        # Update Status to DISABLED
         updates = {
             "spec": {
                 "status": "DISABLED"
@@ -329,7 +329,7 @@ class TestCertificateAuthorityActivation:
         # Check CA status is DISABLED
         acmpca_validator.assert_certificate_authority(ca_arn, "DISABLED")
 
-        # Update CAActivation
+        # Update Status to ACTIVE 
         updates = {
             "spec": {
                 "status": "ACTIVE"
@@ -342,7 +342,7 @@ class TestCertificateAuthorityActivation:
         # Check CA status is ACTIVE
         acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE")
 
-        # Update CAActivation
+        # Update Status to PENDING_CERTIFICATE
         updates = {
             "spec": {
                 "status": "PENDING_CERTIFICATE"
@@ -352,7 +352,7 @@ class TestCertificateAuthorityActivation:
         logging.info(patch_res)
         time.sleep(UPDATE_WAIT_AFTER_SECONDS) 
         
-        # Check CA status is DISABLED
+        # Check CA status is still ACTIVE
         acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE")
 
     def test_ca_activation_deletion(self, acmpca_client, simple_root_certificate):
