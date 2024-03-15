@@ -189,10 +189,12 @@ def simple_ca_activation(simple_root_certificate, create_certificate_chain_secre
     yield (ca_arn, act_cr, act_ref, certificate_chain_secret, cert_arn)
 
     # Update CAActivation
-    act_cr["spec"]["status"] = "DISABLED"
-
-    # Patch k8s resource
-    patch_res = k8s.patch_custom_resource(act_ref, act_cr)
+    updates = {
+        "spec": {
+            "status": "DISABLED"
+        },
+    }
+    patch_res = k8s.patch_custom_resource(act_ref, updates)
     logging.info(patch_res)
     time.sleep(UPDATE_WAIT_AFTER_SECONDS) 
     
@@ -246,10 +248,12 @@ def simple_ca_activation_with_ref(simple_root_certificate, create_certificate_ch
     yield (ca_arn, act_cr, act_ref, certificate_chain_secret, cert_arn)
 
     # Update CAActivation
-    act_cr["spec"]["status"] = "DISABLED"
-
-    # Patch k8s resource
-    patch_res = k8s.patch_custom_resource(act_ref, act_cr)
+    updates = {
+        "spec": {
+            "status": "DISABLED"
+        },
+    }
+    patch_res = k8s.patch_custom_resource(act_ref, updates)
     logging.info(patch_res)
     time.sleep(UPDATE_WAIT_AFTER_SECONDS) 
     
@@ -297,7 +301,54 @@ class TestCertificateAuthorityActivation:
         api_response = client.CoreV1Api(_api_client).read_namespaced_secret(certificate_chain_secret.name, certificate_chain_secret.ns).data
 
         assert certificate_chain_secret.key in api_response
-        assert base64.b64decode(api_response[certificate_chain_secret.key]).decode("ascii") == cert 
+        assert base64.b64decode(api_response[certificate_chain_secret.key]).decode("ascii") == cert
+
+    def test_ca_activation_update(self, acmpca_client, simple_ca_activation):
+        
+        (ca_arn, act_cr, act_ref, certificate_chain_secret, cert_arn) = simple_ca_activation
+
+        # Check CA status is ACTIVE
+        acmpca_validator = ACMPCAValidator(acmpca_client)
+        acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE")
+
+        # Update CAActivation
+        updates = {
+            "spec": {
+                "status": "DISABLED"
+            },
+        }
+        patch_res = k8s.patch_custom_resource(act_ref, updates)
+        logging.info(patch_res)
+        time.sleep(UPDATE_WAIT_AFTER_SECONDS) 
+        
+        # Check CA status is DISABLED
+        acmpca_validator.assert_certificate_authority(ca_arn, "DISABLED")
+
+        # Update CAActivation
+        updates = {
+            "spec": {
+                "status": "ACTIVE"
+            },
+        }
+        patch_res = k8s.patch_custom_resource(act_ref, updates)
+        logging.info(patch_res)
+        time.sleep(UPDATE_WAIT_AFTER_SECONDS) 
+        
+        # Check CA status is ACTIVE
+        acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE")
+
+        # Update CAActivation
+        updates = {
+            "spec": {
+                "status": "PENDING_CERTIFICATE"
+            },
+        }
+        patch_res = k8s.patch_custom_resource(act_ref, updates)
+        logging.info(patch_res)
+        time.sleep(UPDATE_WAIT_AFTER_SECONDS) 
+        
+        # Check CA status is DISABLED
+        acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE")
 
     def test_ca_activation_deletion(self, acmpca_client, simple_root_certificate):
         (ca_name, ca_arn, secret, cert_arn) = simple_root_certificate

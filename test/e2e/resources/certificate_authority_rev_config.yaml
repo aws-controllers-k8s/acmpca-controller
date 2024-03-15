@@ -1,0 +1,25 @@
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: CertificateAuthority
+metadata:
+  name: $NAME
+spec:
+  certificateAuthorityType: ROOT
+  certificateAuthorityConfiguration:
+    subject:
+      commonName: $COMMON_NAME
+      country: $COUNTRY
+      locality: $LOCALITY
+      organization: $ORG
+      state: $STATE
+    keyAlgorithm: RSA_2048
+    signingAlgorithm: SHA256WITHRSA
+  revocationConfiguration: 
+    crlConfiguration:
+      enabled: True
+      #customCNAME: "https://somename.crl"
+      s3BucketName: $BUCKET_NAME
+      expirationInDays: 3650
+      s3ObjectACL: BUCKET_OWNER_FULL_CONTROL
+  tags:
+    - key: tag1
+      value: val1
