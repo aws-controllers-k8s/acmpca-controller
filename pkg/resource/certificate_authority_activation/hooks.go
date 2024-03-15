@@ -46,7 +46,7 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 	}()
 
 	if r.ko.Spec.CertificateAuthorityARN == nil && r.ko.Spec.CertificateAuthorityRef.From.Name == nil {
-		return nil, ackerr.Terminal
+		return nil, ackerr.NotFound
 	}
 
 	// lock runtime
@@ -125,10 +125,14 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 				}
 
 				if status == svcsdk.CertificateAuthorityStatusActive {
-					return nil, ackerr.Terminal
+					return nil, fmt.Errorf("CertificateAuthorityActivation resource already exists for this CertificateAuthority")
 				}
 			}
 		}
+	}
+
+	if numFound == 0 {
+		return nil, ackerr.NotFound
 	}
 
 	input := &svcsdk.DescribeCertificateAuthorityInput{}
