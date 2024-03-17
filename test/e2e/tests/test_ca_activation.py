@@ -454,7 +454,5 @@ class TestCertificateAuthorityActivation:
         acmpca_validator.assert_certificate_authority(ca_arn, "DISABLED")
 
         # Delete CA
-        error = acmpca_validator.delete_ca(ca_arn)
-        assert error is None
-
+        acmpca_validator.delete_ca(ca_arn)
         acmpca_validator.assert_certificate_authority(ca_arn, "DELETED")

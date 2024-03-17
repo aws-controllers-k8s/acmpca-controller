@@ -97,17 +97,16 @@ class ACMPCAValidator:
             cert_arn = aws_res['CertificateArn']
             logging.info(cert_arn)
             assert cert_arn is not None
-            
+
             return ca_arn, cert_arn
         except self.acmpca_client.exceptions.ClientError as error:
             logging.info(error)
 
     def delete_ca(self, ca_arn: str):
         try:
-            aws_res = self.acmpca_client.delete_certificate_authority(
+            self.acmpca_client.delete_certificate_authority(
                 CertificateAuthorityArn=ca_arn,
                 PermanentDeletionTimeInDays=7
             )
-            return aws_res
         except self.acmpca_client.exceptions.ClientError as error:
-            return error
+            pass
