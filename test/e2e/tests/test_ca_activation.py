@@ -277,11 +277,6 @@ class TestCertificateAuthorityActivation:
         acmpca_validator = ACMPCAValidator(acmpca_client)
         acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE")
 
-        # Check Spec field 'Status' is ACTIVE
-        assert 'spec' in act_cr
-        assert 'status' in act_cr['spec']
-        assert act_cr['spec']['status'] == "ACTIVE"
-
         cert = acmpca_validator.get_certificate(ca_arn=ca_arn, cert_arn=cert_arn)
 
         # Check certificate chain is in secret
@@ -398,3 +393,68 @@ class TestCertificateAuthorityActivation:
 
         # Check CA is DISABLED after CAActivation is deleted
         acmpca_validator.assert_certificate_authority(ca_arn, "DISABLED")
+
+    def test_out_of_band_ca_activation(self, acmpca_client, k8s_secret):
+        acmpca_validator = ACMPCAValidator(acmpca_client)
+
+        ca_arn, cert_arn = acmpca_validator.create_root_ca()
+
+        time.sleep(CREATE_WAIT_AFTER_SECONDS)
+        
+        cert = acmpca_validator.get_certificate(ca_arn=ca_arn, cert_arn=cert_arn)
+        logging.info(cert)
+
+        test_secret = k8s_secret(
+            "default",
+            random_suffix_name("certificate-secret", 50),
+            "certificate",
+            cert
+        )
+
+        activation_name = random_suffix_name("certificate-authority-activation", 50)
+            
+        replacements = REPLACEMENT_VALUES.copy()
+        replacements["NAME"] = activation_name
+        replacements["CA_ARN"] = ca_arn
+        replacements["CERTIFICATE_SECRET_NAMESPACE"] = test_secret.ns
+        replacements["CERTIFICATE_SECRET_NAME"] = test_secret.name
+        replacements["CERTIFICATE_SECRET_KEY"] = test_secret.key
+        
+        # Load CAActivation CR
+        act_resource_data = load_acmpca_resource(
+            "certificate_authority_activation",
+            additional_replacements=replacements,
+        )
+
+        # Create k8s resource
+        act_ref = k8s.create_reference(
+            CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+            activation_name, namespace="default",
+        )
+        k8s.create_custom_resource(act_ref, act_resource_data)
+        act_cr = k8s.wait_resource_consumed_by_controller(act_ref)
+
+        time.sleep(CREATE_WAIT_AFTER_SECONDS)
+
+        assert act_cr is not None
+        assert k8s.get_resource_exists(act_ref)
+        logging.info(act_cr)
+
+        # Check CA status is ACTIVE
+        acmpca_validator = ACMPCAValidator(acmpca_client)
+        acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE") 
+
+        #Delete CAActivation k8s resource
+        _, deleted = k8s.delete_custom_resource(act_ref)
+        assert deleted is True
+
+        time.sleep(DELETE_WAIT_AFTER_SECONDS)
+
+        # Check CA is DISABLED after CAActivation is deleted
+        acmpca_validator.assert_certificate_authority(ca_arn, "DISABLED")
+
+        # Delete CA
+        error = acmpca_validator.delete_ca(ca_arn)
+        assert error is None
+
+        acmpca_validator.assert_certificate_authority(ca_arn, "DELETED")

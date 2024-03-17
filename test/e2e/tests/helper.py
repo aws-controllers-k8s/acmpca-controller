@@ -15,6 +15,7 @@
 """
 
 import logging
+import time
 
 class ACMPCAValidator:
     def __init__(self, acmpca_client):
@@ -45,8 +46,8 @@ class ACMPCAValidator:
             csr = aws_res["Csr"]
             assert csr is not None
             return csr
-        except self.acmpca_client.exceptions.ClientError:
-            pass
+        except self.acmpca_client.exceptions.ClientError as error:
+            logging.info(error)
     
     def get_certificate(self, ca_arn: str, cert_arn: str):
         try:
@@ -54,5 +55,59 @@ class ACMPCAValidator:
             certificate = aws_res["Certificate"]
             assert certificate is not None
             return certificate
-        except self.acmpca_client.exceptions.ClientError:
-            pass
+        except self.acmpca_client.exceptions.ClientError as error:
+            logging.info(error)
+
+    def create_root_ca(self):
+        try:
+            aws_res = self.acmpca_client.create_certificate_authority(
+                CertificateAuthorityConfiguration={
+                    'KeyAlgorithm': 'RSA_2048',
+                    'SigningAlgorithm': 'SHA256WITHRSA',
+                    'Subject': {
+                        'Country': 'US',
+                        'Organization': 'Example Organization',
+                        'State': 'Virginia',
+                        'CommonName': 'www.example.com',
+                        'Locality': 'Arlington',
+                    }
+                },
+                CertificateAuthorityType='ROOT'
+            )
+            ca_arn = aws_res['CertificateAuthorityArn']
+            logging.info(ca_arn)
+            assert ca_arn is not None
+            time.sleep(10)
+
+            csr = self.get_csr(ca_arn=ca_arn)
+            logging.info(csr)
+            assert csr is not None
+            time.sleep(10)
+
+            aws_res = self.acmpca_client.issue_certificate(
+                CertificateAuthorityArn=ca_arn,
+                Csr=csr,
+                SigningAlgorithm='SHA256WITHRSA',
+                TemplateArn='arn:aws:acm-pca:::template/RootCACertificate/V1',
+                Validity={
+                    'Value': 100,
+                    'Type': 'DAYS'
+                }
+            )
+            cert_arn = aws_res['CertificateArn']
+            logging.info(cert_arn)
+            assert cert_arn is not None
+            
+            return ca_arn, cert_arn
+        except self.acmpca_client.exceptions.ClientError as error:
+            logging.info(error)
+
+    def delete_ca(self, ca_arn: str):
+        try:
+            aws_res = self.acmpca_client.delete_certificate_authority(
+                CertificateAuthorityArn=ca_arn,
+                PermanentDeletionTimeInDays=7
+            )
+            return aws_res
+        except self.acmpca_client.exceptions.ClientError as error:
+            return error
