@@ -557,13 +557,15 @@ class TestCertificateAuthorityActivation:
     def test_out_of_band_ca_activation(self, acmpca_client, k8s_secret):
         acmpca_validator = ACMPCAValidator(acmpca_client)
 
+        # Create Root CA 
         ca_arn, cert_arn = acmpca_validator.create_root_ca()
 
         time.sleep(CREATE_WAIT_AFTER_SECONDS)
-        
-        cert = acmpca_validator.get_certificate(ca_arn=ca_arn, cert_arn=cert_arn)
-        logging.info(cert)
 
+        # Get Root CA Certificate
+        cert = acmpca_validator.get_certificate(ca_arn=ca_arn, cert_arn=cert_arn)
+
+        # Create Secrete for Root CA Certificate
         test_secret = k8s_secret(
             "default",
             random_suffix_name("certificate-secret", 50),
@@ -571,6 +573,8 @@ class TestCertificateAuthorityActivation:
             cert
         )
 
+        # Create CAActivation resource
+        
         activation_name = random_suffix_name("certificate-authority-activation", 50)
             
         replacements = REPLACEMENT_VALUES.copy()
@@ -604,7 +608,7 @@ class TestCertificateAuthorityActivation:
         acmpca_validator = ACMPCAValidator(acmpca_client)
         acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE") 
 
-        #Delete CAActivation k8s resource
+        # Delete CAActivation k8s resource
         _, deleted = k8s.delete_custom_resource(act_ref)
         assert deleted is True
 
