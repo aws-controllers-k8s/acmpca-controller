@@ -58,6 +58,15 @@ class ACMPCAValidator:
         except self.acmpca_client.exceptions.ClientError as error:
             logging.info(error)
 
+    def get_certificate_chain(self, ca_arn: str, cert_arn: str):
+        try:
+            aws_res = self.acmpca_client.get_certificate(CertificateAuthorityArn=ca_arn, CertificateArn=cert_arn)
+            certificateChain = aws_res["CertificateChain"]
+            assert certificateChain is not None
+            return certificateChain
+        except self.acmpca_client.exceptions.ClientError as error:
+            logging.info(error)
+
     def create_root_ca(self):
         try:
             aws_res = self.acmpca_client.create_certificate_authority(
