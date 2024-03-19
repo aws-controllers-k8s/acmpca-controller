@@ -384,6 +384,7 @@ def simple_ca_activation_with_ref(simple_root_certificate, create_certificate_ch
     replacements["CERTIFICATE_CHAIN_SEC_NS"] = certificate_chain_secret.ns
     replacements["CERTIFICATE_CHAIN_SEC_NAME"] = certificate_chain_secret.name
     replacements["CERTIFICATE_CHAIN_SEC_KEY"] = certificate_chain_secret.key
+    replacements["STATUS"] = "ACTIVE"
     
     # Load CAActivation CR
     act_resource_data = load_acmpca_resource(
@@ -425,6 +426,51 @@ def simple_ca_activation_with_ref(simple_root_certificate, create_certificate_ch
     _, deleted = k8s.delete_custom_resource(act_ref)
     assert deleted is True
     
+@pytest.fixture(scope="module")
+def simple_ca_activation_status_disabled(simple_root_certificate, create_certificate_chain_secret, acmpca_client):
+
+    (ca_name, ca_arn, secret, cert_arn) = simple_root_certificate
+
+    certificate_chain_secret = create_certificate_chain_secret
+
+    activation_name = random_suffix_name("certificate-authority-activation", 50)
+        
+    replacements = REPLACEMENT_VALUES.copy()
+    replacements["NAME"] = activation_name
+    replacements["CA_NAME"] = ca_name
+    replacements["CERTIFICATE_SECRET_NAMESPACE"] = secret.ns
+    replacements["CERTIFICATE_SECRET_NAME"] = secret.name
+    replacements["CERTIFICATE_SECRET_KEY"] = secret.key
+    replacements["CERTIFICATE_CHAIN_SEC_NS"] = certificate_chain_secret.ns
+    replacements["CERTIFICATE_CHAIN_SEC_NAME"] = certificate_chain_secret.name
+    replacements["CERTIFICATE_CHAIN_SEC_KEY"] = certificate_chain_secret.key
+    replacements["STATUS"] = "DISABLED"
+    
+    # Load CAActivation CR
+    act_resource_data = load_acmpca_resource(
+        "certificate_authority_activation_ref",
+        additional_replacements=replacements,
+    )
+
+    # Create k8s resource
+    act_ref = k8s.create_reference(
+        CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+        activation_name, namespace="default",
+    )
+    k8s.create_custom_resource(act_ref, act_resource_data)
+    act_cr = k8s.wait_resource_consumed_by_controller(act_ref)
+
+    time.sleep(CREATE_WAIT_AFTER_SECONDS)
+
+    assert act_cr is not None
+    assert k8s.get_resource_exists(act_ref)
+    logging.info(act_cr)
+
+    yield (ca_arn, certificate_chain_secret, cert_arn)
+
+    #Delete CAActivation k8s resource
+    _, deleted = k8s.delete_custom_resource(act_ref)
+    assert deleted is True
 
 @service_marker
 class TestCertificateAuthorityActivation:
@@ -627,3 +673,19 @@ class TestCertificateAuthorityActivation:
         # Check CA status is ACTIVE
         acmpca_validator = ACMPCAValidator(acmpca_client)
         acmpca_validator.assert_certificate_authority(sub_ca_arn, "ACTIVE")
+
+    def test_ca_activation_status_disabled(self, acmpca_client, simple_ca_activation_status_disabled):
+        (ca_arn, certificate_chain_secret, cert_arn) = simple_ca_activation_status_disabled
+
+        # Check CA status is DISABLED
+        acmpca_validator = ACMPCAValidator(acmpca_client)
+        acmpca_validator.assert_certificate_authority(ca_arn, "DISABLED")
+
+        cert = acmpca_validator.get_certificate(ca_arn=ca_arn, cert_arn=cert_arn)
+
+        # Check certificate chain is in secret
+        _api_client = _get_k8s_api_client()
+        api_response = client.CoreV1Api(_api_client).read_namespaced_secret(certificate_chain_secret.name, certificate_chain_secret.ns).data
+
+        assert certificate_chain_secret.key in api_response
+        assert base64.b64decode(api_response[certificate_chain_secret.key]).decode("ascii") == cert

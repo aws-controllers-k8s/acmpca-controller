@@ -114,6 +114,23 @@ func (rm *resourceManager) sdkCreate(
 			return nil, err
 		}
 	}
+	if desired.ko.Spec.Status != nil && *desired.ko.Spec.Status == svcsdk.CertificateAuthorityStatusDisabled {
+		updateInput := &svcsdk.UpdateCertificateAuthorityInput{}
+
+		updateInput.SetStatus(*desired.ko.Spec.Status)
+
+		if desired.ko.Spec.CertificateAuthorityARN != nil {
+			updateInput.SetCertificateAuthorityArn(*desired.ko.Spec.CertificateAuthorityARN)
+		}
+
+		var updateResp *svcsdk.UpdateCertificateAuthorityOutput
+		_ = updateResp
+		updateResp, err = rm.sdkapi.UpdateCertificateAuthorityWithContext(ctx, updateInput)
+		rm.metrics.RecordAPICall("UPDATE", "UpdateCertificateAuthority", err)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &resource{ko}, nil
 }
 

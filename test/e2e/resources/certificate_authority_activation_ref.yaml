@@ -14,4 +14,4 @@ spec:
     namespace: $CERTIFICATE_SECRET_NAMESPACE
     name: $CERTIFICATE_SECRET_NAME
     key: $CERTIFICATE_SECRET_KEY
-  status: ACTIVE
+  status: $STATUS
