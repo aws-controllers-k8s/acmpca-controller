@@ -145,8 +145,6 @@ resources:
         code: customSetDefaults(a, b)
       sdk_create_post_build_request:
         template_path: hooks/certificate_authority_activation/sdk_create_post_build_request.go.tpl
-      sdk_update_post_build_request:
-        template_path: hooks/certificate_authority_activation/sdk_update_post_build_request.go.tpl
       sdk_create_post_set_output:
         template_path: hooks/certificate_authority_activation/sdk_create_post_set_output.go.tpl
     fields:
