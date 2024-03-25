@@ -1,4 +1,4 @@
-    certificateSecret := ""
+	certificateSecret := ""
 	certificateChainSecret := ""
 	if desired.ko.Spec.Certificate != nil {
 		certificateSecret, err = rm.rr.SecretValueFromReference(ctx, desired.ko.Spec.Certificate)

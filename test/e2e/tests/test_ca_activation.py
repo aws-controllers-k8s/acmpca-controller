@@ -50,7 +50,7 @@ def create_certificate_chain_secret(k8s_secret):
         "default",
         random_suffix_name("certificate-chain-secret", 50),
         "certificateChain",
-        "test"
+        "value"
     )
     yield secret
 
@@ -85,7 +85,6 @@ def simple_certificate_authority():
     assert ca_cr is not None
     assert k8s.get_resource_exists(ca_ref)
     logging.info(ca_cr)
-    logging.info(ca_ref)
 
     ca_resource_arn =  k8s.get_resource_arn(ca_cr)
     assert ca_resource_arn is not None
@@ -133,7 +132,6 @@ def subordinate_certificate_authority(acmpca_client, simple_ca_activation):
     assert ca_cr is not None
     assert k8s.get_resource_exists(ca_ref)
     logging.info(ca_cr)
-    logging.info(ca_ref)
 
     ca_resource_arn =  k8s.get_resource_arn(ca_cr)
     assert ca_resource_arn is not None
@@ -152,7 +150,6 @@ def simple_root_certificate(acmpca_client, create_secret, simple_certificate_aut
     cert_name = random_suffix_name("certificate", 30)
 
     secret = create_secret
-    logging.info(secret)
     
     replacements = {}
     replacements["NAME"] = cert_name
@@ -203,7 +200,6 @@ def subordinate_ca_certificate(create_secret, subordinate_certificate_authority)
     sub_ca_cert_name = random_suffix_name("certificate", 30)
 
     sub_ca_cert_secret = create_secret
-    logging.info(sub_ca_cert_secret)
     
     replacements = {}
     replacements["NAME"] = sub_ca_cert_name
@@ -344,9 +340,8 @@ def subordinate_ca_activation(subordinate_ca_certificate, create_certificate_cha
     assert act_cr is not None
     assert k8s.get_resource_exists(act_ref)
     logging.info(act_cr)
-    logging.info(certificate_chain_secret)
 
-    yield (sub_ca_arn, sub_ca_cert_arn, root_ca_arn, root_ca_cert_arn, complete_certificate_chain_secret)
+    yield (sub_ca_arn, sub_ca_cert_arn, root_ca_arn, root_ca_cert_arn, complete_certificate_chain_secret, sub_ca_cert_secret)
 
     # Update CAActivation
     updates = {
@@ -668,11 +663,32 @@ class TestCertificateAuthorityActivation:
         acmpca_validator.assert_certificate_authority(ca_arn, "DELETED")
 
     def test_subordinate_ca_activation(self, acmpca_client, subordinate_ca_activation):
-        (sub_ca_arn, sub_ca_cert_arn, root_ca_arn, root_ca_cert_arn, complete_certificate_chain_secret) = subordinate_ca_activation
+        (sub_ca_arn, sub_ca_cert_arn, root_ca_arn, root_ca_cert_arn, complete_certificate_chain_secret, sub_ca_cert_secret) = subordinate_ca_activation
 
         # Check CA status is ACTIVE
         acmpca_validator = ACMPCAValidator(acmpca_client)
         acmpca_validator.assert_certificate_authority(sub_ca_arn, "ACTIVE")
+
+        sub_ca_cert = acmpca_validator.get_certificate(ca_arn=root_ca_arn, cert_arn=sub_ca_cert_arn)
+        assert sub_ca_cert is not None
+
+        # Check certificate is in secret
+        _api_client = _get_k8s_api_client()
+        api_response = client.CoreV1Api(_api_client).read_namespaced_secret(sub_ca_cert_secret.name, sub_ca_cert_secret.ns).data
+
+        assert sub_ca_cert_secret.key in api_response
+        assert base64.b64decode(api_response[sub_ca_cert_secret.key]).decode("ascii") == sub_ca_cert
+
+        root_ca_cert = acmpca_validator.get_certificate(ca_arn=root_ca_arn, cert_arn=root_ca_cert_arn)
+        assert root_ca_cert is not None
+
+        complete_certificate_chain = sub_ca_cert + "\n" + root_ca_cert
+
+        # Check certificate chain is in secret
+        api_response = client.CoreV1Api(_api_client).read_namespaced_secret(complete_certificate_chain_secret.name, complete_certificate_chain_secret.ns).data
+
+        assert complete_certificate_chain_secret.key in api_response
+        assert base64.b64decode(api_response[complete_certificate_chain_secret.key]).decode("ascii") == complete_certificate_chain
 
     def test_ca_activation_status_disabled(self, acmpca_client, simple_ca_activation_status_disabled):
         (ca_arn, certificate_chain_secret, cert_arn) = simple_ca_activation_status_disabled
