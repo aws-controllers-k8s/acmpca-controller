@@ -109,7 +109,7 @@ type CertificateAuthorityStatus struct {
 	// +kubebuilder:validation:Optional
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
 	// +kubebuilder:validation:Optional
-	CSR []byte `json:"csr,omitempty"`
+	CertificateSigningRequest *string `json:"certificateSigningRequest,omitempty"`
 	// Date and time at which your private CA was created.
 	// +kubebuilder:validation:Optional
 	CreatedAt *metav1.Time `json:"createdAt,omitempty"`

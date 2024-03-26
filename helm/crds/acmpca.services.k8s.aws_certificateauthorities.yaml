@@ -479,6 +479,8 @@ spec:
                 - ownerAccountID
                 - region
                 type: object
+              certificateSigningRequest:
+                type: string
               conditions:
                 description: |-
                   All CRS managed by ACK have a common `Status.Conditions` member that
@@ -517,9 +519,6 @@ spec:
               createdAt:
                 description: Date and time at which your private CA was created.
                 format: date-time
-                type: string
-              csr:
-                format: byte
                 type: string
               failureReason:
                 description: Reason the request to create your private CA failed.

@@ -75,7 +75,6 @@ def simple_certificate_authority():
     assert ca_cr is not None
     assert k8s.get_resource_exists(ca_ref)
     logging.info(ca_cr)
-    logging.info(ca_ref)
 
     ca_resource_arn =  k8s.get_resource_arn(ca_cr)
     assert ca_resource_arn is not None
@@ -94,7 +93,6 @@ def simple_root_certificate(acmpca_client, create_secret, simple_certificate_aut
     cert_name = random_suffix_name("certificate", 30)
 
     secret = create_secret
-    logging.info(secret)
     
     replacements = {}
     replacements["NAME"] = cert_name
@@ -146,7 +144,6 @@ def simple_root_certificate_with_ref(acmpca_client, create_secret, simple_certif
     cert_name = random_suffix_name("certificate", 30)
 
     secret = create_secret
-    logging.info(secret)
     
     replacements = {}
     replacements["NAME"] = cert_name
@@ -197,7 +194,6 @@ def simple_root_certificate_without_secret_key(acmpca_client, create_secret, sim
     cert_name = random_suffix_name("certificate", 30)
 
     secret = create_secret
-    logging.info(secret)
     
     replacements = {}
     replacements["NAME"] = cert_name
@@ -247,7 +243,6 @@ def simple_root_certificate_without_secret_namespace(acmpca_client, create_secre
     cert_name = random_suffix_name("certificate", 30)
 
     secret = create_secret
-    logging.info(secret)
     
     replacements = {}
     replacements["NAME"] = cert_name

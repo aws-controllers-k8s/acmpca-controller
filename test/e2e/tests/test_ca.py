@@ -66,7 +66,7 @@ def simple_certificate_authority(acmpca_client):
 
     assert ca_cr is not None
     assert k8s.get_resource_exists(ca_ref)
-    logging.info(ca_ref)
+    logging.info(ca_cr)
 
     ca_resource_arn =  k8s.get_resource_arn(ca_cr)
     assert ca_resource_arn is not None
@@ -124,9 +124,9 @@ class TestCertificateAuthority:
 
         # Check CA Status fields
         assert 'status' in ca_cr
-        assert 'csr' in ca_cr['status']
+        assert 'certificateSigningRequest' in ca_cr['status']
         csr = acmpca_validator.get_csr(ca_resource_arn)
-        assert base64.b64decode(ca_cr['status']['csr']).decode("ascii") == csr
+        assert ca_cr['status']['certificateSigningRequest'] == csr
 
         assert 'status' in ca_cr['status']
         assert ca_cr['status']['status'] == "PENDING_CERTIFICATE"
