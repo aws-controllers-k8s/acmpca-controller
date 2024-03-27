@@ -10,7 +10,7 @@ spec:
   certificateAuthorityRef:
     from:
       name: $CA_NAME
-  csrRef:
+  certificateSigningRequestRef:
     from:
       name: $CA_NAME
   signingAlgorithm: SHA256WITHRSA

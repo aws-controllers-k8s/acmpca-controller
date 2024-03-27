@@ -587,10 +587,10 @@ func (in *CertificateAuthorityStatus) DeepCopyInto(out *CertificateAuthorityStat
 			}
 		}
 	}
-	if in.CSR != nil {
-		in, out := &in.CSR, &out.CSR
-		*out = make([]byte, len(*in))
-		copy(*out, *in)
+	if in.CertificateSigningRequest != nil {
+		in, out := &in.CertificateSigningRequest, &out.CertificateSigningRequest
+		*out = new(string)
+		**out = **in
 	}
 	if in.CreatedAt != nil {
 		in, out := &in.CreatedAt, &out.CreatedAt
@@ -779,13 +779,13 @@ func (in *CertificateSpec) DeepCopyInto(out *CertificateSpec) {
 		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.CSR != nil {
-		in, out := &in.CSR, &out.CSR
-		*out = make([]byte, len(*in))
-		copy(*out, *in)
+	if in.CertificateSigningRequest != nil {
+		in, out := &in.CertificateSigningRequest, &out.CertificateSigningRequest
+		*out = new(string)
+		**out = **in
 	}
-	if in.CSRRef != nil {
-		in, out := &in.CSRRef, &out.CSRRef
+	if in.CertificateSigningRequestRef != nil {
+		in, out := &in.CertificateSigningRequestRef, &out.CertificateSigningRequestRef
 		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
 		(*in).DeepCopyInto(*out)
 	}
