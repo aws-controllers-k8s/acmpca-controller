@@ -56,7 +56,9 @@ resources:
         is_immutable: true
       CertificateSigningRequest:
         is_read_only: true
-        type: string
+        from:
+          operation: GetCertificateAuthorityCsr
+          path: Csr
       Status:
         is_read_only: true
         from:

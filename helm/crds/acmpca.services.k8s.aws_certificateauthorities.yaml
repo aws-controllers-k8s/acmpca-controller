@@ -480,6 +480,9 @@ spec:
                 - region
                 type: object
               certificateSigningRequest:
+                description: |-
+                  The base64 PEM-encoded certificate signing request (CSR) for your private
+                  CA certificate.
                 type: string
               conditions:
                 description: |-

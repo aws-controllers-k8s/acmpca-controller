@@ -108,6 +108,8 @@ type CertificateAuthorityStatus struct {
 	// resource
 	// +kubebuilder:validation:Optional
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
+	// The base64 PEM-encoded certificate signing request (CSR) for your private
+	// CA certificate.
 	// +kubebuilder:validation:Optional
 	CertificateSigningRequest *string `json:"certificateSigningRequest,omitempty"`
 	// Date and time at which your private CA was created.
