@@ -155,12 +155,15 @@ resources:
         references:
           resource: CertificateAuthority
           path: Status.ACKResourceMetadata.ARN
+        is_immutable: true
       Certificate:
         type: string
         is_secret: true
+        is_immutable: true
       CertificateChain:
         type: string
         is_secret: true
+        is_immutable: true
       Status:
         type: string
     find_operation:
