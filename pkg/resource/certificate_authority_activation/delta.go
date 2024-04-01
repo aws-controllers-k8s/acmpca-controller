@@ -42,6 +42,7 @@ func newResourceDelta(
 		delta.Add("", a, b)
 		return delta
 	}
+	customSetDefaults(a, b)
 
 	if ackcompare.HasNilDifference(a.ko.Spec.Certificate, b.ko.Spec.Certificate) {
 		delta.Add("Spec.Certificate", a.ko.Spec.Certificate, b.ko.Spec.Certificate)
@@ -60,8 +61,12 @@ func newResourceDelta(
 	if !reflect.DeepEqual(a.ko.Spec.CertificateAuthorityRef, b.ko.Spec.CertificateAuthorityRef) {
 		delta.Add("Spec.CertificateAuthorityRef", a.ko.Spec.CertificateAuthorityRef, b.ko.Spec.CertificateAuthorityRef)
 	}
-	if !bytes.Equal(a.ko.Spec.CertificateChain, b.ko.Spec.CertificateChain) {
+	if ackcompare.HasNilDifference(a.ko.Spec.CertificateChain, b.ko.Spec.CertificateChain) {
 		delta.Add("Spec.CertificateChain", a.ko.Spec.CertificateChain, b.ko.Spec.CertificateChain)
+	} else if a.ko.Spec.CertificateChain != nil && b.ko.Spec.CertificateChain != nil {
+		if *a.ko.Spec.CertificateChain != *b.ko.Spec.CertificateChain {
+			delta.Add("Spec.CertificateChain", a.ko.Spec.CertificateChain, b.ko.Spec.CertificateChain)
+		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.Status, b.ko.Spec.Status) {
 		delta.Add("Spec.Status", a.ko.Spec.Status, b.ko.Spec.Status)

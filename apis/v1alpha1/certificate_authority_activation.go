@@ -32,15 +32,8 @@ type CertificateAuthorityActivationSpec struct {
 	// arn:aws:acm-pca:region:account:certificate-authority/12345678-1234-1234-1234-123456789012
 	CertificateAuthorityARN *string                                  `json:"certificateAuthorityARN,omitempty"`
 	CertificateAuthorityRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"certificateAuthorityRef,omitempty"`
-	// A PEM-encoded file that contains all of your certificates, other than the
-	// certificate you're importing, chaining up to your root CA. Your Amazon Web
-	// Services Private CA-hosted or on-premises root certificate is the last in
-	// the chain, and each certificate in the chain signs the one preceding.
-	//
-	// This parameter must be supplied when you import a subordinate CA. When you
-	// import a root CA, there is no chain.
-	CertificateChain []byte  `json:"certificateChain,omitempty"`
-	Status           *string `json:"status,omitempty"`
+	CertificateChain        *ackv1alpha1.SecretKeyReference          `json:"certificateChain,omitempty"`
+	Status                  *string                                  `json:"status,omitempty"`
 }
 
 // CertificateAuthorityActivationStatus defines the observed state of CertificateAuthorityActivation

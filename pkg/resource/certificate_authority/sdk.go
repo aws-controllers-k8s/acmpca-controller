@@ -321,10 +321,45 @@ func (rm *resourceManager) sdkFind(
 	} else {
 		ko.Spec.CertificateAuthorityConfiguration = nil
 	}
+	if resp.CertificateAuthority.CreatedAt != nil {
+		ko.Status.CreatedAt = &metav1.Time{*resp.CertificateAuthority.CreatedAt}
+	} else {
+		ko.Status.CreatedAt = nil
+	}
+	if resp.CertificateAuthority.FailureReason != nil {
+		ko.Status.FailureReason = resp.CertificateAuthority.FailureReason
+	} else {
+		ko.Status.FailureReason = nil
+	}
 	if resp.CertificateAuthority.KeyStorageSecurityStandard != nil {
 		ko.Spec.KeyStorageSecurityStandard = resp.CertificateAuthority.KeyStorageSecurityStandard
 	} else {
 		ko.Spec.KeyStorageSecurityStandard = nil
+	}
+	if resp.CertificateAuthority.LastStateChangeAt != nil {
+		ko.Status.LastStateChangeAt = &metav1.Time{*resp.CertificateAuthority.LastStateChangeAt}
+	} else {
+		ko.Status.LastStateChangeAt = nil
+	}
+	if resp.CertificateAuthority.NotAfter != nil {
+		ko.Status.NotAfter = &metav1.Time{*resp.CertificateAuthority.NotAfter}
+	} else {
+		ko.Status.NotAfter = nil
+	}
+	if resp.CertificateAuthority.NotBefore != nil {
+		ko.Status.NotBefore = &metav1.Time{*resp.CertificateAuthority.NotBefore}
+	} else {
+		ko.Status.NotBefore = nil
+	}
+	if resp.CertificateAuthority.OwnerAccount != nil {
+		ko.Status.OwnerAccount = resp.CertificateAuthority.OwnerAccount
+	} else {
+		ko.Status.OwnerAccount = nil
+	}
+	if resp.CertificateAuthority.RestorableUntil != nil {
+		ko.Status.RestorableUntil = &metav1.Time{*resp.CertificateAuthority.RestorableUntil}
+	} else {
+		ko.Status.RestorableUntil = nil
 	}
 	if resp.CertificateAuthority.RevocationConfiguration != nil {
 		f10 := &svcapitypes.RevocationConfiguration{}
@@ -361,6 +396,16 @@ func (rm *resourceManager) sdkFind(
 	} else {
 		ko.Spec.RevocationConfiguration = nil
 	}
+	if resp.CertificateAuthority.Serial != nil {
+		ko.Status.Serial = resp.CertificateAuthority.Serial
+	} else {
+		ko.Status.Serial = nil
+	}
+	if resp.CertificateAuthority.Status != nil {
+		ko.Status.Status = resp.CertificateAuthority.Status
+	} else {
+		ko.Status.Status = nil
+	}
 	if resp.CertificateAuthority.UsageMode != nil {
 		ko.Spec.UsageMode = resp.CertificateAuthority.UsageMode
 	} else {
@@ -368,6 +413,34 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	rm.setStatusDefaults(ko)
+	resourceARN := (*string)(ko.Status.ACKResourceMetadata.ARN)
+	tags, err := rm.getTags(ctx, *resourceARN)
+	if err != nil {
+		return nil, err
+	}
+	ko.Spec.Tags = tags
+
+	if ko.Spec.KeyStorageSecurityStandard == nil {
+		ko.Spec.KeyStorageSecurityStandard = aws.String("FIPS_140_2_LEVEL_3_OR_HIGHER")
+	}
+
+	if ko.Spec.UsageMode == nil {
+		ko.Spec.UsageMode = aws.String("GENERAL_PURPOSE")
+	}
+
+	if ko.Spec.RevocationConfiguration == nil {
+		revocationConfiguration := &svcapitypes.RevocationConfiguration{}
+
+		revocationConfigurationCRLConfiguration := &svcapitypes.CRLConfiguration{}
+		revocationConfigurationCRLConfiguration.Enabled = aws.Bool(false)
+		revocationConfiguration.CRLConfiguration = revocationConfigurationCRLConfiguration
+
+		revocationConfigurationOCSPConfiguration := &svcapitypes.OCSPConfiguration{}
+		revocationConfigurationOCSPConfiguration.Enabled = aws.Bool(false)
+		revocationConfiguration.OCSPConfiguration = revocationConfigurationOCSPConfiguration
+
+		ko.Spec.RevocationConfiguration = revocationConfiguration
+	}
 	return &resource{ko}, nil
 }
 
@@ -746,6 +819,19 @@ func (rm *resourceManager) sdkUpdate(
 	defer func() {
 		exit(err)
 	}()
+	if immutableFieldChanges := rm.getImmutableFieldChanges(delta); len(immutableFieldChanges) > 0 {
+		msg := fmt.Sprintf("Immutable Spec fields have been modified: %s", strings.Join(immutableFieldChanges, ","))
+		return nil, ackerr.NewTerminalError(fmt.Errorf(msg))
+	}
+	if delta.DifferentAt("Spec.Tags") {
+		err := rm.syncTags(ctx, desired, latest)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if !delta.DifferentExcept("Spec.Tags") {
+		return desired, nil
+	}
 	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
 	if err != nil {
 		return nil, err
@@ -968,4 +1054,25 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	default:
 		return false
 	}
+}
+
+// getImmutableFieldChanges returns list of immutable fields from the
+func (rm *resourceManager) getImmutableFieldChanges(
+	delta *ackcompare.Delta,
+) []string {
+	var fields []string
+	if delta.DifferentAt("Spec.CertificateAuthorityConfiguration") {
+		fields = append(fields, "CertificateAuthorityConfiguration")
+	}
+	if delta.DifferentAt("Spec.CertificateAuthorityType") {
+		fields = append(fields, "CertificateAuthorityType")
+	}
+	if delta.DifferentAt("Spec.KeyStorageSecurityStandard") {
+		fields = append(fields, "KeyStorageSecurityStandard")
+	}
+	if delta.DifferentAt("Spec.UsageMode") {
+		fields = append(fields, "UsageMode")
+	}
+
+	return fields
 }

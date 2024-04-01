@@ -75,13 +75,24 @@ func (rm *resourceManager) sdkCreate(
 	if err != nil {
 		return nil, err
 	}
+	certificateSecret := ""
+	certificateChainSecret := ""
 	if desired.ko.Spec.Certificate != nil {
-		tmpSecret, err := rm.rr.SecretValueFromReference(ctx, desired.ko.Spec.Certificate)
+		certificateSecret, err = rm.rr.SecretValueFromReference(ctx, desired.ko.Spec.Certificate)
 		if err != nil {
 			return nil, ackrequeue.Needed(err)
 		}
-		if tmpSecret != "" {
-			input.SetCertificate([]byte(tmpSecret))
+		if certificateSecret != "" {
+			input.SetCertificate([]byte(certificateSecret))
+		}
+	}
+	if desired.ko.Spec.CertificateChain != nil {
+		certificateChainSecret, err = rm.rr.SecretValueFromReference(ctx, desired.ko.Spec.CertificateChain)
+		if err != nil {
+			return nil, ackrequeue.Needed(err)
+		}
+		if certificateChainSecret != "" {
+			input.SetCertificateChain([]byte(certificateChainSecret))
 		}
 	}
 
@@ -97,6 +108,12 @@ func (rm *resourceManager) sdkCreate(
 	ko := desired.ko.DeepCopy()
 
 	rm.setStatusDefaults(ko)
+	if certificateSecret != "" {
+		err = rm.writeCertificateChainToSecret(ctx, certificateSecret, certificateChainSecret, desired.ko.ObjectMeta)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &resource{ko}, nil
 }
 
@@ -110,9 +127,6 @@ func (rm *resourceManager) newCreateRequestPayload(
 
 	if r.ko.Spec.CertificateAuthorityARN != nil {
 		res.SetCertificateAuthorityArn(*r.ko.Spec.CertificateAuthorityARN)
-	}
-	if r.ko.Spec.CertificateChain != nil {
-		res.SetCertificateChain(r.ko.Spec.CertificateChain)
 	}
 
 	return res, nil
@@ -139,9 +153,7 @@ func (rm *resourceManager) sdkDelete(
 	defer func() {
 		exit(err)
 	}()
-	// TODO(jaypipes): Figure this out...
-	return nil, nil
-
+	return rm.customDeleteCertificateAuthorityActivation(ctx, r)
 }
 
 // setStatusDefaults sets default properties into supplied custom resource

@@ -7,8 +7,11 @@ metadata:
     acmpca.services.k8s.aws/chain-secret-name: $CERTIFICATE_CHAIN_SEC_NAME
     acmpca.services.k8s.aws/chain-secret-key: $CERTIFICATE_CHAIN_SEC_KEY
 spec:
-  certificateAuthorityARN: $CA_ARN
+  certificateAuthorityRef:
+    from:
+      name: $CA_NAME
   certificate:
     namespace: $CERTIFICATE_SECRET_NAMESPACE
     name: $CERTIFICATE_SECRET_NAME
     key: $CERTIFICATE_SECRET_KEY
+  status: ACTIVE
