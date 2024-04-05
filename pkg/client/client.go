@@ -14,31 +14,14 @@
 package client
 
 import (
-	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 )
 
 var (
-	dynClient     *dynamic.DynamicClient
 	secretsClient corev1.SecretInterface
 )
-
-func GetDynamicClient() (client *dynamic.DynamicClient, err error) {
-	if dynClient == nil {
-		config, err := rest.InClusterConfig()
-		if err != nil {
-			return nil, err
-		}
-
-		dynClient, err = dynamic.NewForConfig(config)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return dynClient, nil
-}
 
 func GetSecretsClient(
 	namespace string,
