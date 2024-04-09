@@ -1,5 +1,6 @@
-    err = rm.writeCertificateToSecret(ctx, resp.Certificate, r)
+    _ = resp
+    /*err = rm.writeCertificateToSecret(ctx, resp.Certificate, r)
     if err != nil {
         return nil, err
-    }
+    }*/
     

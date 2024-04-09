@@ -66,7 +66,7 @@ def simple_certificate_authority(acmpca_client):
 
     assert ca_cr is not None
     assert k8s.get_resource_exists(ca_ref)
-    logging.info(ca_ref)
+    logging.info(ca_cr)
 
     ca_resource_arn =  k8s.get_resource_arn(ca_cr)
     assert ca_resource_arn is not None

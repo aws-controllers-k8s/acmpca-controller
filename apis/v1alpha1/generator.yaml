@@ -103,6 +103,8 @@ resources:
           path: CertificateAuthority.OwnerAccount
   Certificate:
     hooks:
+      sdk_create_post_set_output:
+        template_path: hooks/certificate/sdk_create_post_set_output.go.tpl
       sdk_read_one_post_set_output:
         template_path: hooks/certificate/sdk_read_one_post_set_output.go.tpl
     exceptions:

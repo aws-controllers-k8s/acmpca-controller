@@ -91,10 +91,11 @@ func (rm *resourceManager) sdkFind(
 	ko := r.ko.DeepCopy()
 
 	rm.setStatusDefaults(ko)
-	err = rm.writeCertificateToSecret(ctx, resp.Certificate, r)
-	if err != nil {
-		return nil, err
-	}
+	_ = resp
+	/*err = rm.writeCertificateToSecret(ctx, resp.Certificate, r)
+	  if err != nil {
+	      return nil, err
+	  }*/
 
 	return &resource{ko}, nil
 }
@@ -163,6 +164,14 @@ func (rm *resourceManager) sdkCreate(
 	}
 
 	rm.setStatusDefaults(ko)
+	if ko.Status.ACKResourceMetadata != nil && ko.Status.ACKResourceMetadata.ARN != nil && ko.Spec.CertificateAuthorityARN != nil {
+		resourceARN := (*string)(ko.Status.ACKResourceMetadata.ARN)
+		caARN := (*string)(ko.Spec.CertificateAuthorityARN)
+		err = rm.writeCertificateToSecret(ctx, desired, *resourceARN, *caARN)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &resource{ko}, nil
 }
 

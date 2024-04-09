@@ -19,6 +19,7 @@ import (
 
 	client "github.com/aws-controllers-k8s/acmpca-controller/pkg/client"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
+	svcsdk "github.com/aws/aws-sdk-go/service/acmpca"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -26,9 +27,19 @@ import (
 
 func (rm *resourceManager) writeCertificateToSecret(
 	ctx context.Context,
-	certificate *string,
 	r *resource,
+	resourceARN string,
+	caARN string,
 ) (err error) {
+
+	input := &svcsdk.GetCertificateInput{}
+	input.CertificateArn = &resourceARN
+	input.CertificateAuthorityArn = &caARN
+	resp, err := rm.sdkapi.GetCertificateWithContext(ctx, input)
+	rm.metrics.RecordAPICall("READ_ONE", "GetCertificate", err)
+	if err != nil {
+		return err
+	}
 
 	annotations := r.ko.ObjectMeta.GetAnnotations()
 
@@ -54,7 +65,7 @@ func (rm *resourceManager) writeCertificateToSecret(
 
 	secret := corev1.Secret{
 		Data: map[string][]byte{
-			key: []byte(*certificate),
+			key: []byte(*resp.Certificate),
 		},
 	}
 
