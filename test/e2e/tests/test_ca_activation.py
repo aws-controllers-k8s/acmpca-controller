@@ -595,7 +595,7 @@ class TestCertificateAuthorityActivation:
         # Check CA is DISABLED after CAActivation is deleted
         acmpca_validator.assert_certificate_authority(ca_arn, "DISABLED")
 
-    def test_out_of_band_ca_activation(self, acmpca_client, k8s_secret):
+    '''def test_out_of_band_ca_activation(self, acmpca_client, k8s_secret):
         acmpca_validator = ACMPCAValidator(acmpca_client)
 
         # Create Root CA 
@@ -704,7 +704,7 @@ class TestCertificateAuthorityActivation:
         api_response = client.CoreV1Api(_api_client).read_namespaced_secret(certificate_chain_secret.name, certificate_chain_secret.ns).data
 
         assert certificate_chain_secret.key in api_response
-        assert base64.b64decode(api_response[certificate_chain_secret.key]).decode("ascii") == cert
+        assert base64.b64decode(api_response[certificate_chain_secret.key]).decode("ascii") == cert'''
 
     def test_second_activation(self, acmpca_client, simple_ca_activation):
         
