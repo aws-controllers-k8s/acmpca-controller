@@ -688,7 +688,7 @@ class TestCertificateAuthorityActivation:
         api_response = client.CoreV1Api(_api_client).read_namespaced_secret(complete_certificate_chain_secret.name, complete_certificate_chain_secret.ns).data
 
         assert complete_certificate_chain_secret.key in api_response
-        assert base64.b64decode(api_response[complete_certificate_chain_secret.key]).decode("ascii") == complete_certificate_chain
+        assert base64.b64decode(api_response[complete_certificate_chain_secret.key]).decode("ascii") == complete_certificate_chain'''
 
     def test_ca_activation_status_disabled(self, acmpca_client, simple_ca_activation_status_disabled):
         (ca_arn, certificate_chain_secret, cert_arn) = simple_ca_activation_status_disabled
@@ -704,7 +704,7 @@ class TestCertificateAuthorityActivation:
         api_response = client.CoreV1Api(_api_client).read_namespaced_secret(certificate_chain_secret.name, certificate_chain_secret.ns).data
 
         assert certificate_chain_secret.key in api_response
-        assert base64.b64decode(api_response[certificate_chain_secret.key]).decode("ascii") == cert'''
+        assert base64.b64decode(api_response[certificate_chain_secret.key]).decode("ascii") == cert
 
     def test_second_activation(self, acmpca_client, simple_ca_activation):
         
