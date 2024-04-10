@@ -40,7 +40,7 @@ DELETE_WAIT_AFTER_SECONDS = 10
 def simple_certificate_authority(acmpca_client):
     ca_name = random_suffix_name("certificate-authority", 50)
     replacements = {}
-    suffix = random_suffix_name("", 2)
+    suffix = random_suffix_name("", 10)
     replacements["NAME"] = ca_name
     replacements["COMMON_NAME"] = "www.example" + suffix + ".com"
     replacements["COUNTRY"] = "US"
@@ -96,10 +96,10 @@ class TestCertificateAuthority:
 
         # Check CA Spec fields
         assert ca["Type"] == "ROOT"
-        assert re.search("^www[.]example.{2}[.]com$", ca["CertificateAuthorityConfiguration"]["Subject"]["CommonName"])
+        assert re.search("^www[.]example.{10}[.]com$", ca["CertificateAuthorityConfiguration"]["Subject"]["CommonName"])
         assert ca["CertificateAuthorityConfiguration"]["Subject"]["Country"] == "US"
         assert ca["CertificateAuthorityConfiguration"]["Subject"]["Locality"] == "Arlington"
-        assert re.search("^Example Organization .{2}$", ca["CertificateAuthorityConfiguration"]["Subject"]["Organization"])
+        assert re.search("^Example Organization .{10}$", ca["CertificateAuthorityConfiguration"]["Subject"]["Organization"])
         assert ca["CertificateAuthorityConfiguration"]["Subject"]["State"] == "Virginia"
         assert ca["CertificateAuthorityConfiguration"]["KeyAlgorithm"] == "RSA_2048"
         assert ca["CertificateAuthorityConfiguration"]["SigningAlgorithm"] == "SHA256WITHRSA"

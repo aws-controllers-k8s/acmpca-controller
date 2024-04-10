@@ -58,7 +58,7 @@ def create_certificate_chain_secret(k8s_secret):
 def simple_certificate_authority():
     ca_name = random_suffix_name("certificate-authority", 50)
     replacements = {}
-    suffix = random_suffix_name("", 2)
+    suffix = random_suffix_name("", 10)
     replacements["NAME"] = ca_name
     replacements["COMMON_NAME"] = "www.example" + suffix + ".com"
     replacements["COUNTRY"] = "US"
@@ -469,23 +469,6 @@ def simple_ca_activation_status_disabled(simple_root_certificate, create_certifi
 
 @service_marker
 class TestCertificateAuthorityActivation:
-
-    def test_ca_activation(self, acmpca_client, simple_ca_activation):
-        
-        (ca_arn, act_cr, act_ref, certificate_chain_secret, cert_arn) = simple_ca_activation
-
-        # Check CA status is ACTIVE
-        acmpca_validator = ACMPCAValidator(acmpca_client)
-        acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE")
-
-        cert = acmpca_validator.get_certificate(ca_arn=ca_arn, cert_arn=cert_arn)
-
-        # Check certificate chain is in secret
-        _api_client = _get_k8s_api_client()
-        api_response = client.CoreV1Api(_api_client).read_namespaced_secret(certificate_chain_secret.name, certificate_chain_secret.ns).data
-
-        assert certificate_chain_secret.key in api_response
-        assert base64.b64decode(api_response[certificate_chain_secret.key]).decode("ascii") == cert
     
     def test_ca_activation_with_ref(self, acmpca_client, simple_ca_activation_with_ref):
         
@@ -511,6 +494,15 @@ class TestCertificateAuthorityActivation:
         # Check CA status is ACTIVE
         acmpca_validator = ACMPCAValidator(acmpca_client)
         acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE")
+
+        cert = acmpca_validator.get_certificate(ca_arn=ca_arn, cert_arn=cert_arn)
+
+        # Check certificate chain is in secret
+        _api_client = _get_k8s_api_client()
+        api_response = client.CoreV1Api(_api_client).read_namespaced_secret(certificate_chain_secret.name, certificate_chain_secret.ns).data
+
+        assert certificate_chain_secret.key in api_response
+        assert base64.b64decode(api_response[certificate_chain_secret.key]).decode("ascii") == cert
 
         # Update Status to DISABLED
         updates = {

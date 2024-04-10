@@ -48,7 +48,7 @@ def create_secret(k8s_secret):
 def simple_certificate_authority():
     ca_name = random_suffix_name("certificate-authority", 50)
     replacements = {}
-    suffix = random_suffix_name("", 2)
+    suffix = random_suffix_name("", 10)
     replacements["NAME"] = ca_name
     replacements["COMMON_NAME"] = "www.example" + suffix + ".com"
     replacements["COUNTRY"] = "US"
