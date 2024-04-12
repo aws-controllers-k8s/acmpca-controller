@@ -30,6 +30,7 @@ from e2e.fixtures import k8s_secret
 
 RESOURCE_PLURAL = "certificates"
 
+CREATE_CA_WAIT_AFTER_SECONDS = 30
 CREATE_WAIT_AFTER_SECONDS = 10
 UPDATE_WAIT_AFTER_SECONDS = 10
 DELETE_WAIT_AFTER_SECONDS = 10
@@ -70,7 +71,7 @@ def simple_certificate_authority():
     k8s.create_custom_resource(ca_ref, ca_resource_data)
     ca_cr = k8s.wait_resource_consumed_by_controller(ca_ref)
 
-    time.sleep(CREATE_WAIT_AFTER_SECONDS)
+    time.sleep(CREATE_CA_WAIT_AFTER_SECONDS)
 
     assert ca_cr is not None
     assert k8s.get_resource_exists(ca_ref)
