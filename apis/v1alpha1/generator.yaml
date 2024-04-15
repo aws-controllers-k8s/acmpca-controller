@@ -6,6 +6,7 @@ ignore:
   field_paths:
   - CreateCertificateAuthorityInput.IdempotencyToken
   - IssueCertificateInput.IdempotencyToken
+  - IssueCertificateInput.Csr
   - ImportCertificateAuthorityCertificateInput.Certificate
   - ImportCertificateAuthorityCertificateInput.CertificateChain
   - UpdateCertificateAuthorityInput.Status
@@ -53,9 +54,11 @@ resources:
         is_immutable: true
       UsageMode:
         is_immutable: true
-      CSR:
+      CertificateSigningRequest:
         is_read_only: true
-        type: 'bytes'
+        from:
+          operation: GetCertificateAuthorityCsr
+          path: Csr
       Status:
         is_read_only: true
         from:
@@ -105,6 +108,8 @@ resources:
     hooks:
       sdk_read_one_post_set_output:
         template_path: hooks/certificate/sdk_read_one_post_set_output.go.tpl
+      sdk_create_post_build_request:
+        template_path: hooks/certificate/sdk_create_post_build_request.go.tpl
     exceptions:
       terminal_codes:
       - InvalidAction
@@ -120,10 +125,11 @@ resources:
           resource: CertificateAuthority
           path: Status.ACKResourceMetadata.ARN
         is_immutable: true
-      CSR:
+      CertificateSigningRequest:
+        type: string
         references:
           resource: CertificateAuthority
-          path: Status.CSR
+          path: Status.CertificateSigningRequest
         is_immutable: true
       APIPassthrough:
         is_immutable: true
