@@ -8,7 +8,7 @@ metadata:
     acmpca.services.k8s.aws/certificate-secret-key: $CERTIFICATE_SEC_KEY
 spec:
   certificateAuthorityARN: $CA_ARN
-  csrRef:
+  certificateSigningRequestRef:
     from:
       name: $CA_NAME
   signingAlgorithm: SHA256WITHRSA

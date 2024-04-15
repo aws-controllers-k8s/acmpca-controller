@@ -38,26 +38,10 @@ type CertificateSpec struct {
 	// This must be of the form:
 	//
 	// arn:aws:acm-pca:region:account:certificate-authority/12345678-1234-1234-1234-123456789012
-	CertificateAuthorityARN *string                                  `json:"certificateAuthorityARN,omitempty"`
-	CertificateAuthorityRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"certificateAuthorityRef,omitempty"`
-	// The certificate signing request (CSR) for the certificate you want to issue.
-	// As an example, you can use the following OpenSSL command to create the CSR
-	// and a 2048 bit RSA private key.
-	//
-	// openssl req -new -newkey rsa:2048 -days 365 -keyout private/test_cert_priv_key.pem
-	// -out csr/test_cert_.csr
-	//
-	// If you have a configuration file, you can then use the following OpenSSL
-	// command. The usr_cert block in the configuration file contains your X509
-	// version 3 extensions.
-	//
-	// openssl req -new -config openssl_rsa.cnf -extensions usr_cert -newkey rsa:2048
-	// -days 365 -keyout private/test_cert_priv_key.pem -out csr/test_cert_.csr
-	//
-	// Note: A CSR must provide either a subject name or a subject alternative name
-	// or the request will be rejected.
-	CSR    []byte                                   `json:"csr,omitempty"`
-	CSRRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"csrRef,omitempty"`
+	CertificateAuthorityARN      *string                                  `json:"certificateAuthorityARN,omitempty"`
+	CertificateAuthorityRef      *ackv1alpha1.AWSResourceReferenceWrapper `json:"certificateAuthorityRef,omitempty"`
+	CertificateSigningRequest    *string                                  `json:"certificateSigningRequest,omitempty"`
+	CertificateSigningRequestRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"certificateSigningRequestRef,omitempty"`
 	// The name of the algorithm that will be used to sign the certificate to be
 	// issued.
 	//

@@ -143,6 +143,9 @@ func (rm *resourceManager) sdkCreate(
 	if err != nil {
 		return nil, err
 	}
+	if desired.ko.Spec.CertificateSigningRequest != nil {
+		input.SetCsr([]byte(*desired.ko.Spec.CertificateSigningRequest))
+	}
 
 	var resp *svcsdk.IssueCertificateOutput
 	_ = resp
@@ -448,9 +451,6 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.CertificateAuthorityARN != nil {
 		res.SetCertificateAuthorityArn(*r.ko.Spec.CertificateAuthorityARN)
 	}
-	if r.ko.Spec.CSR != nil {
-		res.SetCsr(r.ko.Spec.CSR)
-	}
 	if r.ko.Spec.SigningAlgorithm != nil {
 		res.SetSigningAlgorithm(*r.ko.Spec.SigningAlgorithm)
 	}
@@ -458,24 +458,24 @@ func (rm *resourceManager) newCreateRequestPayload(
 		res.SetTemplateArn(*r.ko.Spec.TemplateARN)
 	}
 	if r.ko.Spec.Validity != nil {
-		f5 := &svcsdk.Validity{}
+		f4 := &svcsdk.Validity{}
 		if r.ko.Spec.Validity.Type != nil {
-			f5.SetType(*r.ko.Spec.Validity.Type)
+			f4.SetType(*r.ko.Spec.Validity.Type)
 		}
 		if r.ko.Spec.Validity.Value != nil {
-			f5.SetValue(*r.ko.Spec.Validity.Value)
+			f4.SetValue(*r.ko.Spec.Validity.Value)
 		}
-		res.SetValidity(f5)
+		res.SetValidity(f4)
 	}
 	if r.ko.Spec.ValidityNotBefore != nil {
-		f6 := &svcsdk.Validity{}
+		f5 := &svcsdk.Validity{}
 		if r.ko.Spec.ValidityNotBefore.Type != nil {
-			f6.SetType(*r.ko.Spec.ValidityNotBefore.Type)
+			f5.SetType(*r.ko.Spec.ValidityNotBefore.Type)
 		}
 		if r.ko.Spec.ValidityNotBefore.Value != nil {
-			f6.SetValue(*r.ko.Spec.ValidityNotBefore.Value)
+			f5.SetValue(*r.ko.Spec.ValidityNotBefore.Value)
 		}
-		res.SetValidityNotBefore(f6)
+		res.SetValidityNotBefore(f5)
 	}
 
 	return res, nil
@@ -635,11 +635,11 @@ func (rm *resourceManager) getImmutableFieldChanges(
 	if delta.DifferentAt("Spec.APIPassthrough") {
 		fields = append(fields, "APIPassthrough")
 	}
-	if delta.DifferentAt("Spec.CSR") {
-		fields = append(fields, "CSR")
-	}
 	if delta.DifferentAt("Spec.CertificateAuthorityARN") {
 		fields = append(fields, "CertificateAuthorityARN")
+	}
+	if delta.DifferentAt("Spec.CertificateSigningRequest") {
+		fields = append(fields, "CertificateSigningRequest")
 	}
 	if delta.DifferentAt("Spec.SigningAlgorithm") {
 		fields = append(fields, "SigningAlgorithm")

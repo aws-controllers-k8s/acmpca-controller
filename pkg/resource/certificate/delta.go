@@ -265,11 +265,15 @@ func newResourceDelta(
 	if !reflect.DeepEqual(a.ko.Spec.CertificateAuthorityRef, b.ko.Spec.CertificateAuthorityRef) {
 		delta.Add("Spec.CertificateAuthorityRef", a.ko.Spec.CertificateAuthorityRef, b.ko.Spec.CertificateAuthorityRef)
 	}
-	if !bytes.Equal(a.ko.Spec.CSR, b.ko.Spec.CSR) {
-		delta.Add("Spec.CSR", a.ko.Spec.CSR, b.ko.Spec.CSR)
+	if ackcompare.HasNilDifference(a.ko.Spec.CertificateSigningRequest, b.ko.Spec.CertificateSigningRequest) {
+		delta.Add("Spec.CertificateSigningRequest", a.ko.Spec.CertificateSigningRequest, b.ko.Spec.CertificateSigningRequest)
+	} else if a.ko.Spec.CertificateSigningRequest != nil && b.ko.Spec.CertificateSigningRequest != nil {
+		if *a.ko.Spec.CertificateSigningRequest != *b.ko.Spec.CertificateSigningRequest {
+			delta.Add("Spec.CertificateSigningRequest", a.ko.Spec.CertificateSigningRequest, b.ko.Spec.CertificateSigningRequest)
+		}
 	}
-	if !reflect.DeepEqual(a.ko.Spec.CSRRef, b.ko.Spec.CSRRef) {
-		delta.Add("Spec.CSRRef", a.ko.Spec.CSRRef, b.ko.Spec.CSRRef)
+	if !reflect.DeepEqual(a.ko.Spec.CertificateSigningRequestRef, b.ko.Spec.CertificateSigningRequestRef) {
+		delta.Add("Spec.CertificateSigningRequestRef", a.ko.Spec.CertificateSigningRequestRef, b.ko.Spec.CertificateSigningRequestRef)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.SigningAlgorithm, b.ko.Spec.SigningAlgorithm) {
 		delta.Add("Spec.SigningAlgorithm", a.ko.Spec.SigningAlgorithm, b.ko.Spec.SigningAlgorithm)

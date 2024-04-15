@@ -124,9 +124,9 @@ class TestCertificateAuthority:
 
         # Check CA Status fields
         assert 'status' in ca_cr
-        assert 'csr' in ca_cr['status']
+        assert 'certificateSigningRequest' in ca_cr['status']
         csr = acmpca_validator.get_csr(ca_resource_arn)
-        assert base64.b64decode(ca_cr['status']['csr']).decode("ascii") == csr
+        assert ca_cr['status']['certificateSigningRequest'] == csr
 
         assert 'status' in ca_cr['status']
         assert ca_cr['status']['status'] == "PENDING_CERTIFICATE"
