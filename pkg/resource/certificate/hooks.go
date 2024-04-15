@@ -27,9 +27,9 @@ import (
 
 func (rm *resourceManager) writeCertificateToSecret(
 	ctx context.Context,
-	r *resource,
 	resourceARN string,
 	caARN string,
+	objectMeta metav1.ObjectMeta,
 ) (err error) {
 
 	input := &svcsdk.GetCertificateInput{}
@@ -41,7 +41,7 @@ func (rm *resourceManager) writeCertificateToSecret(
 		return err
 	}
 
-	annotations := r.ko.ObjectMeta.GetAnnotations()
+	annotations := objectMeta.GetAnnotations()
 
 	namespace, found := annotations["acmpca.services.k8s.aws/certificate-secret-namespace"]
 	if !found {
