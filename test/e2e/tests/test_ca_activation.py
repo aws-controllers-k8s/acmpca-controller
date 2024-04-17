@@ -471,7 +471,7 @@ def simple_ca_activation_status_disabled(simple_root_certificate, create_certifi
 class TestCertificateAuthorityActivation:
 
     def test_activation_crud(self, acmpca_client, simple_root_certificate, create_certificate_chain_secret):
-        time.sleep(20)
+        time.sleep(30)
 
         (ca_name, ca_arn, secret, cert_arn) = simple_root_certificate
         activation_name = random_suffix_name("certificate-authority-activation", 50)
@@ -570,7 +570,7 @@ class TestCertificateAuthorityActivation:
         acmpca_validator.assert_certificate_authority(ca_arn, "DISABLED")
 
     def test_subordinate_ca_activation(self, acmpca_client, subordinate_ca_activation):
-        time.sleep(20)
+        time.sleep(30)
         
         (sub_ca_arn, sub_ca_cert_arn, root_ca_arn, root_ca_cert_arn, complete_certificate_chain_secret, sub_ca_cert_secret) = subordinate_ca_activation
 
@@ -600,6 +600,8 @@ class TestCertificateAuthorityActivation:
         assert base64.b64decode(api_response[complete_certificate_chain_secret.key]).decode("ascii") == complete_certificate_chain
 
     def test_disabled_activation(self, acmpca_client, simple_ca_activation_status_disabled):
+        time.sleep(10)
+
         (ca_arn, certificate_chain_secret, cert_arn) = simple_ca_activation_status_disabled
 
         # Check CA status is DISABLED

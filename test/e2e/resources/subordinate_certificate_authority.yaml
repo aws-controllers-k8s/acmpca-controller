@@ -3,7 +3,7 @@ kind: CertificateAuthority
 metadata:
   name: $NAME
 spec:
-  certificateAuthorityType: SUBORDINATE
+  type: SUBORDINATE
   certificateAuthorityConfiguration:
     subject:
       commonName: $COMMON_NAME

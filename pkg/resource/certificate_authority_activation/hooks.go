@@ -15,16 +15,12 @@ package certificate_authority_activation
 
 import (
 	"context"
-	"encoding/json"
 
-	client "github.com/aws-controllers-k8s/acmpca-controller/pkg/client"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	svcsdk "github.com/aws/aws-sdk-go/service/acmpca"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 func (rm *resourceManager) customFindCertificateAuthorityActivation(
@@ -136,23 +132,7 @@ func (rm *resourceManager) writeCertificateChainToSecret(
 		completeCertificateChain = certificate + "\n" + certificateChain
 	}
 
-	secretsClient, err := client.GetSecretsClient(namespace)
-	if err != nil {
-		return err
-	}
-
-	secret := corev1.Secret{
-		Data: map[string][]byte{
-			key: []byte(completeCertificateChain),
-		},
-	}
-
-	payloadBytes, err := json.Marshal(secret)
-	if err != nil {
-		return err
-	}
-
-	_, err = secretsClient.Patch(ctx, name, types.StrategicMergePatchType, payloadBytes, metav1.PatchOptions{})
+	err = rm.rr.WriteToSecret(ctx, completeCertificateChain, namespace, name, key)
 	rm.metrics.RecordAPICall("PATCH", "writeCertificateChainToSecret", err)
 	if err != nil {
 		return err

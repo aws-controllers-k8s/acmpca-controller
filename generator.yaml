@@ -45,11 +45,16 @@ resources:
       - MissingParameter
       - ValidationError
       - ValidationException
+      - LimitExceededException
+      - InvalidTagException
+      - InvalidPolicyException
+      - InvalidArgsException
     fields: 
       CertificateAuthorityConfiguration:
         is_immutable: true
       CertificateAuthorityType:
         is_immutable: true
+        go_tag: json:"type,omitempty"
       KeyStorageSecurityStandard:
         is_immutable: true
       UsageMode:

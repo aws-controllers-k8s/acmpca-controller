@@ -124,9 +124,7 @@ func (rm *resourceManager) sdkCreate(
 			updateInput.SetCertificateAuthorityArn(*desired.ko.Spec.CertificateAuthorityARN)
 		}
 
-		var updateResp *svcsdk.UpdateCertificateAuthorityOutput
-		_ = updateResp
-		updateResp, err = rm.sdkapi.UpdateCertificateAuthorityWithContext(ctx, updateInput)
+		_, err = rm.sdkapi.UpdateCertificateAuthorityWithContext(ctx, updateInput)
 		rm.metrics.RecordAPICall("UPDATE", "UpdateCertificateAuthority", err)
 		if err != nil {
 			return nil, err

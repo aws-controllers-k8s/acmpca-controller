@@ -86,7 +86,7 @@ def simple_certificate_authority(acmpca_client):
 @service_marker
 class TestCertificateAuthority:
 
-    def test_create_delete(self, acmpca_client, simple_certificate_authority):
+    def test_ca_crud(self, acmpca_client, simple_certificate_authority):
         
         (ca_cr, ca_ref, ca_resource_arn) = simple_certificate_authority
 
@@ -130,14 +130,6 @@ class TestCertificateAuthority:
 
         assert 'status' in ca_cr['status']
         assert ca_cr['status']['status'] == "PENDING_CERTIFICATE"
-    
-    def test_update_tags(self, acmpca_client, simple_certificate_authority):
-        
-        (ca_cr, ca_ref, ca_resource_arn) = simple_certificate_authority
-
-        # Check CA status is PENDING_CERTIFICATE
-        acmpca_validator = ACMPCAValidator(acmpca_client)
-        ca = acmpca_validator.assert_certificate_authority(ca_resource_arn, "PENDING_CERTIFICATE")
 
         # Update CA tags
         new_tags = [

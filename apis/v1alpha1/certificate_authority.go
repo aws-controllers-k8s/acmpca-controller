@@ -42,7 +42,7 @@ type CertificateAuthoritySpec struct {
 	CertificateAuthorityConfiguration *CertificateAuthorityConfiguration `json:"certificateAuthorityConfiguration"`
 	// The type of the certificate authority.
 	// +kubebuilder:validation:Required
-	CertificateAuthorityType *string `json:"certificateAuthorityType"`
+	CertificateAuthorityType *string `json:"type,omitempty"`
 	// Specifies a cryptographic key management compliance standard used for handling
 	// CA keys.
 	//

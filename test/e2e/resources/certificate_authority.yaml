@@ -3,7 +3,7 @@ kind: CertificateAuthority
 metadata:
   name: $NAME
 spec:
-  certificateAuthorityType: ROOT
+  type: ROOT
   certificateAuthorityConfiguration:
     subject:
       commonName: $COMMON_NAME

@@ -162,13 +162,11 @@ func (rm *resourceManager) sdkCreate(
 	}
 
 	rm.setStatusDefaults(ko)
-	if ko.Status.ACKResourceMetadata != nil && ko.Status.ACKResourceMetadata.ARN != nil && ko.Spec.CertificateAuthorityARN != nil {
-		resourceARN := (*string)(ko.Status.ACKResourceMetadata.ARN)
-		caARN := (*string)(ko.Spec.CertificateAuthorityARN)
-		err = rm.writeCertificateToSecret(ctx, *resourceARN, *caARN, desired.ko.ObjectMeta)
-		if err != nil {
-			return nil, err
-		}
+	resourceARN := (*string)(ko.Status.ACKResourceMetadata.ARN)
+	caARN := (*string)(ko.Spec.CertificateAuthorityARN)
+	err = rm.writeCertificateToSecret(ctx, *resourceARN, *caARN, desired.ko.ObjectMeta)
+	if err != nil {
+		return nil, err
 	}
 	return &resource{ko}, nil
 }

@@ -1048,7 +1048,11 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		"InvalidQueryParameter",
 		"MissingParameter",
 		"ValidationError",
-		"ValidationException":
+		"ValidationException",
+		"LimitExceededException",
+		"InvalidTagException",
+		"InvalidPolicyException",
+		"InvalidArgsException":
 		return true
 	default:
 		return false
