@@ -250,9 +250,6 @@ spec:
                         type: string
                     type: object
                 type: object
-              certificateAuthorityType:
-                description: The type of the certificate authority.
-                type: string
               keyStorageSecurityStandard:
                 description: |-
                   Specifies a cryptographic key management compliance standard used for handling
@@ -431,6 +428,8 @@ spec:
                       type: string
                   type: object
                 type: array
+              type:
+                type: string
               usageMode:
                 description: |-
                   Specifies whether the CA issues general-purpose certificates that typically
@@ -443,7 +442,6 @@ spec:
                 type: string
             required:
             - certificateAuthorityConfiguration
-            - certificateAuthorityType
             type: object
           status:
             description: CertificateAuthorityStatus defines the observed state of

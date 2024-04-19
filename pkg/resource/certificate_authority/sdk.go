@@ -406,6 +406,11 @@ func (rm *resourceManager) sdkFind(
 	} else {
 		ko.Status.Status = nil
 	}
+	if resp.CertificateAuthority.Type != nil {
+		ko.Spec.Type = resp.CertificateAuthority.Type
+	} else {
+		ko.Spec.Type = nil
+	}
 	if resp.CertificateAuthority.UsageMode != nil {
 		ko.Spec.UsageMode = resp.CertificateAuthority.UsageMode
 	} else {
@@ -483,6 +488,9 @@ func (rm *resourceManager) sdkCreate(
 	input, err := rm.newCreateRequestPayload(ctx, desired)
 	if err != nil {
 		return nil, err
+	}
+	if desired.ko.Spec.Type != nil {
+		input.SetCertificateAuthorityType(*desired.ko.Spec.Type)
 	}
 
 	var resp *svcsdk.CreateCertificateAuthorityOutput
@@ -745,58 +753,55 @@ func (rm *resourceManager) newCreateRequestPayload(
 		}
 		res.SetCertificateAuthorityConfiguration(f0)
 	}
-	if r.ko.Spec.CertificateAuthorityType != nil {
-		res.SetCertificateAuthorityType(*r.ko.Spec.CertificateAuthorityType)
-	}
 	if r.ko.Spec.KeyStorageSecurityStandard != nil {
 		res.SetKeyStorageSecurityStandard(*r.ko.Spec.KeyStorageSecurityStandard)
 	}
 	if r.ko.Spec.RevocationConfiguration != nil {
-		f3 := &svcsdk.RevocationConfiguration{}
+		f2 := &svcsdk.RevocationConfiguration{}
 		if r.ko.Spec.RevocationConfiguration.CRLConfiguration != nil {
-			f3f0 := &svcsdk.CrlConfiguration{}
+			f2f0 := &svcsdk.CrlConfiguration{}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME != nil {
-				f3f0.SetCustomCname(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME)
+				f2f0.SetCustomCname(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME)
 			}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled != nil {
-				f3f0.SetEnabled(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled)
+				f2f0.SetEnabled(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled)
 			}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays != nil {
-				f3f0.SetExpirationInDays(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays)
+				f2f0.SetExpirationInDays(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays)
 			}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName != nil {
-				f3f0.SetS3BucketName(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName)
+				f2f0.SetS3BucketName(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName)
 			}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL != nil {
-				f3f0.SetS3ObjectAcl(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL)
+				f2f0.SetS3ObjectAcl(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL)
 			}
-			f3.SetCrlConfiguration(f3f0)
+			f2.SetCrlConfiguration(f2f0)
 		}
 		if r.ko.Spec.RevocationConfiguration.OCSPConfiguration != nil {
-			f3f1 := &svcsdk.OcspConfiguration{}
+			f2f1 := &svcsdk.OcspConfiguration{}
 			if r.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled != nil {
-				f3f1.SetEnabled(*r.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled)
+				f2f1.SetEnabled(*r.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled)
 			}
 			if r.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME != nil {
-				f3f1.SetOcspCustomCname(*r.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME)
+				f2f1.SetOcspCustomCname(*r.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME)
 			}
-			f3.SetOcspConfiguration(f3f1)
+			f2.SetOcspConfiguration(f2f1)
 		}
-		res.SetRevocationConfiguration(f3)
+		res.SetRevocationConfiguration(f2)
 	}
 	if r.ko.Spec.Tags != nil {
-		f4 := []*svcsdk.Tag{}
-		for _, f4iter := range r.ko.Spec.Tags {
-			f4elem := &svcsdk.Tag{}
-			if f4iter.Key != nil {
-				f4elem.SetKey(*f4iter.Key)
+		f3 := []*svcsdk.Tag{}
+		for _, f3iter := range r.ko.Spec.Tags {
+			f3elem := &svcsdk.Tag{}
+			if f3iter.Key != nil {
+				f3elem.SetKey(*f3iter.Key)
 			}
-			if f4iter.Value != nil {
-				f4elem.SetValue(*f4iter.Value)
+			if f3iter.Value != nil {
+				f3elem.SetValue(*f3iter.Value)
 			}
-			f4 = append(f4, f4elem)
+			f3 = append(f3, f3elem)
 		}
-		res.SetTags(f4)
+		res.SetTags(f3)
 	}
 	if r.ko.Spec.UsageMode != nil {
 		res.SetUsageMode(*r.ko.Spec.UsageMode)
@@ -1048,7 +1053,11 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		"InvalidQueryParameter",
 		"MissingParameter",
 		"ValidationError",
-		"ValidationException":
+		"ValidationException",
+		"LimitExceededException",
+		"InvalidTagException",
+		"InvalidPolicyException",
+		"InvalidArgsException":
 		return true
 	default:
 		return false
@@ -1063,11 +1072,11 @@ func (rm *resourceManager) getImmutableFieldChanges(
 	if delta.DifferentAt("Spec.CertificateAuthorityConfiguration") {
 		fields = append(fields, "CertificateAuthorityConfiguration")
 	}
-	if delta.DifferentAt("Spec.CertificateAuthorityType") {
-		fields = append(fields, "CertificateAuthorityType")
-	}
 	if delta.DifferentAt("Spec.KeyStorageSecurityStandard") {
 		fields = append(fields, "KeyStorageSecurityStandard")
+	}
+	if delta.DifferentAt("Spec.Type") {
+		fields = append(fields, "Type")
 	}
 	if delta.DifferentAt("Spec.UsageMode") {
 		fields = append(fields, "UsageMode")

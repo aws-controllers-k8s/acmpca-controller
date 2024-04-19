@@ -15,6 +15,7 @@
 """
 
 import logging
+import time
 
 class ACMPCAValidator:
     def __init__(self, acmpca_client):
