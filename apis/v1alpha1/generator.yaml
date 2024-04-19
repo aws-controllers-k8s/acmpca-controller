@@ -5,6 +5,7 @@ ignore:
       - Permission
   field_paths:
   - CreateCertificateAuthorityInput.IdempotencyToken
+  - CreateCertificateAuthorityInput.CertificateAuthorityType
   - IssueCertificateInput.IdempotencyToken
   - IssueCertificateInput.Csr
   - ImportCertificateAuthorityCertificateInput.Certificate
@@ -30,6 +31,8 @@ resources:
     hooks:
       delta_pre_compare:
         code: customSetDefaults(a, b)
+      sdk_create_post_build_request:
+        template_path: hooks/certificate_authority/sdk_create_post_build_request.go.tpl
       sdk_create_post_set_output:
         template_path: hooks/certificate_authority/sdk_create_post_set_output.go.tpl
       sdk_update_pre_build_request:
@@ -52,7 +55,8 @@ resources:
     fields: 
       CertificateAuthorityConfiguration:
         is_immutable: true
-      CertificateAuthorityType:
+      Type:
+        type: string
         is_immutable: true
         go_tag: json:"type,omitempty"
       KeyStorageSecurityStandard:

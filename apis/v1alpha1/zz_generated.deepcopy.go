@@ -525,11 +525,6 @@ func (in *CertificateAuthoritySpec) DeepCopyInto(out *CertificateAuthoritySpec) 
 		*out = new(CertificateAuthorityConfiguration)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.CertificateAuthorityType != nil {
-		in, out := &in.CertificateAuthorityType, &out.CertificateAuthorityType
-		*out = new(string)
-		**out = **in
-	}
 	if in.KeyStorageSecurityStandard != nil {
 		in, out := &in.KeyStorageSecurityStandard, &out.KeyStorageSecurityStandard
 		*out = new(string)
@@ -550,6 +545,11 @@ func (in *CertificateAuthoritySpec) DeepCopyInto(out *CertificateAuthoritySpec) 
 				(*in).DeepCopyInto(*out)
 			}
 		}
+	}
+	if in.Type != nil {
+		in, out := &in.Type, &out.Type
+		*out = new(string)
+		**out = **in
 	}
 	if in.UsageMode != nil {
 		in, out := &in.UsageMode, &out.UsageMode
