@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
@@ -494,9 +493,6 @@ func (rm *resourceManager) sdkCreate(
 	var resp *svcsdk.CreateCertificateAuthorityOutput
 	_ = resp
 	resp, err = rm.sdkapi.CreateCertificateAuthorityWithContext(ctx, input)
-	if err != nil && strings.HasPrefix(err.Error(), "RequestInProgressException") {
-		return nil, ackrequeue.Needed(err)
-	}
 	rm.metrics.RecordAPICall("CREATE", "CreateCertificateAuthority", err)
 	if err != nil {
 		return nil, err

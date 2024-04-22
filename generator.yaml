@@ -41,8 +41,6 @@ resources:
         template_path: hooks/certificate_authority/sdk_update_pre_build_request.go.tpl
       sdk_read_one_post_set_output:
         template_path: hooks/certificate_authority/sdk_read_one_post_set_output.go.tpl
-      sdk_create_post_request:
-        template_path: hooks/certificate_authority/sdk_create_post_request.go.tpl
     exceptions:
       terminal_codes:
       - InvalidAction
