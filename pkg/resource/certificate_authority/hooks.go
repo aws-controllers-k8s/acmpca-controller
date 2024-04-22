@@ -15,6 +15,8 @@ package certificate_authority
 
 import (
 	"context"
+	"strings"
+	"time"
 
 	svcapitypes "github.com/aws-controllers-k8s/acmpca-controller/apis/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
@@ -30,6 +32,10 @@ func (rm *resourceManager) getCertificateAuthorityCsr(
 	input.CertificateAuthorityArn = &resourceARN
 	resp, err := rm.sdkapi.GetCertificateAuthorityCsrWithContext(ctx, input)
 	rm.metrics.RecordAPICall("READ_ONE", "GetCertificateAuthorityCsr", err)
+	for err != nil && strings.HasPrefix(err.Error(), "RequestInProgressException") {
+		time.Sleep(1 * time.Second)
+		resp, err = rm.sdkapi.GetCertificateAuthorityCsrWithContext(ctx, input)
+	}
 	if err != nil {
 		return nil, err
 	}
