@@ -82,7 +82,9 @@ type CertificateAuthoritySpec struct {
 	// Key-value pairs that will be attached to the new private CA. You can associate
 	// up to 50 tags with a private CA. For information using tags with IAM to manage
 	// permissions, see Controlling Access Using IAM Tags (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_iam-tags.html).
-	Tags []*Tag  `json:"tags,omitempty"`
+	Tags []*Tag `json:"tags,omitempty"`
+	// The type of the certificate authority.
+	// +kubebuilder:validation:Required
 	Type *string `json:"type,omitempty"`
 	// Specifies whether the CA issues general-purpose certificates that typically
 	// require a revocation mechanism, or short-lived certificates that may optionally

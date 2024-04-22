@@ -429,6 +429,7 @@ spec:
                   type: object
                 type: array
               type:
+                description: The type of the certificate authority.
                 type: string
               usageMode:
                 description: |-

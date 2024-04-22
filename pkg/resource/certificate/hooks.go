@@ -15,6 +15,8 @@ package certificate
 
 import (
 	"context"
+	"strings"
+	"time"
 
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	svcsdk "github.com/aws/aws-sdk-go/service/acmpca"
@@ -33,6 +35,10 @@ func (rm *resourceManager) writeCertificateToSecret(
 	input.CertificateAuthorityArn = &caARN
 	resp, err := rm.sdkapi.GetCertificateWithContext(ctx, input)
 	rm.metrics.RecordAPICall("READ_ONE", "GetCertificate", err)
+	for err != nil && strings.HasPrefix(err.Error(), "RequestInProgressException") {
+		time.Sleep(1 * time.Second)
+		resp, err = rm.sdkapi.GetCertificateWithContext(ctx, input)
+	}
 	if err != nil {
 		return err
 	}

@@ -186,7 +186,7 @@ def simple_root_certificate(acmpca_client, create_secret, simple_certificate_aut
     resource_arn =  k8s.get_resource_arn(cr)
     assert resource_arn is not None
 
-    yield (ca_name, ca_arn, secret, resource_arn)
+    yield (ca_cr, ca_name, ca_arn, secret, resource_arn)
 
     #Delete Certificate k8s resource
     _, deleted = k8s.delete_custom_resource(ref)
@@ -243,7 +243,7 @@ def subordinate_ca_certificate(create_secret, subordinate_certificate_authority)
 @pytest.fixture(scope="module")
 def simple_ca_activation(simple_root_certificate, create_certificate_chain_secret, acmpca_client):
 
-    (ca_name, ca_arn, secret, cert_arn) = simple_root_certificate
+    (ca_cr, ca_name, ca_arn, secret, cert_arn) = simple_root_certificate
 
     certificate_chain_secret = create_certificate_chain_secret
     
@@ -364,7 +364,7 @@ def subordinate_ca_activation(subordinate_ca_certificate, create_certificate_cha
 @pytest.fixture(scope="module")
 def simple_ca_activation_with_ref(simple_root_certificate, create_certificate_chain_secret, acmpca_client):
 
-    (ca_name, ca_arn, secret, cert_arn) = simple_root_certificate
+    (ca_cr, ca_name, ca_arn, secret, cert_arn) = simple_root_certificate
 
     certificate_chain_secret = create_certificate_chain_secret
 
@@ -424,7 +424,7 @@ def simple_ca_activation_with_ref(simple_root_certificate, create_certificate_ch
 @pytest.fixture(scope="module")
 def simple_ca_activation_status_disabled(simple_root_certificate, create_certificate_chain_secret, acmpca_client):
 
-    (ca_name, ca_arn, secret, cert_arn) = simple_root_certificate
+    (ca_cr, ca_name, ca_arn, secret, cert_arn) = simple_root_certificate
 
     certificate_chain_secret = create_certificate_chain_secret
 
@@ -471,9 +471,8 @@ def simple_ca_activation_status_disabled(simple_root_certificate, create_certifi
 class TestCertificateAuthorityActivation:
 
     def test_activation_crud(self, acmpca_client, simple_root_certificate, create_certificate_chain_secret):
-        time.sleep(30)
-
-        (ca_name, ca_arn, secret, cert_arn) = simple_root_certificate
+        
+        (ca_cr, ca_name, ca_arn, secret, cert_arn) = simple_root_certificate
         activation_name = random_suffix_name("certificate-authority-activation", 50)
 
         certificate_chain_secret = create_certificate_chain_secret
@@ -570,7 +569,6 @@ class TestCertificateAuthorityActivation:
         acmpca_validator.assert_certificate_authority(ca_arn, "DISABLED")
 
     def test_subordinate_ca_activation(self, acmpca_client, subordinate_ca_activation):
-        time.sleep(30)
         
         (sub_ca_arn, sub_ca_cert_arn, root_ca_arn, root_ca_cert_arn, complete_certificate_chain_secret, sub_ca_cert_secret) = subordinate_ca_activation
 
@@ -600,7 +598,6 @@ class TestCertificateAuthorityActivation:
         assert base64.b64decode(api_response[complete_certificate_chain_secret.key]).decode("ascii") == complete_certificate_chain
 
     def test_disabled_activation(self, acmpca_client, simple_ca_activation_status_disabled):
-        time.sleep(10)
 
         (ca_arn, certificate_chain_secret, cert_arn) = simple_ca_activation_status_disabled
 

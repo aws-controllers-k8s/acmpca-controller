@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
@@ -489,13 +490,13 @@ func (rm *resourceManager) sdkCreate(
 	if err != nil {
 		return nil, err
 	}
-	if desired.ko.Spec.Type != nil {
-		input.SetCertificateAuthorityType(*desired.ko.Spec.Type)
-	}
 
 	var resp *svcsdk.CreateCertificateAuthorityOutput
 	_ = resp
 	resp, err = rm.sdkapi.CreateCertificateAuthorityWithContext(ctx, input)
+	if err != nil && strings.HasPrefix(err.Error(), "RequestInProgressException") {
+		return nil, ackrequeue.Needed(err)
+	}
 	rm.metrics.RecordAPICall("CREATE", "CreateCertificateAuthority", err)
 	if err != nil {
 		return nil, err
@@ -516,6 +517,10 @@ func (rm *resourceManager) sdkCreate(
 	if ko.Status.ACKResourceMetadata != nil && ko.Status.ACKResourceMetadata.ARN != nil {
 		resourceARN := (*string)(ko.Status.ACKResourceMetadata.ARN)
 		ko.Status.CertificateSigningRequest, err = rm.getCertificateAuthorityCsr(ctx, *resourceARN)
+		for err != nil && strings.HasPrefix(err.Error(), "RequestInProgressException") {
+			time.Sleep(1 * time.Second)
+			ko.Status.CertificateSigningRequest, err = rm.getCertificateAuthorityCsr(ctx, *resourceARN)
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -753,55 +758,58 @@ func (rm *resourceManager) newCreateRequestPayload(
 		}
 		res.SetCertificateAuthorityConfiguration(f0)
 	}
+	if r.ko.Spec.Type != nil {
+		res.SetCertificateAuthorityType(*r.ko.Spec.Type)
+	}
 	if r.ko.Spec.KeyStorageSecurityStandard != nil {
 		res.SetKeyStorageSecurityStandard(*r.ko.Spec.KeyStorageSecurityStandard)
 	}
 	if r.ko.Spec.RevocationConfiguration != nil {
-		f2 := &svcsdk.RevocationConfiguration{}
+		f3 := &svcsdk.RevocationConfiguration{}
 		if r.ko.Spec.RevocationConfiguration.CRLConfiguration != nil {
-			f2f0 := &svcsdk.CrlConfiguration{}
+			f3f0 := &svcsdk.CrlConfiguration{}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME != nil {
-				f2f0.SetCustomCname(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME)
+				f3f0.SetCustomCname(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME)
 			}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled != nil {
-				f2f0.SetEnabled(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled)
+				f3f0.SetEnabled(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled)
 			}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays != nil {
-				f2f0.SetExpirationInDays(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays)
+				f3f0.SetExpirationInDays(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays)
 			}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName != nil {
-				f2f0.SetS3BucketName(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName)
+				f3f0.SetS3BucketName(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName)
 			}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL != nil {
-				f2f0.SetS3ObjectAcl(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL)
+				f3f0.SetS3ObjectAcl(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL)
 			}
-			f2.SetCrlConfiguration(f2f0)
+			f3.SetCrlConfiguration(f3f0)
 		}
 		if r.ko.Spec.RevocationConfiguration.OCSPConfiguration != nil {
-			f2f1 := &svcsdk.OcspConfiguration{}
+			f3f1 := &svcsdk.OcspConfiguration{}
 			if r.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled != nil {
-				f2f1.SetEnabled(*r.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled)
+				f3f1.SetEnabled(*r.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled)
 			}
 			if r.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME != nil {
-				f2f1.SetOcspCustomCname(*r.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME)
+				f3f1.SetOcspCustomCname(*r.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME)
 			}
-			f2.SetOcspConfiguration(f2f1)
+			f3.SetOcspConfiguration(f3f1)
 		}
-		res.SetRevocationConfiguration(f2)
+		res.SetRevocationConfiguration(f3)
 	}
 	if r.ko.Spec.Tags != nil {
-		f3 := []*svcsdk.Tag{}
-		for _, f3iter := range r.ko.Spec.Tags {
-			f3elem := &svcsdk.Tag{}
-			if f3iter.Key != nil {
-				f3elem.SetKey(*f3iter.Key)
+		f4 := []*svcsdk.Tag{}
+		for _, f4iter := range r.ko.Spec.Tags {
+			f4elem := &svcsdk.Tag{}
+			if f4iter.Key != nil {
+				f4elem.SetKey(*f4iter.Key)
 			}
-			if f3iter.Value != nil {
-				f3elem.SetValue(*f3iter.Value)
+			if f4iter.Value != nil {
+				f4elem.SetValue(*f4iter.Value)
 			}
-			f3 = append(f3, f3elem)
+			f4 = append(f4, f4elem)
 		}
-		res.SetTags(f3)
+		res.SetTags(f4)
 	}
 	if r.ko.Spec.UsageMode != nil {
 		res.SetUsageMode(*r.ko.Spec.UsageMode)
