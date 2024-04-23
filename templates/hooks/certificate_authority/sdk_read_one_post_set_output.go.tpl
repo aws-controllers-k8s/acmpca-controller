@@ -27,3 +27,11 @@
 		
 		ko.Spec.RevocationConfiguration = revocationConfiguration
 	}
+    
+    ko.Status.CertificateSigningRequest, err = rm.getCertificateAuthorityCsr(ctx, *resourceARN)
+    if err != nil && strings.HasPrefix(err.Error(), "RequestInProgressException") {
+        return nil, ackrequeue.NeededAfter(err, ackrequeue.DefaultRequeueAfterDuration)
+    }
+    if err != nil {
+        return nil, err
+    }

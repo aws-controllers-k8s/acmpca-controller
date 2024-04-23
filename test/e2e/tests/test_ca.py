@@ -32,7 +32,7 @@ from acktest import tags
 
 RESOURCE_PLURAL = "certificateauthorities"
 
-CREATE_WAIT_AFTER_SECONDS = 60
+CREATE_WAIT_AFTER_SECONDS = 30
 UPDATE_WAIT_AFTER_SECONDS = 10
 DELETE_WAIT_AFTER_SECONDS = 10
 
@@ -121,6 +121,9 @@ class TestCertificateAuthority:
             expected=tags_dict,
             actual=observed_tags,
         )
+
+        ca_cr = k8s.patch_custom_resource(ca_ref, {})
+        logging.info(ca_cr)
 
         # Check CA Status fields
         assert 'status' in ca_cr
