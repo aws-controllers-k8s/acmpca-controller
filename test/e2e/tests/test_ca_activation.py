@@ -80,7 +80,7 @@ def simple_certificate_authority():
     k8s.create_custom_resource(ca_ref, ca_resource_data)
     ca_cr = k8s.wait_resource_consumed_by_controller(ca_ref)
 
-    time.sleep(CREATE_WAIT_AFTER_SECONDS)
+    time.sleep(30)
 
     assert ca_cr is not None
     assert k8s.get_resource_exists(ca_ref)
@@ -89,7 +89,7 @@ def simple_certificate_authority():
     ca_resource_arn =  k8s.get_resource_arn(ca_cr)
     assert ca_resource_arn is not None
 
-    yield (ca_cr, ca_name)
+    yield (ca_cr,ca_ref, ca_name)
 
     #Delete CA k8s resource
     _, deleted = k8s.delete_custom_resource(ca_ref)
@@ -144,7 +144,7 @@ def subordinate_certificate_authority(acmpca_client, simple_ca_activation):
 
 @pytest.fixture(scope="module")
 def simple_root_certificate(acmpca_client, create_secret, simple_certificate_authority):
-    (ca_cr, ca_name) = simple_certificate_authority
+    (ca_cr, ca_ref, ca_name) = simple_certificate_authority
     ca_arn = ca_cr['status']['ackResourceMetadata']['arn']
 
     cert_name = random_suffix_name("certificate", 30)
@@ -186,7 +186,7 @@ def simple_root_certificate(acmpca_client, create_secret, simple_certificate_aut
     resource_arn =  k8s.get_resource_arn(cr)
     assert resource_arn is not None
 
-    yield (ca_cr, ca_name, ca_arn, secret, resource_arn)
+    yield (ca_cr, ca_ref, ca_name, ca_arn, secret, resource_arn)
 
     #Delete Certificate k8s resource
     _, deleted = k8s.delete_custom_resource(ref)
@@ -243,7 +243,7 @@ def subordinate_ca_certificate(create_secret, subordinate_certificate_authority)
 @pytest.fixture(scope="module")
 def simple_ca_activation(simple_root_certificate, create_certificate_chain_secret, acmpca_client):
 
-    (ca_cr, ca_name, ca_arn, secret, cert_arn) = simple_root_certificate
+    (ca_cr, ca_ref, ca_name, ca_arn, secret, cert_arn) = simple_root_certificate
 
     certificate_chain_secret = create_certificate_chain_secret
     
@@ -364,7 +364,7 @@ def subordinate_ca_activation(subordinate_ca_certificate, create_certificate_cha
 @pytest.fixture(scope="module")
 def simple_ca_activation_with_ref(simple_root_certificate, create_certificate_chain_secret, acmpca_client):
 
-    (ca_cr, ca_name, ca_arn, secret, cert_arn) = simple_root_certificate
+    (ca_cr, ca_ref, ca_name, ca_arn, secret, cert_arn) = simple_root_certificate
 
     certificate_chain_secret = create_certificate_chain_secret
 
@@ -424,7 +424,7 @@ def simple_ca_activation_with_ref(simple_root_certificate, create_certificate_ch
 @pytest.fixture(scope="module")
 def simple_ca_activation_status_disabled(simple_root_certificate, create_certificate_chain_secret, acmpca_client):
 
-    (ca_cr, ca_name, ca_arn, secret, cert_arn) = simple_root_certificate
+    (ca_cr, ca_ref, ca_name, ca_arn, secret, cert_arn) = simple_root_certificate
 
     certificate_chain_secret = create_certificate_chain_secret
 
@@ -472,7 +472,7 @@ class TestCertificateAuthorityActivation:
 
     def test_activation_crud(self, acmpca_client, simple_root_certificate, create_certificate_chain_secret):
         
-        (ca_cr, ca_name, ca_arn, secret, cert_arn) = simple_root_certificate
+        (ca_cr, ca_ref, ca_name, ca_arn, secret, cert_arn) = simple_root_certificate
         activation_name = random_suffix_name("certificate-authority-activation", 50)
 
         certificate_chain_secret = create_certificate_chain_secret
@@ -510,6 +510,12 @@ class TestCertificateAuthorityActivation:
         # Check CA status is ACTIVE
         acmpca_validator = ACMPCAValidator(acmpca_client)
         acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE")
+
+        ca_cr = k8s.patch_custom_resource(ca_ref, {})
+        logging.info(ca_cr)
+
+        assert 'status' in ca_cr['status']
+        assert ca_cr['status']['status'] == "ACTIVE"
 
         cert = acmpca_validator.get_certificate(ca_arn=ca_arn, cert_arn=cert_arn)
 

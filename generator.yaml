@@ -27,6 +27,8 @@ model_name: acm-pca
 prefix_config: {}
 resources:
   CertificateAuthority:
+    reconcile: 
+      requeue_on_success_seconds: 30
     renames:
       operations:
         CreateCertificateAuthority:
@@ -35,8 +37,6 @@ resources:
     hooks:
       delta_pre_compare:
         code: customSetDefaults(a, b)
-      sdk_create_post_set_output:
-        template_path: hooks/certificate_authority/sdk_create_post_set_output.go.tpl
       sdk_update_pre_build_request:
         template_path: hooks/certificate_authority/sdk_update_pre_build_request.go.tpl
       sdk_read_one_post_set_output:

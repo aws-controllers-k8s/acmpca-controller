@@ -446,6 +446,14 @@ func (rm *resourceManager) sdkFind(
 
 		ko.Spec.RevocationConfiguration = revocationConfiguration
 	}
+
+	ko.Status.CertificateSigningRequest, err = rm.getCertificateAuthorityCsr(ctx, *resourceARN)
+	if err != nil && strings.HasPrefix(err.Error(), "RequestInProgressException") {
+		return nil, ackrequeue.NeededAfter(err, ackrequeue.DefaultRequeueAfterDuration)
+	}
+	if err != nil {
+		return nil, err
+	}
 	return &resource{ko}, nil
 }
 
@@ -510,13 +518,6 @@ func (rm *resourceManager) sdkCreate(
 	}
 
 	rm.setStatusDefaults(ko)
-	if ko.Status.ACKResourceMetadata != nil && ko.Status.ACKResourceMetadata.ARN != nil {
-		resourceARN := (*string)(ko.Status.ACKResourceMetadata.ARN)
-		ko.Status.CertificateSigningRequest, err = rm.getCertificateAuthorityCsr(ctx, *resourceARN)
-		if err != nil {
-			return nil, err
-		}
-	}
 	return &resource{ko}, nil
 }
 
@@ -1027,8 +1028,13 @@ func (rm *resourceManager) updateConditions(
 			recoverableCondition.Message = nil
 		}
 	}
-	// Required to avoid the "declared but not used" error in the default case
-	_ = syncCondition
+	if syncCondition == nil && onSuccess {
+		syncCondition = &ackv1alpha1.Condition{
+			Type:   ackv1alpha1.ConditionTypeResourceSynced,
+			Status: corev1.ConditionTrue,
+		}
+		ko.Status.Conditions = append(ko.Status.Conditions, syncCondition)
+	}
 	if terminalCondition != nil || recoverableCondition != nil || syncCondition != nil {
 		return &resource{ko}, true // updated
 	}
