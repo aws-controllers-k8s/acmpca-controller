@@ -16,3 +16,8 @@ spec:
   tags:
     - key: tag1
       value: val1
+  revocationConfiguration:
+    crlConfiguration:
+      enabled: False
+    ocspConfiguration:
+      enabled: False
