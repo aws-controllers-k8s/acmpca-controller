@@ -475,6 +475,7 @@ func (rm *resourceManager) sdkCreate(
 	if err != nil {
 		return nil, err
 	}
+	input.SetIdempotencyToken(string(desired.ko.ObjectMeta.UID))
 
 	var resp *svcsdk.CreateCertificateAuthorityOutput
 	_ = resp
