@@ -37,6 +37,8 @@ resources:
     hooks:
       delta_pre_compare:
         code: customSetDefaults(a, b)
+      sdk_create_post_build_request:
+        template_path: hooks/certificate_authority/sdk_create_post_build_request.go.tpl
       sdk_update_pre_build_request:
         template_path: hooks/certificate_authority/sdk_update_pre_build_request.go.tpl
       sdk_read_one_post_set_output:

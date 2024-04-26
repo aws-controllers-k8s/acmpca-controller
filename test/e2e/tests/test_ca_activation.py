@@ -56,7 +56,7 @@ def create_certificate_chain_secret(k8s_secret):
     yield secret
 
 @pytest.fixture(scope="module")
-def simple_certificate_authority():
+def simple_certificate_authority(acmpca_client):
     ca_name = random_suffix_name("certificate-authority", 50)
     replacements = {}
     suffix = random_suffix_name("", 10)
@@ -91,6 +91,10 @@ def simple_certificate_authority():
     assert ca_resource_arn is not None
 
     yield (ca_cr,ca_ref, ca_name)
+
+    #Disable CA if status is ACTIVE
+    acmpca_validator = ACMPCAValidator(acmpca_client)
+    acmpca_validator.disable_active_ca(ca_resource_arn)
 
     #Delete CA k8s resource
     _, deleted = k8s.delete_custom_resource(ca_ref)

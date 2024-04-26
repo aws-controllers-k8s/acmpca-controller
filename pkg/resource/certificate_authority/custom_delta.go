@@ -37,20 +37,16 @@ func customSetDefaults(
 		a.ko.Spec.KeyStorageSecurityStandard = defaultKeyStorageSecurityStandard
 	}
 
-	// Default value of RevocationConfiguration.CrlConfiguration.Enabled is false
-	defaultCrlConfigurationEnabled := aws.Bool(false)
-
-	// Default value of RevocationConfiguration.OcspConfiguration.Enabled is false
-	defaultOcspConfigurationEnabled := aws.Bool(false)
-
 	if ackcompare.IsNil(a.ko.Spec.RevocationConfiguration) && ackcompare.IsNotNil(b.ko.Spec.RevocationConfiguration) {
-		revocationConfiguration := &svcapitypes.RevocationConfiguration{}
-		revocationConfiguration.CRLConfiguration = &svcapitypes.CRLConfiguration{}
-		revocationConfiguration.CRLConfiguration.Enabled = defaultCrlConfigurationEnabled
+		a.ko.Spec.RevocationConfiguration = &svcapitypes.RevocationConfiguration{}
+	}
 
-		revocationConfiguration.OCSPConfiguration = &svcapitypes.OCSPConfiguration{}
-		revocationConfiguration.OCSPConfiguration.Enabled = defaultOcspConfigurationEnabled
-
-		a.ko.Spec.RevocationConfiguration = revocationConfiguration
+	if ackcompare.IsNotNil(a.ko.Spec.RevocationConfiguration) && ackcompare.IsNotNil(b.ko.Spec.RevocationConfiguration) {
+		if ackcompare.IsNil(a.ko.Spec.RevocationConfiguration.CRLConfiguration) && ackcompare.IsNotNil(b.ko.Spec.RevocationConfiguration.CRLConfiguration) {
+			a.ko.Spec.RevocationConfiguration.CRLConfiguration = b.ko.Spec.RevocationConfiguration.CRLConfiguration
+		}
+		if ackcompare.IsNil(a.ko.Spec.RevocationConfiguration.OCSPConfiguration) && ackcompare.IsNotNil(b.ko.Spec.RevocationConfiguration.OCSPConfiguration) {
+			a.ko.Spec.RevocationConfiguration.OCSPConfiguration = b.ko.Spec.RevocationConfiguration.OCSPConfiguration
+		}
 	}
 }
