@@ -50,7 +50,7 @@ def simple_certificate_authority(acmpca_client):
 
     # Load CA CR
     ca_resource_data = load_acmpca_resource(
-        "certificate_authority",
+        "certificate_authority_defaults",
         additional_replacements=replacements,
     )
 
