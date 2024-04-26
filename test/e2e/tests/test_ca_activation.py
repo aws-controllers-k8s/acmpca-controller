@@ -30,6 +30,7 @@ from e2e.fixtures import k8s_secret
 
 RESOURCE_PLURAL = "certificateauthorityactivations"
 
+CREATE_CA_WAIT_AFTER_SECONDS = 30
 CREATE_WAIT_AFTER_SECONDS = 10
 UPDATE_WAIT_AFTER_SECONDS = 10
 DELETE_WAIT_AFTER_SECONDS = 10
@@ -80,7 +81,7 @@ def simple_certificate_authority():
     k8s.create_custom_resource(ca_ref, ca_resource_data)
     ca_cr = k8s.wait_resource_consumed_by_controller(ca_ref)
 
-    time.sleep(30)
+    time.sleep(CREATE_CA_WAIT_AFTER_SECONDS)
 
     assert ca_cr is not None
     assert k8s.get_resource_exists(ca_ref)
@@ -127,7 +128,7 @@ def subordinate_certificate_authority(acmpca_client, simple_ca_activation):
     k8s.create_custom_resource(ca_ref, ca_resource_data)
     ca_cr = k8s.wait_resource_consumed_by_controller(ca_ref)
 
-    time.sleep(30)
+    time.sleep(CREATE_CA_WAIT_AFTER_SECONDS)
 
     assert ca_cr is not None
     assert k8s.get_resource_exists(ca_ref)
@@ -501,7 +502,7 @@ class TestCertificateAuthorityActivation:
         k8s.create_custom_resource(act_ref, act_resource_data)
         act_cr = k8s.wait_resource_consumed_by_controller(act_ref)
 
-        time.sleep(30)
+        time.sleep(CREATE_CA_WAIT_AFTER_SECONDS)
 
         assert act_cr is not None
         assert k8s.get_resource_exists(act_ref)
