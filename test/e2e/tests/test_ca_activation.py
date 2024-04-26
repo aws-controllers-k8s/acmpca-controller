@@ -501,7 +501,7 @@ class TestCertificateAuthorityActivation:
         k8s.create_custom_resource(act_ref, act_resource_data)
         act_cr = k8s.wait_resource_consumed_by_controller(act_ref)
 
-        time.sleep(30)
+        time.sleep(CREATE_WAIT_AFTER_SECONDS)
 
         assert act_cr is not None
         assert k8s.get_resource_exists(act_ref)
