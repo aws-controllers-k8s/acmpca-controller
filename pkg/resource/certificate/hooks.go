@@ -17,25 +17,14 @@ import (
 	"context"
 
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
-	svcsdk "github.com/aws/aws-sdk-go/service/acmpca"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (rm *resourceManager) writeCertificateToSecret(
 	ctx context.Context,
-	resourceARN string,
-	caARN string,
+	certificate string,
 	objectMeta metav1.ObjectMeta,
 ) (err error) {
-
-	input := &svcsdk.GetCertificateInput{}
-	input.CertificateArn = &resourceARN
-	input.CertificateAuthorityArn = &caARN
-	resp, err := rm.sdkapi.GetCertificateWithContext(ctx, input)
-	rm.metrics.RecordAPICall("READ_ONE", "GetCertificate", err)
-	if err != nil {
-		return err
-	}
 
 	annotations := objectMeta.GetAnnotations()
 
@@ -54,7 +43,7 @@ func (rm *resourceManager) writeCertificateToSecret(
 		key = "certificate"
 	}
 
-	err = rm.rr.WriteToSecret(ctx, *resp.Certificate, namespace, name, key)
+	err = rm.rr.WriteToSecret(ctx, certificate, namespace, name, key)
 	rm.metrics.RecordAPICall("PATCH", "writeCertificateToSecret", err)
 	if err != nil {
 		return err

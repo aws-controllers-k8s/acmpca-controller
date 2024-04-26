@@ -91,7 +91,13 @@ func (rm *resourceManager) sdkFind(
 	ko := r.ko.DeepCopy()
 
 	rm.setStatusDefaults(ko)
-	_ = resp
+	err = rm.writeCertificateToSecret(ctx, *resp.Certificate, r.ko.ObjectMeta)
+	if err != nil && strings.HasPrefix(err.Error(), "RequestInProgressException") {
+		return &resource{ko}, ackrequeue.NeededAfter(err, ackrequeue.DefaultRequeueAfterDuration)
+	}
+	if err != nil {
+		return nil, err
+	}
 	return &resource{ko}, nil
 }
 
@@ -141,6 +147,7 @@ func (rm *resourceManager) sdkCreate(
 	if desired.ko.Spec.CertificateSigningRequest != nil {
 		input.SetCsr([]byte(*desired.ko.Spec.CertificateSigningRequest))
 	}
+	input.SetIdempotencyToken(string(desired.ko.ObjectMeta.UID))
 
 	var resp *svcsdk.IssueCertificateOutput
 	_ = resp
@@ -162,12 +169,6 @@ func (rm *resourceManager) sdkCreate(
 	}
 
 	rm.setStatusDefaults(ko)
-	resourceARN := (*string)(ko.Status.ACKResourceMetadata.ARN)
-	caARN := (*string)(ko.Spec.CertificateAuthorityARN)
-	err = rm.writeCertificateToSecret(ctx, *resourceARN, *caARN, desired.ko.ObjectMeta)
-	if err != nil {
-		return nil, err
-	}
 	return &resource{ko}, nil
 }
 
