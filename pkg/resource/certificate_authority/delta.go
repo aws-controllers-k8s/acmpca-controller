@@ -249,13 +249,6 @@ func newResourceDelta(
 			}
 		}
 	}
-	if ackcompare.HasNilDifference(a.ko.Spec.CertificateAuthorityType, b.ko.Spec.CertificateAuthorityType) {
-		delta.Add("Spec.CertificateAuthorityType", a.ko.Spec.CertificateAuthorityType, b.ko.Spec.CertificateAuthorityType)
-	} else if a.ko.Spec.CertificateAuthorityType != nil && b.ko.Spec.CertificateAuthorityType != nil {
-		if *a.ko.Spec.CertificateAuthorityType != *b.ko.Spec.CertificateAuthorityType {
-			delta.Add("Spec.CertificateAuthorityType", a.ko.Spec.CertificateAuthorityType, b.ko.Spec.CertificateAuthorityType)
-		}
-	}
 	if ackcompare.HasNilDifference(a.ko.Spec.KeyStorageSecurityStandard, b.ko.Spec.KeyStorageSecurityStandard) {
 		delta.Add("Spec.KeyStorageSecurityStandard", a.ko.Spec.KeyStorageSecurityStandard, b.ko.Spec.KeyStorageSecurityStandard)
 	} else if a.ko.Spec.KeyStorageSecurityStandard != nil && b.ko.Spec.KeyStorageSecurityStandard != nil {
@@ -326,6 +319,13 @@ func newResourceDelta(
 	}
 	if !ackcompare.MapStringStringEqual(ToACKTags(a.ko.Spec.Tags), ToACKTags(b.ko.Spec.Tags)) {
 		delta.Add("Spec.Tags", a.ko.Spec.Tags, b.ko.Spec.Tags)
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.Type, b.ko.Spec.Type) {
+		delta.Add("Spec.Type", a.ko.Spec.Type, b.ko.Spec.Type)
+	} else if a.ko.Spec.Type != nil && b.ko.Spec.Type != nil {
+		if *a.ko.Spec.Type != *b.ko.Spec.Type {
+			delta.Add("Spec.Type", a.ko.Spec.Type, b.ko.Spec.Type)
+		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.UsageMode, b.ko.Spec.UsageMode) {
 		delta.Add("Spec.UsageMode", a.ko.Spec.UsageMode, b.ko.Spec.UsageMode)

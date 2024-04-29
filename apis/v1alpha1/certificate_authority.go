@@ -40,9 +40,6 @@ type CertificateAuthoritySpec struct {
 	// and X.500 certificate subject information.
 	// +kubebuilder:validation:Required
 	CertificateAuthorityConfiguration *CertificateAuthorityConfiguration `json:"certificateAuthorityConfiguration"`
-	// The type of the certificate authority.
-	// +kubebuilder:validation:Required
-	CertificateAuthorityType *string `json:"certificateAuthorityType"`
 	// Specifies a cryptographic key management compliance standard used for handling
 	// CA keys.
 	//
@@ -86,6 +83,9 @@ type CertificateAuthoritySpec struct {
 	// up to 50 tags with a private CA. For information using tags with IAM to manage
 	// permissions, see Controlling Access Using IAM Tags (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_iam-tags.html).
 	Tags []*Tag `json:"tags,omitempty"`
+	// The type of the certificate authority.
+	// +kubebuilder:validation:Required
+	Type *string `json:"type,omitempty"`
 	// Specifies whether the CA issues general-purpose certificates that typically
 	// require a revocation mechanism, or short-lived certificates that may optionally
 	// omit revocation because they expire quickly. Short-lived certificate validity
@@ -108,8 +108,10 @@ type CertificateAuthorityStatus struct {
 	// resource
 	// +kubebuilder:validation:Optional
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
+	// The base64 PEM-encoded certificate signing request (CSR) for your private
+	// CA certificate.
 	// +kubebuilder:validation:Optional
-	CSR []byte `json:"csr,omitempty"`
+	CertificateSigningRequest *string `json:"certificateSigningRequest,omitempty"`
 	// Date and time at which your private CA was created.
 	// +kubebuilder:validation:Optional
 	CreatedAt *metav1.Time `json:"createdAt,omitempty"`

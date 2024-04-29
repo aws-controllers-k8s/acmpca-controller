@@ -30,6 +30,7 @@ from e2e.fixtures import k8s_secret
 
 RESOURCE_PLURAL = "certificates"
 
+CREATE_CA_WAIT_AFTER_SECONDS = 60
 CREATE_WAIT_AFTER_SECONDS = 10
 UPDATE_WAIT_AFTER_SECONDS = 10
 DELETE_WAIT_AFTER_SECONDS = 10
@@ -48,7 +49,7 @@ def create_secret(k8s_secret):
 def simple_certificate_authority():
     ca_name = random_suffix_name("certificate-authority", 50)
     replacements = {}
-    suffix = random_suffix_name("", 2)
+    suffix = random_suffix_name("", 10)
     replacements["NAME"] = ca_name
     replacements["COMMON_NAME"] = "www.example" + suffix + ".com"
     replacements["COUNTRY"] = "US"
@@ -70,12 +71,11 @@ def simple_certificate_authority():
     k8s.create_custom_resource(ca_ref, ca_resource_data)
     ca_cr = k8s.wait_resource_consumed_by_controller(ca_ref)
 
-    time.sleep(CREATE_WAIT_AFTER_SECONDS)
+    time.sleep(CREATE_CA_WAIT_AFTER_SECONDS)
 
     assert ca_cr is not None
     assert k8s.get_resource_exists(ca_ref)
     logging.info(ca_cr)
-    logging.info(ca_ref)
 
     ca_resource_arn =  k8s.get_resource_arn(ca_cr)
     assert ca_resource_arn is not None
@@ -94,7 +94,6 @@ def simple_root_certificate(acmpca_client, create_secret, simple_certificate_aut
     cert_name = random_suffix_name("certificate", 30)
 
     secret = create_secret
-    logging.info(secret)
     
     replacements = {}
     replacements["NAME"] = cert_name
@@ -146,7 +145,6 @@ def simple_root_certificate_with_ref(acmpca_client, create_secret, simple_certif
     cert_name = random_suffix_name("certificate", 30)
 
     secret = create_secret
-    logging.info(secret)
     
     replacements = {}
     replacements["NAME"] = cert_name
@@ -197,7 +195,6 @@ def simple_root_certificate_without_secret_key(acmpca_client, create_secret, sim
     cert_name = random_suffix_name("certificate", 30)
 
     secret = create_secret
-    logging.info(secret)
     
     replacements = {}
     replacements["NAME"] = cert_name
@@ -247,7 +244,6 @@ def simple_root_certificate_without_secret_namespace(acmpca_client, create_secre
     cert_name = random_suffix_name("certificate", 30)
 
     secret = create_secret
-    logging.info(secret)
     
     replacements = {}
     replacements["NAME"] = cert_name
@@ -322,7 +318,7 @@ class TestCertificate:
 
         assert 'certificate' in api_response
         assert base64.b64decode(api_response['certificate']).decode("ascii") == cert
-    
+
     def test_create_delete_without_secret_key(self, acmpca_client, simple_root_certificate_without_secret_key):
 
         (ca_arn, cert_arn, secret) = simple_root_certificate_without_secret_key

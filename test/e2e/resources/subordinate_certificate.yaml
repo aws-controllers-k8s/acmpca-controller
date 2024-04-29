@@ -3,12 +3,11 @@ kind: Certificate
 metadata:
   name: $NAME
   annotations:
+    acmpca.services.k8s.aws/certificate-secret-namespace: $CERTIFICATE_SEC_NS
     acmpca.services.k8s.aws/certificate-secret-name: $CERTIFICATE_SEC_NAME
     acmpca.services.k8s.aws/certificate-secret-key: $CERTIFICATE_SEC_KEY
 spec:
-  certificateAuthorityRef:
-    from:
-      name: $CA_NAME
+  certificateAuthorityARN: $CA_ARN
   certificateSigningRequestRef:
     from:
       name: $CA_NAME
@@ -16,4 +15,4 @@ spec:
   templateARN: $TEMPLATE_ARN
   validity:
     type: DAYS
-    value: 100
+    value: 90

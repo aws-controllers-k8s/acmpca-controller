@@ -3,7 +3,7 @@ kind: CertificateAuthority
 metadata:
   name: $NAME
 spec:
-  type: ROOT
+  type: SUBORDINATE
   certificateAuthorityConfiguration:
     subject:
       commonName: $COMMON_NAME
@@ -17,7 +17,5 @@ spec:
     - key: tag1
       value: val1
   revocationConfiguration:
-    crlConfiguration:
-      enabled: False
     ocspConfiguration:
       enabled: False

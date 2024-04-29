@@ -114,6 +114,22 @@ func (rm *resourceManager) sdkCreate(
 			return nil, err
 		}
 	}
+
+	if desired.ko.Spec.Status != nil && *desired.ko.Spec.Status == svcsdk.CertificateAuthorityStatusDisabled {
+		updateInput := &svcsdk.UpdateCertificateAuthorityInput{}
+
+		updateInput.SetStatus(*desired.ko.Spec.Status)
+
+		if desired.ko.Spec.CertificateAuthorityARN != nil {
+			updateInput.SetCertificateAuthorityArn(*desired.ko.Spec.CertificateAuthorityARN)
+		}
+
+		_, err = rm.sdkapi.UpdateCertificateAuthorityWithContext(ctx, updateInput)
+		rm.metrics.RecordAPICall("UPDATE", "UpdateCertificateAuthority", err)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &resource{ko}, nil
 }
 
@@ -255,6 +271,47 @@ func (rm *resourceManager) updateConditions(
 // and if the exception indicates that it is a Terminal exception
 // 'Terminal' exception are specified in generator configuration
 func (rm *resourceManager) terminalAWSError(err error) bool {
-	// No terminal_errors specified for this resource in generator config
-	return false
+	if err == nil {
+		return false
+	}
+	awsErr, ok := ackerr.AWSError(err)
+	if !ok {
+		return false
+	}
+	switch awsErr.Code() {
+	case "InvalidAction",
+		"InvalidParameterCombination",
+		"InvalidParameterValue",
+		"InvalidQueryParameter",
+		"MissingParameter",
+		"ValidationError",
+		"ValidationException",
+		"CertificateMismatchException",
+		"InvalidArnException",
+		"InvalidRequestException",
+		"InvalidStateException",
+		"MalformedCertificateException",
+		"RequestFailedException":
+		return true
+	default:
+		return false
+	}
+}
+
+// getImmutableFieldChanges returns list of immutable fields from the
+func (rm *resourceManager) getImmutableFieldChanges(
+	delta *ackcompare.Delta,
+) []string {
+	var fields []string
+	if delta.DifferentAt("Spec.Certificate") {
+		fields = append(fields, "Certificate")
+	}
+	if delta.DifferentAt("Spec.CertificateAuthorityARN") {
+		fields = append(fields, "CertificateAuthorityARN")
+	}
+	if delta.DifferentAt("Spec.CertificateChain") {
+		fields = append(fields, "CertificateChain")
+	}
+
+	return fields
 }

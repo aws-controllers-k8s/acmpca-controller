@@ -32,7 +32,7 @@ from acktest import tags
 
 RESOURCE_PLURAL = "certificateauthorities"
 
-CREATE_WAIT_AFTER_SECONDS = 10
+CREATE_WAIT_AFTER_SECONDS = 60
 UPDATE_WAIT_AFTER_SECONDS = 10
 DELETE_WAIT_AFTER_SECONDS = 10
 
@@ -40,7 +40,7 @@ DELETE_WAIT_AFTER_SECONDS = 10
 def simple_certificate_authority(acmpca_client):
     ca_name = random_suffix_name("certificate-authority", 50)
     replacements = {}
-    suffix = random_suffix_name("", 2)
+    suffix = random_suffix_name("", 10)
     replacements["NAME"] = ca_name
     replacements["COMMON_NAME"] = "www.example" + suffix + ".com"
     replacements["COUNTRY"] = "US"
@@ -50,7 +50,7 @@ def simple_certificate_authority(acmpca_client):
 
     # Load CA CR
     ca_resource_data = load_acmpca_resource(
-        "certificate_authority",
+        "certificate_authority_defaults",
         additional_replacements=replacements,
     )
 
@@ -66,7 +66,7 @@ def simple_certificate_authority(acmpca_client):
 
     assert ca_cr is not None
     assert k8s.get_resource_exists(ca_ref)
-    logging.info(ca_ref)
+    logging.info(ca_cr)
 
     ca_resource_arn =  k8s.get_resource_arn(ca_cr)
     assert ca_resource_arn is not None
@@ -86,7 +86,7 @@ def simple_certificate_authority(acmpca_client):
 @service_marker
 class TestCertificateAuthority:
 
-    def test_create_delete(self, acmpca_client, simple_certificate_authority):
+    def test_ca_crud(self, acmpca_client, simple_certificate_authority):
         
         (ca_cr, ca_ref, ca_resource_arn) = simple_certificate_authority
 
@@ -96,10 +96,10 @@ class TestCertificateAuthority:
 
         # Check CA Spec fields
         assert ca["Type"] == "ROOT"
-        assert re.search("^www[.]example.{2}[.]com$", ca["CertificateAuthorityConfiguration"]["Subject"]["CommonName"])
+        assert re.search("^www[.]example.{10}[.]com$", ca["CertificateAuthorityConfiguration"]["Subject"]["CommonName"])
         assert ca["CertificateAuthorityConfiguration"]["Subject"]["Country"] == "US"
         assert ca["CertificateAuthorityConfiguration"]["Subject"]["Locality"] == "Arlington"
-        assert re.search("^Example Organization .{2}$", ca["CertificateAuthorityConfiguration"]["Subject"]["Organization"])
+        assert re.search("^Example Organization .{10}$", ca["CertificateAuthorityConfiguration"]["Subject"]["Organization"])
         assert ca["CertificateAuthorityConfiguration"]["Subject"]["State"] == "Virginia"
         assert ca["CertificateAuthorityConfiguration"]["KeyAlgorithm"] == "RSA_2048"
         assert ca["CertificateAuthorityConfiguration"]["SigningAlgorithm"] == "SHA256WITHRSA"
@@ -122,22 +122,17 @@ class TestCertificateAuthority:
             actual=observed_tags,
         )
 
+        ca_cr = k8s.patch_custom_resource(ca_ref, {})
+        logging.info(ca_cr)
+
         # Check CA Status fields
         assert 'status' in ca_cr
-        assert 'csr' in ca_cr['status']
+        assert 'certificateSigningRequest' in ca_cr['status']
         csr = acmpca_validator.get_csr(ca_resource_arn)
-        assert base64.b64decode(ca_cr['status']['csr']).decode("ascii") == csr
+        assert ca_cr['status']['certificateSigningRequest'] == csr
 
         assert 'status' in ca_cr['status']
         assert ca_cr['status']['status'] == "PENDING_CERTIFICATE"
-    
-    def test_update_tags(self, acmpca_client, simple_certificate_authority):
-        
-        (ca_cr, ca_ref, ca_resource_arn) = simple_certificate_authority
-
-        # Check CA status is PENDING_CERTIFICATE
-        acmpca_validator = ACMPCAValidator(acmpca_client)
-        ca = acmpca_validator.assert_certificate_authority(ca_resource_arn, "PENDING_CERTIFICATE")
 
         # Update CA tags
         new_tags = [

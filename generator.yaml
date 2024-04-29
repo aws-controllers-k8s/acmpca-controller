@@ -6,6 +6,7 @@ ignore:
   field_paths:
   - CreateCertificateAuthorityInput.IdempotencyToken
   - IssueCertificateInput.IdempotencyToken
+  - IssueCertificateInput.Csr
   - ImportCertificateAuthorityCertificateInput.Certificate
   - ImportCertificateAuthorityCertificateInput.CertificateChain
   - UpdateCertificateAuthorityInput.Status
@@ -26,11 +27,18 @@ model_name: acm-pca
 prefix_config: {}
 resources:
   CertificateAuthority:
+    reconcile: 
+      requeue_on_success_seconds: 30
+    renames:
+      operations:
+        CreateCertificateAuthority:
+          input_fields:
+            CertificateAuthorityType: Type
     hooks:
       delta_pre_compare:
         code: customSetDefaults(a, b)
-      sdk_create_post_set_output:
-        template_path: hooks/certificate_authority/sdk_create_post_set_output.go.tpl
+      sdk_create_post_build_request:
+        template_path: hooks/certificate_authority/sdk_create_post_build_request.go.tpl
       sdk_update_pre_build_request:
         template_path: hooks/certificate_authority/sdk_update_pre_build_request.go.tpl
       sdk_read_one_post_set_output:
@@ -44,18 +52,25 @@ resources:
       - MissingParameter
       - ValidationError
       - ValidationException
+      - LimitExceededException
+      - InvalidTagException
+      - InvalidPolicyException
+      - InvalidArgsException
     fields: 
       CertificateAuthorityConfiguration:
         is_immutable: true
-      CertificateAuthorityType:
+      Type:
         is_immutable: true
+        go_tag: json:"type,omitempty"
       KeyStorageSecurityStandard:
         is_immutable: true
       UsageMode:
         is_immutable: true
-      CSR:
+      CertificateSigningRequest:
         is_read_only: true
-        type: 'bytes'
+        from:
+          operation: GetCertificateAuthorityCsr
+          path: Csr
       Status:
         is_read_only: true
         from:
@@ -105,6 +120,8 @@ resources:
     hooks:
       sdk_read_one_post_set_output:
         template_path: hooks/certificate/sdk_read_one_post_set_output.go.tpl
+      sdk_create_post_build_request:
+        template_path: hooks/certificate/sdk_create_post_build_request.go.tpl
     exceptions:
       terminal_codes:
       - InvalidAction
@@ -114,16 +131,22 @@ resources:
       - MissingParameter
       - ValidationError
       - ValidationException
+      - InvalidArgsException
+      - InvalidArnException
+      - InvalidStateException
+      - LimitExceededException
+      - MalformedCSRException
     fields:
       CertificateAuthorityARN:
         references:
           resource: CertificateAuthority
           path: Status.ACKResourceMetadata.ARN
         is_immutable: true
-      CSR:
+      CertificateSigningRequest:
+        type: string
         references:
           resource: CertificateAuthority
-          path: Status.CSR
+          path: Status.CertificateSigningRequest
         is_immutable: true
       APIPassthrough:
         is_immutable: true
@@ -140,13 +163,26 @@ resources:
     tags:
       ignore: true
   CertificateAuthorityActivation:
+    exceptions:
+      terminal_codes:
+      - InvalidAction
+      - InvalidParameterCombination
+      - InvalidParameterValue
+      - InvalidQueryParameter
+      - MissingParameter
+      - ValidationError
+      - ValidationException
+      - CertificateMismatchException
+      - InvalidArnException
+      - InvalidRequestException
+      - InvalidStateException
+      - MalformedCertificateException
+      - RequestFailedException
     hooks:
       delta_pre_compare:
         code: customSetDefaults(a, b)
       sdk_create_post_build_request:
         template_path: hooks/certificate_authority_activation/sdk_create_post_build_request.go.tpl
-      sdk_update_post_build_request:
-        template_path: hooks/certificate_authority_activation/sdk_update_post_build_request.go.tpl
       sdk_create_post_set_output:
         template_path: hooks/certificate_authority_activation/sdk_create_post_set_output.go.tpl
     fields:
@@ -155,12 +191,15 @@ resources:
         references:
           resource: CertificateAuthority
           path: Status.ACKResourceMetadata.ARN
+        is_immutable: true
       Certificate:
         type: string
         is_secret: true
+        is_immutable: true
       CertificateChain:
         type: string
         is_secret: true
+        is_immutable: true
       Status:
         type: string
     find_operation:

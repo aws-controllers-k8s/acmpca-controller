@@ -37,12 +37,12 @@ import (
 func (rm *resourceManager) ClearResolvedReferences(res acktypes.AWSResource) acktypes.AWSResource {
 	ko := rm.concreteResource(res).ko.DeepCopy()
 
-	if ko.Spec.CSRRef != nil {
-		ko.Spec.CSR = nil
-	}
-
 	if ko.Spec.CertificateAuthorityRef != nil {
 		ko.Spec.CertificateAuthorityARN = nil
+	}
+
+	if ko.Spec.CertificateSigningRequestRef != nil {
+		ko.Spec.CertificateSigningRequest = nil
 	}
 
 	return &resource{ko}
@@ -65,13 +65,13 @@ func (rm *resourceManager) ResolveReferences(
 
 	resourceHasReferences := false
 	err := validateReferenceFields(ko)
-	if fieldHasReferences, err := rm.resolveReferenceForCSR(ctx, apiReader, namespace, ko); err != nil {
+	if fieldHasReferences, err := rm.resolveReferenceForCertificateAuthorityARN(ctx, apiReader, namespace, ko); err != nil {
 		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
 	} else {
 		resourceHasReferences = resourceHasReferences || fieldHasReferences
 	}
 
-	if fieldHasReferences, err := rm.resolveReferenceForCertificateAuthorityARN(ctx, apiReader, namespace, ko); err != nil {
+	if fieldHasReferences, err := rm.resolveReferenceForCertificateSigningRequest(ctx, apiReader, namespace, ko); err != nil {
 		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
 	} else {
 		resourceHasReferences = resourceHasReferences || fieldHasReferences
@@ -84,43 +84,40 @@ func (rm *resourceManager) ResolveReferences(
 // identifier field.
 func validateReferenceFields(ko *svcapitypes.Certificate) error {
 
-	if ko.Spec.CSRRef != nil && ko.Spec.CSR != nil {
-		return ackerr.ResourceReferenceAndIDNotSupportedFor("CSR", "CSRRef")
-	}
-	if ko.Spec.CSRRef == nil && ko.Spec.CSR == nil {
-		return ackerr.ResourceReferenceOrIDRequiredFor("CSR", "CSRRef")
-	}
-
 	if ko.Spec.CertificateAuthorityRef != nil && ko.Spec.CertificateAuthorityARN != nil {
 		return ackerr.ResourceReferenceAndIDNotSupportedFor("CertificateAuthorityARN", "CertificateAuthorityRef")
 	}
 	if ko.Spec.CertificateAuthorityRef == nil && ko.Spec.CertificateAuthorityARN == nil {
 		return ackerr.ResourceReferenceOrIDRequiredFor("CertificateAuthorityARN", "CertificateAuthorityRef")
 	}
+
+	if ko.Spec.CertificateSigningRequestRef != nil && ko.Spec.CertificateSigningRequest != nil {
+		return ackerr.ResourceReferenceAndIDNotSupportedFor("CertificateSigningRequest", "CertificateSigningRequestRef")
+	}
 	return nil
 }
 
-// resolveReferenceForCSR reads the resource referenced
-// from CSRRef field and sets the CSR
+// resolveReferenceForCertificateAuthorityARN reads the resource referenced
+// from CertificateAuthorityRef field and sets the CertificateAuthorityARN
 // from referenced resource. Returns a boolean indicating whether a reference
 // contains references, or an error
-func (rm *resourceManager) resolveReferenceForCSR(
+func (rm *resourceManager) resolveReferenceForCertificateAuthorityARN(
 	ctx context.Context,
 	apiReader client.Reader,
 	namespace string,
 	ko *svcapitypes.Certificate,
 ) (hasReferences bool, err error) {
-	if ko.Spec.CSRRef != nil && ko.Spec.CSRRef.From != nil {
+	if ko.Spec.CertificateAuthorityRef != nil && ko.Spec.CertificateAuthorityRef.From != nil {
 		hasReferences = true
-		arr := ko.Spec.CSRRef.From
+		arr := ko.Spec.CertificateAuthorityRef.From
 		if arr.Name == nil || *arr.Name == "" {
-			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: CSRRef")
+			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: CertificateAuthorityRef")
 		}
 		obj := &svcapitypes.CertificateAuthority{}
 		if err := getReferencedResourceState_CertificateAuthority(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
 			return hasReferences, err
 		}
-		ko.Spec.CSR = ([]byte)(obj.Status.CSR)
+		ko.Spec.CertificateAuthorityARN = (*string)(obj.Status.ACKResourceMetadata.ARN)
 	}
 
 	return hasReferences, nil
@@ -168,36 +165,36 @@ func getReferencedResourceState_CertificateAuthority(
 			"CertificateAuthority",
 			namespace, name)
 	}
-	if obj.Status.CSR == nil {
+	if obj.Status.ACKResourceMetadata == nil || obj.Status.ACKResourceMetadata.ARN == nil {
 		return ackerr.ResourceReferenceMissingTargetFieldFor(
 			"CertificateAuthority",
 			namespace, name,
-			"Status.CSR")
+			"Status.ACKResourceMetadata.ARN")
 	}
 	return nil
 }
 
-// resolveReferenceForCertificateAuthorityARN reads the resource referenced
-// from CertificateAuthorityRef field and sets the CertificateAuthorityARN
+// resolveReferenceForCertificateSigningRequest reads the resource referenced
+// from CertificateSigningRequestRef field and sets the CertificateSigningRequest
 // from referenced resource. Returns a boolean indicating whether a reference
 // contains references, or an error
-func (rm *resourceManager) resolveReferenceForCertificateAuthorityARN(
+func (rm *resourceManager) resolveReferenceForCertificateSigningRequest(
 	ctx context.Context,
 	apiReader client.Reader,
 	namespace string,
 	ko *svcapitypes.Certificate,
 ) (hasReferences bool, err error) {
-	if ko.Spec.CertificateAuthorityRef != nil && ko.Spec.CertificateAuthorityRef.From != nil {
+	if ko.Spec.CertificateSigningRequestRef != nil && ko.Spec.CertificateSigningRequestRef.From != nil {
 		hasReferences = true
-		arr := ko.Spec.CertificateAuthorityRef.From
+		arr := ko.Spec.CertificateSigningRequestRef.From
 		if arr.Name == nil || *arr.Name == "" {
-			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: CertificateAuthorityRef")
+			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: CertificateSigningRequestRef")
 		}
 		obj := &svcapitypes.CertificateAuthority{}
 		if err := getReferencedResourceState_CertificateAuthority(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
 			return hasReferences, err
 		}
-		ko.Spec.CertificateAuthorityARN = (*string)(obj.Status.ACKResourceMetadata.ARN)
+		ko.Spec.CertificateSigningRequest = (*string)(obj.Status.CertificateSigningRequest)
 	}
 
 	return hasReferences, nil

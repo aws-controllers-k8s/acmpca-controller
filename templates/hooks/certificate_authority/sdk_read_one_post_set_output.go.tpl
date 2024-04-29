@@ -5,25 +5,10 @@
     }
     ko.Spec.Tags = tags
 
-    if ko.Spec.KeyStorageSecurityStandard == nil {
-        ko.Spec.KeyStorageSecurityStandard = aws.String("FIPS_140_2_LEVEL_3_OR_HIGHER")
+    ko.Status.CertificateSigningRequest, err = rm.getCertificateAuthorityCsr(ctx, *resourceARN)
+    if err != nil && strings.HasPrefix(err.Error(), "RequestInProgressException") {
+        return nil, ackrequeue.NeededAfter(err, ackrequeue.DefaultRequeueAfterDuration)
     }
-
-    if ko.Spec.UsageMode == nil {
-        ko.Spec.UsageMode = aws.String("GENERAL_PURPOSE")
+    if err != nil {
+        return nil, err
     }
-
-    if ko.Spec.RevocationConfiguration == nil {
-        revocationConfiguration := &svcapitypes.RevocationConfiguration{}
-
-		revocationConfigurationCRLConfiguration := &svcapitypes.CRLConfiguration{}
-		revocationConfigurationCRLConfiguration.Enabled = aws.Bool(false)
-        revocationConfiguration.CRLConfiguration = revocationConfigurationCRLConfiguration
-
-        revocationConfigurationOCSPConfiguration := &svcapitypes.OCSPConfiguration{}
-		revocationConfigurationOCSPConfiguration.Enabled = aws.Bool(false)
-        revocationConfiguration.OCSPConfiguration = revocationConfigurationOCSPConfiguration
-
-		
-		ko.Spec.RevocationConfiguration = revocationConfiguration
-	}

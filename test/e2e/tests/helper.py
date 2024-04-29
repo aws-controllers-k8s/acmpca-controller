@@ -15,6 +15,7 @@
 """
 
 import logging
+import time
 
 class ACMPCAValidator:
     def __init__(self, acmpca_client):
@@ -54,5 +55,18 @@ class ACMPCAValidator:
             certificate = aws_res["Certificate"]
             assert certificate is not None
             return certificate
+        except self.acmpca_client.exceptions.ClientError:
+            pass
+
+    def disable_active_ca(self, ca_arn: str):
+        try:
+            aws_res = self.acmpca_client.describe_certificate_authority(CertificateAuthorityArn=ca_arn)
+            ca = aws_res["CertificateAuthority"]
+            if ca["Status"] == "ACTIVE":
+                self.acmpca_client.update_certificate_authority(CertificateAuthorityArn=ca_arn,Status='DISABLED')
+                aws_res = self.acmpca_client.describe_certificate_authority(CertificateAuthorityArn=ca_arn)
+                ca = aws_res["CertificateAuthority"]
+                logging.info(ca["Status"])
+                assert ca["Status"] == "DISABLED"
         except self.acmpca_client.exceptions.ClientError:
             pass

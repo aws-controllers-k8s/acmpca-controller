@@ -250,9 +250,6 @@ spec:
                         type: string
                     type: object
                 type: object
-              certificateAuthorityType:
-                description: The type of the certificate authority.
-                type: string
               keyStorageSecurityStandard:
                 description: |-
                   Specifies a cryptographic key management compliance standard used for handling
@@ -431,6 +428,9 @@ spec:
                       type: string
                   type: object
                 type: array
+              type:
+                description: The type of the certificate authority.
+                type: string
               usageMode:
                 description: |-
                   Specifies whether the CA issues general-purpose certificates that typically
@@ -443,7 +443,6 @@ spec:
                 type: string
             required:
             - certificateAuthorityConfiguration
-            - certificateAuthorityType
             type: object
           status:
             description: CertificateAuthorityStatus defines the observed state of
@@ -479,6 +478,11 @@ spec:
                 - ownerAccountID
                 - region
                 type: object
+              certificateSigningRequest:
+                description: |-
+                  The base64 PEM-encoded certificate signing request (CSR) for your private
+                  CA certificate.
+                type: string
               conditions:
                 description: |-
                   All CRS managed by ACK have a common `Status.Conditions` member that
@@ -517,9 +521,6 @@ spec:
               createdAt:
                 description: Date and time at which your private CA was created.
                 format: date-time
-                type: string
-              csr:
-                format: byte
                 type: string
               failureReason:
                 description: Reason the request to create your private CA failed.

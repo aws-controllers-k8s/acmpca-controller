@@ -406,6 +406,11 @@ func (rm *resourceManager) sdkFind(
 	} else {
 		ko.Status.Status = nil
 	}
+	if resp.CertificateAuthority.Type != nil {
+		ko.Spec.Type = resp.CertificateAuthority.Type
+	} else {
+		ko.Spec.Type = nil
+	}
 	if resp.CertificateAuthority.UsageMode != nil {
 		ko.Spec.UsageMode = resp.CertificateAuthority.UsageMode
 	} else {
@@ -420,26 +425,12 @@ func (rm *resourceManager) sdkFind(
 	}
 	ko.Spec.Tags = tags
 
-	if ko.Spec.KeyStorageSecurityStandard == nil {
-		ko.Spec.KeyStorageSecurityStandard = aws.String("FIPS_140_2_LEVEL_3_OR_HIGHER")
+	ko.Status.CertificateSigningRequest, err = rm.getCertificateAuthorityCsr(ctx, *resourceARN)
+	if err != nil && strings.HasPrefix(err.Error(), "RequestInProgressException") {
+		return nil, ackrequeue.NeededAfter(err, ackrequeue.DefaultRequeueAfterDuration)
 	}
-
-	if ko.Spec.UsageMode == nil {
-		ko.Spec.UsageMode = aws.String("GENERAL_PURPOSE")
-	}
-
-	if ko.Spec.RevocationConfiguration == nil {
-		revocationConfiguration := &svcapitypes.RevocationConfiguration{}
-
-		revocationConfigurationCRLConfiguration := &svcapitypes.CRLConfiguration{}
-		revocationConfigurationCRLConfiguration.Enabled = aws.Bool(false)
-		revocationConfiguration.CRLConfiguration = revocationConfigurationCRLConfiguration
-
-		revocationConfigurationOCSPConfiguration := &svcapitypes.OCSPConfiguration{}
-		revocationConfigurationOCSPConfiguration.Enabled = aws.Bool(false)
-		revocationConfiguration.OCSPConfiguration = revocationConfigurationOCSPConfiguration
-
-		ko.Spec.RevocationConfiguration = revocationConfiguration
+	if err != nil {
+		return nil, err
 	}
 	return &resource{ko}, nil
 }
@@ -484,6 +475,7 @@ func (rm *resourceManager) sdkCreate(
 	if err != nil {
 		return nil, err
 	}
+	input.SetIdempotencyToken(string(desired.ko.ObjectMeta.UID))
 
 	var resp *svcsdk.CreateCertificateAuthorityOutput
 	_ = resp
@@ -505,14 +497,6 @@ func (rm *resourceManager) sdkCreate(
 	}
 
 	rm.setStatusDefaults(ko)
-	if ko.Status.ACKResourceMetadata != nil && ko.Status.ACKResourceMetadata.ARN != nil {
-		resourceARN := (*string)(ko.Status.ACKResourceMetadata.ARN)
-		csr, err := rm.getCertificateAuthorityCsr(ctx, *resourceARN)
-		if err != nil {
-			return nil, err
-		}
-		ko.Status.CSR = []byte(*csr)
-	}
 	return &resource{ko}, nil
 }
 
@@ -746,8 +730,8 @@ func (rm *resourceManager) newCreateRequestPayload(
 		}
 		res.SetCertificateAuthorityConfiguration(f0)
 	}
-	if r.ko.Spec.CertificateAuthorityType != nil {
-		res.SetCertificateAuthorityType(*r.ko.Spec.CertificateAuthorityType)
+	if r.ko.Spec.Type != nil {
+		res.SetCertificateAuthorityType(*r.ko.Spec.Type)
 	}
 	if r.ko.Spec.KeyStorageSecurityStandard != nil {
 		res.SetKeyStorageSecurityStandard(*r.ko.Spec.KeyStorageSecurityStandard)
@@ -1023,8 +1007,13 @@ func (rm *resourceManager) updateConditions(
 			recoverableCondition.Message = nil
 		}
 	}
-	// Required to avoid the "declared but not used" error in the default case
-	_ = syncCondition
+	if syncCondition == nil && onSuccess {
+		syncCondition = &ackv1alpha1.Condition{
+			Type:   ackv1alpha1.ConditionTypeResourceSynced,
+			Status: corev1.ConditionTrue,
+		}
+		ko.Status.Conditions = append(ko.Status.Conditions, syncCondition)
+	}
 	if terminalCondition != nil || recoverableCondition != nil || syncCondition != nil {
 		return &resource{ko}, true // updated
 	}
@@ -1049,7 +1038,11 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		"InvalidQueryParameter",
 		"MissingParameter",
 		"ValidationError",
-		"ValidationException":
+		"ValidationException",
+		"LimitExceededException",
+		"InvalidTagException",
+		"InvalidPolicyException",
+		"InvalidArgsException":
 		return true
 	default:
 		return false
@@ -1064,11 +1057,11 @@ func (rm *resourceManager) getImmutableFieldChanges(
 	if delta.DifferentAt("Spec.CertificateAuthorityConfiguration") {
 		fields = append(fields, "CertificateAuthorityConfiguration")
 	}
-	if delta.DifferentAt("Spec.CertificateAuthorityType") {
-		fields = append(fields, "CertificateAuthorityType")
-	}
 	if delta.DifferentAt("Spec.KeyStorageSecurityStandard") {
 		fields = append(fields, "KeyStorageSecurityStandard")
+	}
+	if delta.DifferentAt("Spec.Type") {
+		fields = append(fields, "Type")
 	}
 	if delta.DifferentAt("Spec.UsageMode") {
 		fields = append(fields, "UsageMode")

@@ -15,26 +15,22 @@ package certificate
 
 import (
 	"context"
-	"encoding/json"
 
-	client "github.com/aws-controllers-k8s/acmpca-controller/pkg/client"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 func (rm *resourceManager) writeCertificateToSecret(
 	ctx context.Context,
-	certificate *string,
-	r *resource,
+	certificate string,
+	objectMeta metav1.ObjectMeta,
 ) (err error) {
 
-	annotations := r.ko.ObjectMeta.GetAnnotations()
+	annotations := objectMeta.GetAnnotations()
 
 	namespace, found := annotations["acmpca.services.k8s.aws/certificate-secret-namespace"]
 	if !found {
-		namespace = r.MetaObject().GetNamespace()
+		namespace = objectMeta.GetNamespace()
 	}
 
 	name, found := annotations["acmpca.services.k8s.aws/certificate-secret-name"]
@@ -47,23 +43,7 @@ func (rm *resourceManager) writeCertificateToSecret(
 		key = "certificate"
 	}
 
-	secretsClient, err := client.GetSecretsClient(namespace)
-	if err != nil {
-		return err
-	}
-
-	secret := corev1.Secret{
-		Data: map[string][]byte{
-			key: []byte(*certificate),
-		},
-	}
-
-	payloadBytes, err := json.Marshal(secret)
-	if err != nil {
-		return err
-	}
-
-	_, err = secretsClient.Patch(ctx, name, types.StrategicMergePatchType, payloadBytes, metav1.PatchOptions{})
+	err = rm.rr.WriteToSecret(ctx, certificate, namespace, name, key)
 	rm.metrics.RecordAPICall("PATCH", "writeCertificateToSecret", err)
 	if err != nil {
 		return err
