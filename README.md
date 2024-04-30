@@ -9,7 +9,7 @@ Kubernetes Github project.
 [ack-issues]: https://github.com/aws/aws-controllers-k8s/issues
 
 ## Resources Supported
-The ACK service controller for AWS Private Certificate Authority supports the following resources in `PREVIEW`:
+The ACK service controller for AWS Private Certificate Authority supports the following resources:
 - CertificateAuthority
 - Certificate
 - CertificateAuthorityActivation
