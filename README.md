@@ -26,6 +26,55 @@ Go to the [samples directory][samples] and follow the README to create resources
 
 [samples]: https://github.com/aws-controllers-k8s/acmpca-controller/tree/main/samples
 
+### Kubernetes Secrets
+The ACK service controller for AWS Private Certificate Authority uses Kubernetes Secrets to store certificate and certificate chains. Users are expected to create Secrets before creating Certificate and CertificateAuthorityActivation resources. As these resources are created, the Secrets will be injected with either the certificate or certificate chain. Users are responsible for deleting Secrets.
+
+#### Certificate Secret
+Before creating the Certificate resource, users must specify the namespace, name, and key of the Secret in the annotations of the resource, as shown below. If a namespace isn't specified, the namespace of the Certificate resource will be used. If a key isn't specified, the default key of `certificate` will be used.
+
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: certificate-secret
+  namespace: default
+data:
+  certificate: ""
+---
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: Certificate
+metadata:
+  name: my-certificate
+  annotations:
+    acmpca.services.k8s.aws/certificate-secret-namespace: default
+    acmpca.services.k8s.aws/certificate-secret-name: certificate-secret
+    acmpca.services.k8s.aws/certificate-secret-key: certificate
+...
+```
+
+#### CertificateChain Secret
+Before creating the CertificateAuthorityActivation resource, users must specify the namespace, name, and key of the Secret in the annotations of the resource, as shown below. If a namespace isn't specified, the namespace of the CertificateAuthorityActivation resource will be used. If a key isn't specified, the default key of `certificateChain` will be used.
+
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: certificate-chain-secret
+  namespace: default
+data:
+  certificateChain: ""
+---
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: CertificateAuthorityActivation
+metadata:
+  name: root-ca-activation
+  annotations:
+    acmpca.services.k8s.aws/chain-secret-namespace: default
+    acmpca.services.k8s.aws/chain-secret-name: certificate-chain-secret
+    acmpca.services.k8s.aws/chain-secret-key: certificateChain
+...
+```
+
 ## Contributing
 
 We welcome community contributions and pull requests.
