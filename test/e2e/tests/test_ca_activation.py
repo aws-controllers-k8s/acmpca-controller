@@ -94,7 +94,7 @@ def simple_certificate_authority(acmpca_client):
 
     #Disable CA if status is ACTIVE
     acmpca_validator = ACMPCAValidator(acmpca_client)
-    acmpca_validator.disable_active_ca(ca_resource_arn)
+    assert acmpca_validator.disable_active_ca(ca_resource_arn) is None
 
     #Delete CA k8s resource
     _, deleted = k8s.delete_custom_resource(ca_ref)
@@ -555,19 +555,6 @@ class TestCertificateAuthorityActivation:
         time.sleep(UPDATE_WAIT_AFTER_SECONDS) 
         
         # Check CA status is ACTIVE
-        acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE")
-
-        # Update Status to PENDING_CERTIFICATE
-        updates = {
-            "spec": {
-                "status": "PENDING_CERTIFICATE"
-            },
-        }
-        patch_res = k8s.patch_custom_resource(act_ref, updates)
-        logging.info(patch_res)
-        time.sleep(UPDATE_WAIT_AFTER_SECONDS) 
-        
-        # Check CA status is still ACTIVE
         acmpca_validator.assert_certificate_authority(ca_arn, "ACTIVE")
 
         #Delete CAActivation k8s resource

@@ -83,7 +83,7 @@ func (rm *resourceManager) customUpdateCertificateAuthorityActivation(
 		input.SetCertificateAuthorityArn(*desired.ko.Spec.CertificateAuthorityARN)
 	}
 
-	if desired.ko.Spec.Status != nil && (*desired.ko.Spec.Status == svcsdk.CertificateAuthorityStatusActive || *desired.ko.Spec.Status == svcsdk.CertificateAuthorityStatusDisabled) {
+	if desired.ko.Spec.Status != nil {
 		input.SetStatus(*desired.ko.Spec.Status)
 	}
 

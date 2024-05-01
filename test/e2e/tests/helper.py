@@ -68,5 +68,5 @@ class ACMPCAValidator:
                 ca = aws_res["CertificateAuthority"]
                 logging.info(ca["Status"])
                 assert ca["Status"] == "DISABLED"
-        except self.acmpca_client.exceptions.ClientError:
-            pass
+        except self.acmpca_client.exceptions.ClientError as error:
+            return error
