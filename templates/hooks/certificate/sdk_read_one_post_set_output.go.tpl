@@ -1,7 +1,5 @@
     err = rm.writeCertificateToSecret(ctx, *resp.Certificate, r.ko.ObjectMeta)
-    if err != nil && strings.HasPrefix(err.Error(), "RequestInProgressException") {
-        return &resource{ko}, ackrequeue.NeededAfter(err, ackrequeue.DefaultRequeueAfterDuration)
-    }
+    // If the Secret cannot be written to requeue and wait for secret to exist
     if err != nil {
-        return nil, err
+        return &resource{ko}, ackrequeue.NeededAfter(err, ackrequeue.DefaultRequeueAfterDuration)
     }
