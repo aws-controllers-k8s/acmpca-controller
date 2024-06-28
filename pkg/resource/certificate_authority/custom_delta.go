@@ -16,37 +16,30 @@ package certificate_authority
 import (
 	svcapitypes "github.com/aws-controllers-k8s/acmpca-controller/apis/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
-	"github.com/aws/aws-sdk-go/aws"
 )
 
 func customSetDefaults(
-	a *resource,
-	b *resource,
+	desired *resource,
+	latest *resource,
 ) {
-	// Default value of UsageMode is GENERAL_PURPOSE
-	defaultUsageMode := aws.String("GENERAL_PURPOSE")
-
-	if ackcompare.IsNil(a.ko.Spec.UsageMode) && ackcompare.IsNotNil(b.ko.Spec.UsageMode) {
-		a.ko.Spec.UsageMode = defaultUsageMode
+	if ackcompare.IsNil(desired.ko.Spec.UsageMode) && ackcompare.IsNotNil(latest.ko.Spec.UsageMode) {
+		desired.ko.Spec.UsageMode = latest.ko.Spec.UsageMode
 	}
 
-	// Default value of KeyStorageSecurityStandard is FIPS_140_2_LEVEL_3_OR_HIGHER
-	defaultKeyStorageSecurityStandard := aws.String("FIPS_140_2_LEVEL_3_OR_HIGHER")
-
-	if ackcompare.IsNil(a.ko.Spec.KeyStorageSecurityStandard) && ackcompare.IsNotNil(b.ko.Spec.KeyStorageSecurityStandard) {
-		a.ko.Spec.KeyStorageSecurityStandard = defaultKeyStorageSecurityStandard
+	if ackcompare.IsNil(desired.ko.Spec.KeyStorageSecurityStandard) && ackcompare.IsNotNil(latest.ko.Spec.KeyStorageSecurityStandard) {
+		desired.ko.Spec.KeyStorageSecurityStandard = latest.ko.Spec.KeyStorageSecurityStandard
 	}
 
-	if ackcompare.IsNil(a.ko.Spec.RevocationConfiguration) && ackcompare.IsNotNil(b.ko.Spec.RevocationConfiguration) {
-		a.ko.Spec.RevocationConfiguration = &svcapitypes.RevocationConfiguration{}
+	if ackcompare.IsNil(desired.ko.Spec.RevocationConfiguration) && ackcompare.IsNotNil(latest.ko.Spec.RevocationConfiguration) {
+		desired.ko.Spec.RevocationConfiguration = &svcapitypes.RevocationConfiguration{}
 	}
 
-	if ackcompare.IsNotNil(a.ko.Spec.RevocationConfiguration) && ackcompare.IsNotNil(b.ko.Spec.RevocationConfiguration) {
-		if ackcompare.IsNil(a.ko.Spec.RevocationConfiguration.CRLConfiguration) && ackcompare.IsNotNil(b.ko.Spec.RevocationConfiguration.CRLConfiguration) {
-			a.ko.Spec.RevocationConfiguration.CRLConfiguration = b.ko.Spec.RevocationConfiguration.CRLConfiguration
+	if ackcompare.IsNotNil(desired.ko.Spec.RevocationConfiguration) && ackcompare.IsNotNil(latest.ko.Spec.RevocationConfiguration) {
+		if ackcompare.IsNil(desired.ko.Spec.RevocationConfiguration.CRLConfiguration) && ackcompare.IsNotNil(latest.ko.Spec.RevocationConfiguration.CRLConfiguration) {
+			desired.ko.Spec.RevocationConfiguration.CRLConfiguration = latest.ko.Spec.RevocationConfiguration.CRLConfiguration
 		}
-		if ackcompare.IsNil(a.ko.Spec.RevocationConfiguration.OCSPConfiguration) && ackcompare.IsNotNil(b.ko.Spec.RevocationConfiguration.OCSPConfiguration) {
-			a.ko.Spec.RevocationConfiguration.OCSPConfiguration = b.ko.Spec.RevocationConfiguration.OCSPConfiguration
+		if ackcompare.IsNil(desired.ko.Spec.RevocationConfiguration.OCSPConfiguration) && ackcompare.IsNotNil(latest.ko.Spec.RevocationConfiguration.OCSPConfiguration) {
+			desired.ko.Spec.RevocationConfiguration.OCSPConfiguration = latest.ko.Spec.RevocationConfiguration.OCSPConfiguration
 		}
 	}
 }
