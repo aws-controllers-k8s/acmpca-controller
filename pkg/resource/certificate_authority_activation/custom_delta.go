@@ -15,17 +15,13 @@ package certificate_authority_activation
 
 import (
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
-	"github.com/aws/aws-sdk-go/aws"
 )
 
 func customSetDefaults(
-	a *resource,
-	b *resource,
+	desired *resource,
+	latest *resource,
 ) {
-	// Default value of Staus is ACTIVE
-	defaultStatus := aws.String("ACTIVE")
-
-	if ackcompare.IsNil(a.ko.Spec.Status) && ackcompare.IsNotNil(b.ko.Spec.Status) {
-		a.ko.Spec.Status = defaultStatus
+	if ackcompare.IsNil(desired.ko.Spec.Status) && ackcompare.IsNotNil(latest.ko.Spec.Status) {
+		desired.ko.Spec.Status = latest.ko.Spec.Status
 	}
 }
