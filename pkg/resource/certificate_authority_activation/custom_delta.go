@@ -18,10 +18,10 @@ import (
 )
 
 func customSetDefaults(
-	desired *resource,
-	latest *resource,
+	a *resource,
+	b *resource,
 ) {
-	if ackcompare.IsNil(desired.ko.Spec.Status) && ackcompare.IsNotNil(latest.ko.Spec.Status) {
-		desired.ko.Spec.Status = latest.ko.Spec.Status
+	if ackcompare.IsNil(a.ko.Spec.Status) && ackcompare.IsNotNil(b.ko.Spec.Status) {
+		a.ko.Spec.Status = b.ko.Spec.Status
 	}
 }
