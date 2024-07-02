@@ -9,7 +9,7 @@
 			return nil, describeErr
 		}
 
-		if *describeResp.CertificateAuthority.Status == svcsdk.CertificateAuthorityStatusCreating || *describeResp.CertificateAuthority.Status == svcsdk.CertificateAuthorityStatusPendingCertificate {
+		if *describeResp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusFailed && *describeResp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusDeleted && *describeResp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusDisabled {
 			return desired, ackrequeue.NeededAfter(err, ackrequeue.DefaultRequeueAfterDuration)
 		}
 
