@@ -9,6 +9,6 @@ metadata:
 spec:
   certificateAuthorityARN: $CA_ARN
   certificate:
-    namespace: $CERTIFICATE_SECRET_NAMESPACE
-    name: $CERTIFICATE_SECRET_NAME
-    key: $CERTIFICATE_SECRET_KEY
+    namespace: $CERTIFICATE_SEC_NS
+    name: $CERTIFICATE_SEC_NAME
+    key: $CERTIFICATE_SEC_KEY

@@ -257,9 +257,9 @@ def simple_ca_activation(simple_root_certificate, create_certificate_chain_secre
     replacements = REPLACEMENT_VALUES.copy()
     replacements["NAME"] = activation_name
     replacements["CA_ARN"] = ca_arn
-    replacements["CERTIFICATE_SECRET_NAMESPACE"] = secret.ns
-    replacements["CERTIFICATE_SECRET_NAME"] = secret.name
-    replacements["CERTIFICATE_SECRET_KEY"] = secret.key
+    replacements["CERTIFICATE_SEC_NS"] = secret.ns
+    replacements["CERTIFICATE_SEC_NAME"] = secret.name
+    replacements["CERTIFICATE_SEC_KEY"] = secret.key
     replacements["CERTIFICATE_CHAIN_SEC_NS"] = certificate_chain_secret.ns
     replacements["CERTIFICATE_CHAIN_SEC_NAME"] = certificate_chain_secret.name
     replacements["CERTIFICATE_CHAIN_SEC_KEY"] = certificate_chain_secret.key
@@ -316,9 +316,9 @@ def subordinate_ca_activation(subordinate_ca_certificate, create_certificate_cha
     replacements = REPLACEMENT_VALUES.copy()
     replacements["NAME"] = activation_name
     replacements["CA_ARN"] = sub_ca_arn
-    replacements["CERTIFICATE_SECRET_NAMESPACE"] = sub_ca_cert_secret.ns
-    replacements["CERTIFICATE_SECRET_NAME"] = sub_ca_cert_secret.name
-    replacements["CERTIFICATE_SECRET_KEY"] = sub_ca_cert_secret.key
+    replacements["CERTIFICATE_SEC_NS"] = sub_ca_cert_secret.ns
+    replacements["CERTIFICATE_SEC_NAME"] = sub_ca_cert_secret.name
+    replacements["CERTIFICATE_SEC_KEY"] = sub_ca_cert_secret.key
     replacements["CERTIFICATE_CHAIN_SEC_NS"] = certificate_chain_secret.ns
     replacements["CERTIFICATE_CHAIN_SEC_NAME"] = certificate_chain_secret.name
     replacements["CERTIFICATE_CHAIN_SEC_KEY"] = certificate_chain_secret.key
@@ -378,9 +378,9 @@ def simple_ca_activation_with_ref(simple_root_certificate, create_certificate_ch
     replacements = REPLACEMENT_VALUES.copy()
     replacements["NAME"] = activation_name
     replacements["CA_NAME"] = ca_name
-    replacements["CERTIFICATE_SECRET_NAMESPACE"] = secret.ns
-    replacements["CERTIFICATE_SECRET_NAME"] = secret.name
-    replacements["CERTIFICATE_SECRET_KEY"] = secret.key
+    replacements["CERTIFICATE_SEC_NS"] = secret.ns
+    replacements["CERTIFICATE_SEC_NAME"] = secret.name
+    replacements["CERTIFICATE_SEC_KEY"] = secret.key
     replacements["CERTIFICATE_CHAIN_SEC_NS"] = certificate_chain_secret.ns
     replacements["CERTIFICATE_CHAIN_SEC_NAME"] = certificate_chain_secret.name
     replacements["CERTIFICATE_CHAIN_SEC_KEY"] = certificate_chain_secret.key
@@ -438,9 +438,9 @@ def simple_ca_activation_status_disabled(simple_root_certificate, create_certifi
     replacements = REPLACEMENT_VALUES.copy()
     replacements["NAME"] = activation_name
     replacements["CA_NAME"] = ca_name
-    replacements["CERTIFICATE_SECRET_NAMESPACE"] = secret.ns
-    replacements["CERTIFICATE_SECRET_NAME"] = secret.name
-    replacements["CERTIFICATE_SECRET_KEY"] = secret.key
+    replacements["CERTIFICATE_SEC_NS"] = secret.ns
+    replacements["CERTIFICATE_SEC_NAME"] = secret.name
+    replacements["CERTIFICATE_SEC_KEY"] = secret.key
     replacements["CERTIFICATE_CHAIN_SEC_NS"] = certificate_chain_secret.ns
     replacements["CERTIFICATE_CHAIN_SEC_NAME"] = certificate_chain_secret.name
     replacements["CERTIFICATE_CHAIN_SEC_KEY"] = certificate_chain_secret.key
@@ -485,9 +485,9 @@ class TestCertificateAuthorityActivation:
         replacements = REPLACEMENT_VALUES.copy()
         replacements["NAME"] = activation_name
         replacements["CA_ARN"] = ca_arn
-        replacements["CERTIFICATE_SECRET_NAMESPACE"] = secret.ns
-        replacements["CERTIFICATE_SECRET_NAME"] = secret.name
-        replacements["CERTIFICATE_SECRET_KEY"] = secret.key
+        replacements["CERTIFICATE_SEC_NS"] = secret.ns
+        replacements["CERTIFICATE_SEC_NAME"] = secret.name
+        replacements["CERTIFICATE_SEC_KEY"] = secret.key
         replacements["CERTIFICATE_CHAIN_SEC_NS"] = certificate_chain_secret.ns
         replacements["CERTIFICATE_CHAIN_SEC_NAME"] = certificate_chain_secret.name
         replacements["CERTIFICATE_CHAIN_SEC_KEY"] = certificate_chain_secret.key
@@ -634,9 +634,9 @@ class TestCertificateAuthorityActivation:
         replacements = REPLACEMENT_VALUES.copy()
         replacements["NAME"] = activation_name
         replacements["CA_ARN"] = ca_arn
-        replacements["CERTIFICATE_SECRET_NAMESPACE"] = certificate_chain_secret.ns
-        replacements["CERTIFICATE_SECRET_NAME"] = certificate_chain_secret.name
-        replacements["CERTIFICATE_SECRET_KEY"] = certificate_chain_secret.key
+        replacements["CERTIFICATE_SEC_NS"] = certificate_chain_secret.ns
+        replacements["CERTIFICATE_SEC_NAME"] = certificate_chain_secret.name
+        replacements["CERTIFICATE_SEC_KEY"] = certificate_chain_secret.key
         
         # Load CAActivation CR
         act_resource_data = load_acmpca_resource(

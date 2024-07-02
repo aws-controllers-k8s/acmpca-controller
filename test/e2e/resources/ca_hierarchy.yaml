@@ -1,0 +1,53 @@
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: CertificateAuthority
+metadata:
+  name: $CA_NAME
+spec:
+  type: ROOT
+  certificateAuthorityConfiguration:
+    subject:
+      commonName: $COMMON_NAME
+      country: $COUNTRY
+      locality: $LOCALITY
+      organization: $ORG
+      state: $STATE
+    keyAlgorithm: RSA_2048
+    signingAlgorithm: SHA256WITHRSA
+---
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: Certificate
+metadata:
+  name: $CERT_NAME
+  annotations:
+    acmpca.services.k8s.aws/certificate-secret-namespace: $CERTIFICATE_SEC_NS
+    acmpca.services.k8s.aws/certificate-secret-name: $CERTIFICATE_SEC_NAME
+    acmpca.services.k8s.aws/certificate-secret-key: $CERTIFICATE_SEC_KEY
+spec:
+    certificateAuthorityRef:
+    from:
+      name: $CA_NAME
+  certificateSigningRequestRef:
+    from:
+      name: $CA_NAME
+  signingAlgorithm: SHA256WITHRSA
+  templateARN: $TEMPLATE_ARN
+  validity:
+    type: DAYS
+    value: 100
+---
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: CertificateAuthorityActivation
+metadata:
+  name: $CA_ACTIVATION_NAME
+  annotations:
+    acmpca.services.k8s.aws/chain-secret-namespace: $CERTIFICATE_CHAIN_SEC_NS
+    acmpca.services.k8s.aws/chain-secret-name: $CERTIFICATE_CHAIN_SEC_NAME
+    acmpca.services.k8s.aws/chain-secret-key: $CERTIFICATE_CHAIN_SEC_KEY
+spec:
+    certificateAuthorityRef:
+    from:
+      name: $CA_NAME
+  certificate:
+    namespace: $CERTIFICATE_SEC_NS
+    name: $CERTIFICATE_SEC_NAME
+    key: $CERTIFICATE_SEC_KEY
