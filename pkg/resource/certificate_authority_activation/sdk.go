@@ -107,7 +107,7 @@ func (rm *resourceManager) sdkCreate(
 		describeResp, describeErr := rm.sdkapi.DescribeCertificateAuthorityWithContext(ctx, input)
 		rm.metrics.RecordAPICall("READ_ONE", "DescribeCertificateAuthority", err)
 		if describeErr != nil {
-			return nil, describeErr
+			return desired, ackrequeue.NeededAfter(describeErr, ackrequeue.DefaultRequeueAfterDuration)
 		}
 
 		if *describeResp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusFailed && *describeResp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusDeleted && *describeResp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusDisabled {
