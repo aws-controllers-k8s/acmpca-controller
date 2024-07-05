@@ -11,7 +11,7 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-"""Integration tests for the ACMPCA CertificateAuthorityActivation resource.
+"""Integration tests for the ACMPCA CertificateAuthority, Certificate, and CertificateAuthorityActivation resources.
 """
 
 import time
@@ -256,7 +256,7 @@ def certificate_authority_hierarchy(create_secret, create_certificate_chain_secr
     assert deleted is True
 
 @service_marker
-class TestCertificateAuthorityActivation:
+class TestCertificateAuthorityHierarchy:
 
     def test_ca_hierarchy(self, acmpca_client, certificate_authority_hierarchy):
 
