@@ -16,25 +16,18 @@ package certificate_authority
 import (
 	svcapitypes "github.com/aws-controllers-k8s/acmpca-controller/apis/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
-	"github.com/aws/aws-sdk-go/aws"
 )
 
 func customSetDefaults(
 	a *resource,
 	b *resource,
 ) {
-	// Default value of UsageMode is GENERAL_PURPOSE
-	defaultUsageMode := aws.String("GENERAL_PURPOSE")
-
 	if ackcompare.IsNil(a.ko.Spec.UsageMode) && ackcompare.IsNotNil(b.ko.Spec.UsageMode) {
-		a.ko.Spec.UsageMode = defaultUsageMode
+		a.ko.Spec.UsageMode = b.ko.Spec.UsageMode
 	}
 
-	// Default value of KeyStorageSecurityStandard is FIPS_140_2_LEVEL_3_OR_HIGHER
-	defaultKeyStorageSecurityStandard := aws.String("FIPS_140_2_LEVEL_3_OR_HIGHER")
-
 	if ackcompare.IsNil(a.ko.Spec.KeyStorageSecurityStandard) && ackcompare.IsNotNil(b.ko.Spec.KeyStorageSecurityStandard) {
-		a.ko.Spec.KeyStorageSecurityStandard = defaultKeyStorageSecurityStandard
+		a.ko.Spec.KeyStorageSecurityStandard = b.ko.Spec.KeyStorageSecurityStandard
 	}
 
 	if ackcompare.IsNil(a.ko.Spec.RevocationConfiguration) && ackcompare.IsNotNil(b.ko.Spec.RevocationConfiguration) {
