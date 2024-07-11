@@ -12,10 +12,11 @@
 # permissions and limitations under the License.
 
 import pytest
+import yaml
 from typing import Dict, Any
 from pathlib import Path
 
-from acktest.resources import load_resource_file
+from acktest.resources import load_resource_file, _replace_placeholder_values, default_placeholder_values
 
 SERVICE_NAME = "acmpca"
 CRD_GROUP = "acmpca.services.k8s.aws"
@@ -32,3 +33,12 @@ def load_acmpca_resource(resource_name: str, additional_replacements: Dict[str, 
     directory for the current service.
     """
     return load_resource_file(resource_directory, resource_name, additional_replacements=additional_replacements)
+
+def load_all_acmpca_resources(resource_name: str, additional_replacements: Dict[str, Any] = {}):
+    with open(resource_directory / f"{resource_name}.yaml", "r") as stream:
+        resource_contents = stream.read()
+        injected_contents = _replace_placeholder_values(
+            resource_contents, default_placeholder_values())
+        injected_contents = _replace_placeholder_values(
+            injected_contents, additional_replacements)
+        return yaml.safe_load_all(injected_contents)

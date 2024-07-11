@@ -1,0 +1,145 @@
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: CertificateAuthority
+metadata:
+  name: $CA_NAME
+spec:
+  type: ROOT
+  certificateAuthorityConfiguration:
+    subject:
+      commonName: root
+      country: US
+      locality: string
+      organization: string
+      state: string
+    keyAlgorithm: RSA_2048
+    signingAlgorithm: SHA256WITHRSA
+---
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: Certificate
+metadata:
+  name: $CERT_NAME
+  annotations:
+    acmpca.services.k8s.aws/certificate-secret-namespace: $CERTIFICATE_SEC_NS
+    acmpca.services.k8s.aws/certificate-secret-name: $CERTIFICATE_SEC_NAME
+    acmpca.services.k8s.aws/certificate-secret-key: $CERTIFICATE_SEC_KEY
+spec:
+  certificateAuthorityRef:
+    from:
+      name: $CA_NAME
+  certificateSigningRequestRef:
+    from:
+      name: $CA_NAME
+  signingAlgorithm: SHA256WITHRSA
+  templateARN: arn:aws:acm-pca:::template/RootCACertificate/V1
+  validity:
+    type: DAYS
+    value: 100
+---
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: CertificateAuthorityActivation
+metadata:
+  name: $CA_ACTIVATION_NAME
+  annotations:
+    acmpca.services.k8s.aws/chain-secret-namespace: $CERTIFICATE_CHAIN_SEC_NS
+    acmpca.services.k8s.aws/chain-secret-name: $CERTIFICATE_CHAIN_SEC_NAME
+    acmpca.services.k8s.aws/chain-secret-key: $CERTIFICATE_CHAIN_SEC_KEY
+spec:
+  certificateAuthorityRef:
+    from:
+      name: $CA_NAME
+  certificate:
+    namespace: $CERTIFICATE_SEC_NS
+    name: $CERTIFICATE_SEC_NAME
+    key: $CERTIFICATE_SEC_KEY
+---
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: CertificateAuthority
+metadata:
+  name: $SUB_CA_NAME
+spec:
+  type: SUBORDINATE
+  certificateAuthorityConfiguration:
+    subject:
+      commonName: sub
+      country: US
+      locality: string
+      organization: string
+      state: string
+    keyAlgorithm: RSA_2048
+    signingAlgorithm: SHA256WITHRSA
+---
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: Certificate
+metadata:
+  name: $SUB_CERT_NAME
+  annotations:
+    acmpca.services.k8s.aws/certificate-secret-namespace: $SUB_CERTIFICATE_SEC_NS
+    acmpca.services.k8s.aws/certificate-secret-name: $SUB_CERTIFICATE_SEC_NAME
+    acmpca.services.k8s.aws/certificate-secret-key: $SUB_CERTIFICATE_SEC_KEY
+spec:
+  certificateAuthorityRef:
+    from:
+      name: $CA_NAME
+  certificateSigningRequestRef:
+    from:
+      name: $SUB_CA_NAME
+  signingAlgorithm: SHA256WITHRSA
+  templateARN: arn:aws:acm-pca:::template/SubordinateCACertificate_PathLen3/V1
+  validity:
+    type: DAYS
+    value: 90
+---
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: CertificateAuthorityActivation
+metadata:
+  name: $SUB_CA_ACTIVATION_NAME
+  annotations:
+    acmpca.services.k8s.aws/chain-secret-namespace: $COMPLETE_CERTIFICATE_CHAIN_SEC_NS
+    acmpca.services.k8s.aws/chain-secret-name: $COMPLETE_CERTIFICATE_CHAIN_SEC_NAME
+    acmpca.services.k8s.aws/chain-secret-key: $COMPLETE_CERTIFICATE_CHAIN_SEC_KEY
+spec:
+  certificateAuthorityRef:
+    from:
+      name: $SUB_CA_NAME
+  certificate:
+    namespace: $SUB_CERTIFICATE_SEC_NS
+    name: $SUB_CERTIFICATE_SEC_NAME
+    key: $SUB_CERTIFICATE_SEC_KEY
+  certificateChain:
+    namespace: $CERTIFICATE_CHAIN_SEC_NS
+    name: $CERTIFICATE_CHAIN_SEC_NAME
+    key: $CERTIFICATE_CHAIN_SEC_KEY
+---
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: Certificate
+metadata:
+  name: $END_ENTITY_CERT_NAME
+  annotations:
+    acmpca.services.k8s.aws/certificate-secret-namespace: $END_CERTIFICATE_SEC_NS
+    acmpca.services.k8s.aws/certificate-secret-name: $END_CERTIFICATE_SEC_NAME
+    acmpca.services.k8s.aws/certificate-secret-key: $END_CERTIFICATE_SEC_KEY
+spec:
+  certificateAuthorityRef:
+    from:
+      name: $SUB_CA_NAME
+  certificateSigningRequest: |
+    -----BEGIN CERTIFICATE REQUEST-----
+    MIICljCCAX4CAQAwHDEaMBgGA1UEAxMRYzRzY2VwLmh5ZHJhLmphdmEwggEiMA0G
+    CSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCwRb1TX4SMFiE5ENTWJYrG/h+zl+us
+    pG/WymMJDpxR71fMB2R//dBolQpcTyjqUgZ5AKvyjICcl+RVIZtUphAL2Gp6w7rq
+    G7nSkQepWz3miPN+4mLllmkR5uTRQMll1K+A4qb1/Ju5MNw7svqohX7J/ZSsBbJO
+    pRnYwAWnMVPX9+y+cBDJ2O3IN+UKENlOKaJeqrtjjdQ5l3p1HqH6qUEe1ks2si8v
+    oQbSgDBQ/F52QV2jeo9YFSoUeSU427GtQgjM0Ub167rjpHSk7v306+NahjFb6Zt1
+    Liul6rY/GNCBlofvqaepjmPo1kO99LfefcoeKY2FC0Eqn3LndC9Cxi57AgMBAAGg
+    NTAzBgkqhkiG9w0BCQcxJhMkYTc5YmU1NmYtMDQzMS00OTU3LWJiMWMtNTRhNjRj
+    NGYxMTdhMA0GCSqGSIb3DQEBBQUAA4IBAQACN7gV5J6Gm/tRKwOIBZyG81vMwSAK
+    kbv38Y0k6eLC4jpU4wU+i40LMR3P7YAZnaSonlJzcnv+s5gOzszIPZDaKls/Rvjg
+    tjJPuBHDDQ4RE/PvL9eeg84E+2zxWsHtbGBxKUjhEQ0xu4rVi2pDYIw1rN2eaGID
+    HwoKh0HXKa80k1Phqjvq32GhIuWhzDzOVShA3z/Nod+Noi2T6x4ZbWpUBkrl4tqK
+    DNtyXa+uQRN4fPYPRmoBhr0ZzWF+EDsJaWFk8mQ/EaYSdTHHs6yPcQ6bMdW0HdmA
+    KhKijxoP5eEozvIBEMJBupW87cDEH2UQxWCT8UdTQ5z9TyM7DlEuwgar
+    -----END CERTIFICATE REQUEST-----
+  signingAlgorithm: SHA256WITHRSA
+  validity:
+    type: DAYS
+    value: 70
