@@ -139,13 +139,13 @@ class TestCertificateAuthority:
             {
                 "key": "tag2",
                 "value": "val2"
-            },
+            }
         ]
 
         updates = {
             "spec": {
                 "tags": new_tags
-            },
+            }
         }
         patch_res = k8s.patch_custom_resource(ca_ref, updates)
         logging.info(patch_res)
@@ -164,3 +164,21 @@ class TestCertificateAuthority:
             expected=tags_dict,
             actual=observed_tags,
         )
+
+        # Update RevocationConfiguration
+        updates = {
+            "spec": {
+                'revocationConfiguration': {
+                    'ocspConfiguration': {
+                        'enabled': True
+                    }
+                }
+            }
+        }
+        patch_res = k8s.patch_custom_resource(ca_ref, updates)
+        logging.info(patch_res)
+        time.sleep(UPDATE_WAIT_AFTER_SECONDS) 
+
+        # Check RevocationConfiguration
+        ca = acmpca_validator.assert_certificate_authority(ca_resource_arn, "PENDING_CERTIFICATE")
+        assert ca["RevocationConfiguration"]["OcspConfiguration"]["Enabled"] == True
