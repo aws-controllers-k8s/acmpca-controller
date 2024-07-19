@@ -17,6 +17,7 @@
 import time
 import logging
 import base64
+from fixtures import SecretKeyReference
 import pytest
 
 from acktest.resources import random_suffix_name
@@ -135,6 +136,62 @@ def simple_root_certificate(acmpca_client, create_secret, simple_certificate_aut
 
     #Delete Certificate k8s resource
     _, deleted = k8s.delete_custom_resource(ref)
+    assert deleted is True
+
+@pytest.fixture(scope="module")
+def simple_root_certificate_with_secret_deleted_before(acmpca_client, simple_certificate_authority):
+    (ca_cr, ca_name) = simple_certificate_authority
+    ca_arn = ca_cr['status']['ackResourceMetadata']['arn']
+
+    cert_name = random_suffix_name("certificate", 30)
+
+    secret_ref = SecretKeyReference("default", random_suffix_name("certificate-secret", 50), "certificate", "value")
+    k8s.create_opaque_secret(secret_ref.ns, secret_ref.name, secret_ref.key, secret_ref.val)
+
+    replacements = {}
+    replacements["NAME"] = cert_name
+    replacements["CA_ARN"] = ca_arn
+    replacements["CA_NAME"] = ca_name
+    replacements["CERTIFICATE_SEC_NS"] = secret_ref.ns
+    replacements["CERTIFICATE_SEC_NAME"] = secret_ref.name 
+    replacements["CERTIFICATE_SEC_KEY"] = secret_ref.key 
+    replacements["TEMPLATE_ARN"] = "arn:aws:acm-pca:::template/RootCACertificate/V1"
+
+    # Load Certificate CR
+    resource_data = load_acmpca_resource(
+        "certificate",
+        additional_replacements=replacements,
+    )
+
+    # Create k8s resource
+    ref = k8s.create_reference(
+        CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+        cert_name, namespace="default",
+    )
+    k8s.create_custom_resource(ref, resource_data)
+    cr = k8s.wait_resource_consumed_by_controller(ref)
+
+    time.sleep(CREATE_WAIT_AFTER_SECONDS)
+
+    # Check CA status is PENDING_CERTIFICATE
+    acmpca_validator = ACMPCAValidator(acmpca_client)
+    acmpca_validator.assert_certificate_authority(ca_arn, "PENDING_CERTIFICATE")
+
+    assert cr is not None
+    assert k8s.get_resource_exists(ref)
+    logging.info(cr)
+
+    resource_arn =  k8s.get_resource_arn(cr)
+    assert resource_arn is not None
+
+    yield (ca_arn, resource_arn, cr, secret_ref)
+
+    #Delete Secret k8s resource
+    k8s.delete_secret(secret_ref.ns, secret_ref.name)
+
+    #Delete Certificate k8s resource
+    _, deleted = k8s.delete_custom_resource(ref)
+
     assert deleted is True
 
 @pytest.fixture(scope="module")
@@ -291,6 +348,23 @@ class TestCertificate:
     def test_create_delete(self, acmpca_client, simple_root_certificate):
 
         (ca_arn, cert_arn, cert_cr, secret) = simple_root_certificate
+
+        # Check certificate is in secret
+        _api_client = _get_k8s_api_client()
+        api_response = client.CoreV1Api(_api_client).read_namespaced_secret(secret.name, secret.ns).data
+
+        acmpca_validator = ACMPCAValidator(acmpca_client)
+        cert = acmpca_validator.get_certificate(ca_arn=ca_arn, cert_arn=cert_arn)
+
+        assert 'certificate' in api_response
+        assert base64.b64decode(api_response['certificate']).decode("ascii") == cert
+
+        logging.info(cert_cr['status'].values())
+        assert cert not in cert_cr['status'].values()
+
+    def test_create_delete_with_secret_deleted_before(self, acmpca_client, simple_root_certificate_with_secret_deleted_before):
+
+        (ca_arn, cert_arn, cert_cr, secret) = simple_root_certificate_with_secret_deleted_before
 
         # Check certificate is in secret
         _api_client = _get_k8s_api_client()
