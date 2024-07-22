@@ -210,6 +210,15 @@ class TestCertificateAuthority:
         logging.info(ca_cr)
         time.sleep(UPDATE_WAIT_AFTER_SECONDS)
 
+        assert 'status' in ca_cr
+        assert 'conditions' in ca_cr['status']
+        assert 'type' in ca_cr['status']['conditions'][0]
+        assert ca_cr['status']['conditions'][0]['type'] == "ACK.Terminal"
+
+        ca_cr = k8s.patch_custom_resource(ca_ref, {})
+        logging.info(ca_cr)
+        time.sleep(UPDATE_WAIT_AFTER_SECONDS)
+
         acmpca_validator = ACMPCAValidator(acmpca_client)
         ca = acmpca_validator.assert_certificate_authority(ca_resource_arn, "PENDING_CERTIFICATE")
         assert ca["Type"] == "ROOT"

@@ -27,8 +27,6 @@ model_name: acm-pca
 prefix_config: {}
 resources:
   CertificateAuthority:
-    reconcile: 
-      requeue_on_success_seconds: 30
     renames:
       operations:
         CreateCertificateAuthority:
