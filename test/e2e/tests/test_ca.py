@@ -212,8 +212,8 @@ class TestCertificateAuthority:
 
         assert 'status' in ca_cr
         assert 'conditions' in ca_cr['status']
-        assert 'type' in ca_cr['status']['conditions'][0]
-        assert ca_cr['status']['conditions'][0]['type'] == "ACK.Terminal"
+        assert 'type' in ca_cr['status']['conditions'][1]
+        assert ca_cr['status']['conditions'][1]['type'] == "ACK.Terminal"
 
         ca_cr = k8s.patch_custom_resource(ca_ref, {})
         logging.info(ca_cr)
