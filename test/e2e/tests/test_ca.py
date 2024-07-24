@@ -210,14 +210,19 @@ class TestCertificateAuthority:
         logging.info(ca_cr)
         time.sleep(UPDATE_WAIT_AFTER_SECONDS)
 
+        terminal_condition = {'message': 'Immutable Spec fields have been modified: CertificateAuthorityConfiguration,Type', 'status': 'True', 'type': 'ACK.Terminal'}
         assert 'status' in ca_cr
         assert 'conditions' in ca_cr['status']
-        assert 'type' in ca_cr['status']['conditions'][1]
-        assert ca_cr['status']['conditions'][1]['type'] == "ACK.Terminal"
+        assert terminal_condition in ca_cr['status']['conditions']
 
         ca_cr = k8s.patch_custom_resource(ca_ref, {})
         logging.info(ca_cr)
         time.sleep(UPDATE_WAIT_AFTER_SECONDS)
+
+        synced_condition = {'status': 'True', 'type': 'ACK.ResourceSynced'}
+        assert 'status' in ca_cr
+        assert 'conditions' in ca_cr['status']
+        assert synced_condition in ca_cr['status']['conditions']
 
         acmpca_validator = ACMPCAValidator(acmpca_client)
         ca = acmpca_validator.assert_certificate_authority(ca_resource_arn, "PENDING_CERTIFICATE")
