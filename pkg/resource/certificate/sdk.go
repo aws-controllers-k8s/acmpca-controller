@@ -61,6 +61,15 @@ func (rm *resourceManager) sdkFind(
 	defer func() {
 		exit(err)
 	}()
+	// If the certificate is marked for deletion, we will skip
+	// calling GetCertificate and Writing the secret as these
+	// can lead to terminal errors and unsuccessful deletion
+	// in the case where the dependent secret or CA are deleted
+	// first
+	if r.ko.ObjectMeta.DeletionTimestamp != nil {
+		return r, nil
+	}
+
 	// If any required fields in the input shape are missing, AWS resource is
 	// not created yet. Return NotFound here to indicate to callers that the
 	// resource isn't yet created.
@@ -98,6 +107,7 @@ func (rm *resourceManager) sdkFind(
 	if err != nil {
 		return nil, err
 	}
+
 	return &resource{ko}, nil
 }
 
