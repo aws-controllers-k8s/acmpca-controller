@@ -164,7 +164,7 @@ class TestCertificateAuthority:
             expected=tags_dict,
             actual=observed_tags,
         )
-
+        
         # Update RevocationConfiguration
         updates = {
             "spec": {
@@ -182,3 +182,53 @@ class TestCertificateAuthority:
         # Check RevocationConfiguration
         ca = acmpca_validator.assert_certificate_authority(ca_resource_arn, "PENDING_CERTIFICATE")
         assert ca["RevocationConfiguration"]["OcspConfiguration"]["Enabled"] == True
+
+    def test_immutable_fields(self, acmpca_client, simple_certificate_authority):
+
+        (ca_cr, ca_ref, ca_resource_arn) = simple_certificate_authority
+
+        updates = {
+            "spec": {
+                'certificateAuthorityConfiguration': {
+                    'subject': {
+                        'commonName': 'string', 
+                        'country': 'US', 
+                        'locality': 'string', 
+                        'organization': 'string', 
+                        'state': 'string'
+                    }
+                },
+                'type' : 'SUBORDINATE'
+            }
+        }
+
+        ca_cr = k8s.patch_custom_resource(ca_ref, updates)
+        logging.info(ca_cr)
+        time.sleep(UPDATE_WAIT_AFTER_SECONDS)
+
+        ca_cr = k8s.patch_custom_resource(ca_ref, {})
+        logging.info(ca_cr)
+        time.sleep(UPDATE_WAIT_AFTER_SECONDS)
+
+        terminal_condition = {'message': 'Immutable Spec fields have been modified: CertificateAuthorityConfiguration,Type', 'status': 'True', 'type': 'ACK.Terminal'}
+        assert 'status' in ca_cr
+        assert 'conditions' in ca_cr['status']
+        assert terminal_condition in ca_cr['status']['conditions']
+
+        ca_cr = k8s.patch_custom_resource(ca_ref, {})
+        logging.info(ca_cr)
+        time.sleep(UPDATE_WAIT_AFTER_SECONDS)
+
+        synced_condition = {'status': 'True', 'type': 'ACK.ResourceSynced'}
+        assert 'status' in ca_cr
+        assert 'conditions' in ca_cr['status']
+        assert synced_condition in ca_cr['status']['conditions']
+
+        acmpca_validator = ACMPCAValidator(acmpca_client)
+        ca = acmpca_validator.assert_certificate_authority(ca_resource_arn, "PENDING_CERTIFICATE")
+        assert ca["Type"] == "ROOT"
+        assert re.search("^www[.]example.{10}[.]com$", ca["CertificateAuthorityConfiguration"]["Subject"]["CommonName"])
+        assert ca["CertificateAuthorityConfiguration"]["Subject"]["Country"] == "US"
+        assert ca["CertificateAuthorityConfiguration"]["Subject"]["Locality"] == "Arlington"
+        assert re.search("^Example Organization .{10}$", ca["CertificateAuthorityConfiguration"]["Subject"]["Organization"])
+        assert ca["CertificateAuthorityConfiguration"]["Subject"]["State"] == "Virginia"
