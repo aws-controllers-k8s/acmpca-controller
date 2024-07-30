@@ -68,6 +68,13 @@ func newResourceDelta(
 			delta.Add("Spec.CertificateChain", a.ko.Spec.CertificateChain, b.ko.Spec.CertificateChain)
 		}
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.CompleteCertificateChainOutput, b.ko.Spec.CompleteCertificateChainOutput) {
+		delta.Add("Spec.CompleteCertificateChainOutput", a.ko.Spec.CompleteCertificateChainOutput, b.ko.Spec.CompleteCertificateChainOutput)
+	} else if a.ko.Spec.CompleteCertificateChainOutput != nil && b.ko.Spec.CompleteCertificateChainOutput != nil {
+		if *a.ko.Spec.CompleteCertificateChainOutput != *b.ko.Spec.CompleteCertificateChainOutput {
+			delta.Add("Spec.CompleteCertificateChainOutput", a.ko.Spec.CompleteCertificateChainOutput, b.ko.Spec.CompleteCertificateChainOutput)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.Status, b.ko.Spec.Status) {
 		delta.Add("Spec.Status", a.ko.Spec.Status, b.ko.Spec.Status)
 	} else if a.ko.Spec.Status != nil && b.ko.Spec.Status != nil {
