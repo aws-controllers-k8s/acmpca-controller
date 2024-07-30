@@ -141,6 +141,10 @@ resources:
       - LimitExceededException
       - MalformedCSRException
     fields:
+      CertificateOutput:
+        type: string
+        is_secret: true
+        is_immutable: true
       CertificateAuthorityARN:
         references:
           resource: CertificateAuthority

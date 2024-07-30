@@ -18,11 +18,11 @@ apiVersion: acmpca.services.k8s.aws/v1alpha1
 kind: Certificate
 metadata:
   name: $CERT_NAME
-  annotations:
-    acmpca.services.k8s.aws/certificate-secret-namespace: $CERTIFICATE_SEC_NS
-    acmpca.services.k8s.aws/certificate-secret-name: $CERTIFICATE_SEC_NAME
-    acmpca.services.k8s.aws/certificate-secret-key: $CERTIFICATE_SEC_KEY
 spec:
+  certificateOutput:
+    namespace: $CERTIFICATE_SEC_NS
+    name: $CERTIFICATE_SEC_NAME
+    key: $CERTIFICATE_SEC_KEY
   certificateAuthorityRef:
     from:
       name: $CA_NAME
@@ -72,11 +72,11 @@ apiVersion: acmpca.services.k8s.aws/v1alpha1
 kind: Certificate
 metadata:
   name: $SUB_CERT_NAME
-  annotations:
-    acmpca.services.k8s.aws/certificate-secret-namespace: $SUB_CERTIFICATE_SEC_NS
-    acmpca.services.k8s.aws/certificate-secret-name: $SUB_CERTIFICATE_SEC_NAME
-    acmpca.services.k8s.aws/certificate-secret-key: $SUB_CERTIFICATE_SEC_KEY
 spec:
+  certificateOutput:
+    namespace: $SUB_CERTIFICATE_SEC_NS
+    name: $SUB_CERTIFICATE_SEC_NAME
+    key: $SUB_CERTIFICATE_SEC_KEY
   certificateAuthorityRef:
     from:
       name: $CA_NAME
@@ -114,11 +114,11 @@ apiVersion: acmpca.services.k8s.aws/v1alpha1
 kind: Certificate
 metadata:
   name: $END_ENTITY_CERT_NAME
-  annotations:
-    acmpca.services.k8s.aws/certificate-secret-namespace: $END_CERTIFICATE_SEC_NS
-    acmpca.services.k8s.aws/certificate-secret-name: $END_CERTIFICATE_SEC_NAME
-    acmpca.services.k8s.aws/certificate-secret-key: $END_CERTIFICATE_SEC_KEY
 spec:
+  certificateOutput:
+    namespace: $END_CERTIFICATE_SEC_NS
+    name: $END_CERTIFICATE_SEC_NAME
+    key: $END_CERTIFICATE_SEC_KEY
   certificateAuthorityRef:
     from:
       name: $SUB_CA_NAME

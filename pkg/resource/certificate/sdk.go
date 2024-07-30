@@ -100,7 +100,7 @@ func (rm *resourceManager) sdkFind(
 	ko := r.ko.DeepCopy()
 
 	rm.setStatusDefaults(ko)
-	err = rm.writeCertificateToSecret(ctx, *resp.Certificate, r.ko.ObjectMeta)
+	err = rm.writeCertificateToSecret(ctx, *resp.Certificate, r.ko.ObjectMeta.GetNamespace(), r.ko.Spec.CertificateOutput)
 	if err != nil && strings.HasPrefix(err.Error(), "RequestInProgressException") {
 		return &resource{ko}, ackrequeue.NeededAfter(err, ackrequeue.DefaultRequeueAfterDuration)
 	}
@@ -663,6 +663,9 @@ func (rm *resourceManager) getImmutableFieldChanges(
 	}
 	if delta.DifferentAt("Spec.CertificateAuthorityARN") {
 		fields = append(fields, "CertificateAuthorityARN")
+	}
+	if delta.DifferentAt("Spec.CertificateOutput") {
+		fields = append(fields, "CertificateOutput")
 	}
 	if delta.DifferentAt("Spec.CertificateSigningRequest") {
 		fields = append(fields, "CertificateSigningRequest")

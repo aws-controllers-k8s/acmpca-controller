@@ -40,6 +40,7 @@ type CertificateSpec struct {
 	// arn:aws:acm-pca:region:account:certificate-authority/12345678-1234-1234-1234-123456789012
 	CertificateAuthorityARN      *string                                  `json:"certificateAuthorityARN,omitempty"`
 	CertificateAuthorityRef      *ackv1alpha1.AWSResourceReferenceWrapper `json:"certificateAuthorityRef,omitempty"`
+	CertificateOutput            *ackv1alpha1.SecretKeyReference          `json:"certificateOutput,omitempty"`
 	CertificateSigningRequest    *string                                  `json:"certificateSigningRequest,omitempty"`
 	CertificateSigningRequestRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"certificateSigningRequestRef,omitempty"`
 	// The name of the algorithm that will be used to sign the certificate to be

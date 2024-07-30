@@ -265,6 +265,13 @@ func newResourceDelta(
 	if !reflect.DeepEqual(a.ko.Spec.CertificateAuthorityRef, b.ko.Spec.CertificateAuthorityRef) {
 		delta.Add("Spec.CertificateAuthorityRef", a.ko.Spec.CertificateAuthorityRef, b.ko.Spec.CertificateAuthorityRef)
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.CertificateOutput, b.ko.Spec.CertificateOutput) {
+		delta.Add("Spec.CertificateOutput", a.ko.Spec.CertificateOutput, b.ko.Spec.CertificateOutput)
+	} else if a.ko.Spec.CertificateOutput != nil && b.ko.Spec.CertificateOutput != nil {
+		if *a.ko.Spec.CertificateOutput != *b.ko.Spec.CertificateOutput {
+			delta.Add("Spec.CertificateOutput", a.ko.Spec.CertificateOutput, b.ko.Spec.CertificateOutput)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.CertificateSigningRequest, b.ko.Spec.CertificateSigningRequest) {
 		delta.Add("Spec.CertificateSigningRequest", a.ko.Spec.CertificateSigningRequest, b.ko.Spec.CertificateSigningRequest)
 	} else if a.ko.Spec.CertificateSigningRequest != nil && b.ko.Spec.CertificateSigningRequest != nil {
