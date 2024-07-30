@@ -16,34 +16,22 @@ package certificate
 import (
 	"context"
 
-	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 )
 
 func (rm *resourceManager) writeCertificateToSecret(
 	ctx context.Context,
 	certificate string,
-	objectMeta metav1.ObjectMeta,
+	certificateNamespace string,
+	secretKeyReference *ackv1alpha1.SecretKeyReference,
 ) (err error) {
 
-	annotations := objectMeta.GetAnnotations()
-
-	namespace, found := annotations["acmpca.services.k8s.aws/certificate-secret-namespace"]
-	if !found {
-		namespace = objectMeta.GetNamespace()
+	namespace := certificateNamespace
+	if secretKeyReference.SecretReference.Namespace != "" {
+		namespace = secretKeyReference.SecretReference.Namespace
 	}
 
-	name, found := annotations["acmpca.services.k8s.aws/certificate-secret-name"]
-	if !found {
-		return ackerr.SecretNotFound
-	}
-
-	key, found := annotations["acmpca.services.k8s.aws/certificate-secret-key"]
-	if !found {
-		key = "certificate"
-	}
-
-	err = rm.rr.WriteToSecret(ctx, certificate, namespace, name, key)
+	err = rm.rr.WriteToSecret(ctx, certificate, namespace, secretKeyReference.SecretReference.Name, secretKeyReference.Key)
 	rm.metrics.RecordAPICall("PATCH", "writeCertificateToSecret", err)
 	if err != nil {
 		return err
