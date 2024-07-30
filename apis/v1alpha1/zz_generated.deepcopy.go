@@ -402,6 +402,11 @@ func (in *CertificateAuthorityActivationSpec) DeepCopyInto(out *CertificateAutho
 		*out = new(corev1alpha1.SecretKeyReference)
 		**out = **in
 	}
+	if in.CompleteCertificateChainOutput != nil {
+		in, out := &in.CompleteCertificateChainOutput, &out.CompleteCertificateChainOutput
+		*out = new(corev1alpha1.SecretKeyReference)
+		**out = **in
+	}
 	if in.Status != nil {
 		in, out := &in.Status, &out.Status
 		*out = new(string)
