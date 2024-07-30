@@ -22,11 +22,11 @@ import (
 func (rm *resourceManager) writeCertificateToSecret(
 	ctx context.Context,
 	certificate string,
-	certificateNamespace string,
+	resourceNamespace string,
 	secretKeyReference *ackv1alpha1.SecretKeyReference,
 ) (err error) {
 
-	namespace := certificateNamespace
+	namespace := resourceNamespace
 	if secretKeyReference.SecretReference.Namespace != "" {
 		namespace = secretKeyReference.SecretReference.Namespace
 	}
