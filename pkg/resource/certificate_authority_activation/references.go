@@ -56,12 +56,11 @@ func (rm *resourceManager) ResolveReferences(
 	apiReader client.Reader,
 	res acktypes.AWSResource,
 ) (acktypes.AWSResource, bool, error) {
-	namespace := res.MetaObject().GetNamespace()
 	ko := rm.concreteResource(res).ko
 
 	resourceHasReferences := false
 	err := validateReferenceFields(ko)
-	if fieldHasReferences, err := rm.resolveReferenceForCertificateAuthorityARN(ctx, apiReader, namespace, ko); err != nil {
+	if fieldHasReferences, err := rm.resolveReferenceForCertificateAuthorityARN(ctx, apiReader, ko); err != nil {
 		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
 	} else {
 		resourceHasReferences = resourceHasReferences || fieldHasReferences
@@ -90,7 +89,6 @@ func validateReferenceFields(ko *svcapitypes.CertificateAuthorityActivation) err
 func (rm *resourceManager) resolveReferenceForCertificateAuthorityARN(
 	ctx context.Context,
 	apiReader client.Reader,
-	namespace string,
 	ko *svcapitypes.CertificateAuthorityActivation,
 ) (hasReferences bool, err error) {
 	if ko.Spec.CertificateAuthorityRef != nil && ko.Spec.CertificateAuthorityRef.From != nil {
@@ -98,6 +96,10 @@ func (rm *resourceManager) resolveReferenceForCertificateAuthorityARN(
 		arr := ko.Spec.CertificateAuthorityRef.From
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: CertificateAuthorityRef")
+		}
+		namespace := ko.ObjectMeta.GetNamespace()
+		if arr.Namespace != nil && *arr.Namespace != "" {
+			namespace = *arr.Namespace
 		}
 		obj := &svcapitypes.CertificateAuthority{}
 		if err := getReferencedResourceState_CertificateAuthority(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
@@ -128,12 +130,8 @@ func getReferencedResourceState_CertificateAuthority(
 	if err != nil {
 		return err
 	}
-	var refResourceSynced, refResourceTerminal bool
+	var refResourceTerminal bool
 	for _, cond := range obj.Status.Conditions {
-		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
-			cond.Status == corev1.ConditionTrue {
-			refResourceSynced = true
-		}
 		if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
 			cond.Status == corev1.ConditionTrue {
 			return ackerr.ResourceReferenceTerminalFor(
@@ -145,6 +143,13 @@ func getReferencedResourceState_CertificateAuthority(
 		return ackerr.ResourceReferenceTerminalFor(
 			"CertificateAuthority",
 			namespace, name)
+	}
+	var refResourceSynced bool
+	for _, cond := range obj.Status.Conditions {
+		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+			cond.Status == corev1.ConditionTrue {
+			refResourceSynced = true
+		}
 	}
 	if !refResourceSynced {
 		return ackerr.ResourceReferenceNotSyncedFor(
