@@ -126,7 +126,7 @@ func (rm *resourceManager) sdkCreate(
 
 	rm.setStatusDefaults(ko)
 	if certificateSecret != "" {
-		err = rm.writeCertificateChainToSecret(ctx, certificateSecret, certificateChainSecret, desired.ko.ObjectMeta.GetNamespace(), desired.ko.Spec.CompleteCertificateChainOutput)
+		err = rm.writeCertificateChainToSecret(ctx, certificateSecret, certificateChainSecret, desired.ko.GetNamespace(), desired.ko.Spec.CompleteCertificateChainOutput)
 		if err != nil {
 			return nil, err
 		}

@@ -25,11 +25,11 @@ import (
 
 func (rm *resourceManager) writeCertificateChainToSecret(
 	ctx context.Context,
-	certificate string,
-	certificateChain string,
+	certificate,
+	certificateChain,
 	resourceNamespace string,
 	secretKeyReference *ackv1alpha1.SecretKeyReference,
-) (err error) {
+) error {
 
 	namespace := resourceNamespace
 	if secretKeyReference.SecretReference.Namespace != "" {
@@ -41,7 +41,7 @@ func (rm *resourceManager) writeCertificateChainToSecret(
 		completeCertificateChain = certificate + "\n" + certificateChain
 	}
 
-	err = rm.rr.WriteToSecret(ctx, completeCertificateChain, namespace, secretKeyReference.SecretReference.Name, secretKeyReference.Key)
+	err := rm.rr.WriteToSecret(ctx, completeCertificateChain, namespace, secretKeyReference.SecretReference.Name, secretKeyReference.Key)
 	rm.metrics.RecordAPICall("PATCH", "writeCertificateChainToSecret", err)
 	if err != nil {
 		return err
