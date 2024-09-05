@@ -784,6 +784,11 @@ func (in *CertificateSpec) DeepCopyInto(out *CertificateSpec) {
 		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.CertificateOutput != nil {
+		in, out := &in.CertificateOutput, &out.CertificateOutput
+		*out = new(corev1alpha1.SecretKeyReference)
+		**out = **in
+	}
 	if in.CertificateSigningRequest != nil {
 		in, out := &in.CertificateSigningRequest, &out.CertificateSigningRequest
 		*out = new(string)
