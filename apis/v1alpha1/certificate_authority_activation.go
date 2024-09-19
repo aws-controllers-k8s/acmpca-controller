@@ -30,10 +30,11 @@ type CertificateAuthorityActivationSpec struct {
 	// This must be of the form:
 	//
 	// arn:aws:acm-pca:region:account:certificate-authority/12345678-1234-1234-1234-123456789012
-	CertificateAuthorityARN *string                                  `json:"certificateAuthorityARN,omitempty"`
-	CertificateAuthorityRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"certificateAuthorityRef,omitempty"`
-	CertificateChain        *ackv1alpha1.SecretKeyReference          `json:"certificateChain,omitempty"`
-	Status                  *string                                  `json:"status,omitempty"`
+	CertificateAuthorityARN        *string                                  `json:"certificateAuthorityARN,omitempty"`
+	CertificateAuthorityRef        *ackv1alpha1.AWSResourceReferenceWrapper `json:"certificateAuthorityRef,omitempty"`
+	CertificateChain               *ackv1alpha1.SecretKeyReference          `json:"certificateChain,omitempty"`
+	CompleteCertificateChainOutput *ackv1alpha1.SecretKeyReference          `json:"completeCertificateChainOutput,omitempty"`
+	Status                         *string                                  `json:"status,omitempty"`
 }
 
 // CertificateAuthorityActivationStatus defines the observed state of CertificateAuthorityActivation

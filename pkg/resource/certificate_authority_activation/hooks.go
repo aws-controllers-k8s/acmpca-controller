@@ -16,12 +16,39 @@ package certificate_authority_activation
 import (
 	"context"
 
+	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	svcsdk "github.com/aws/aws-sdk-go/service/acmpca"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+func (rm *resourceManager) writeCertificateChainToSecret(
+	ctx context.Context,
+	certificate,
+	certificateChain,
+	resourceNamespace string,
+	secretKeyReference *ackv1alpha1.SecretKeyReference,
+) error {
+
+	namespace := resourceNamespace
+	if secretKeyReference.SecretReference.Namespace != "" {
+		namespace = secretKeyReference.SecretReference.Namespace
+	}
+
+	completeCertificateChain := certificate
+	if certificateChain != "" {
+		completeCertificateChain = certificate + "\n" + certificateChain
+	}
+
+	err := rm.rr.WriteToSecret(ctx, completeCertificateChain, namespace, secretKeyReference.SecretReference.Name, secretKeyReference.Key)
+	rm.metrics.RecordAPICall("PATCH", "writeCertificateChainToSecret", err)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func (rm *resourceManager) customFindCertificateAuthorityActivation(
 	ctx context.Context,
@@ -100,45 +127,6 @@ func (rm *resourceManager) customUpdateCertificateAuthorityActivation(
 
 	rm.setStatusDefaults(ko)
 	return &resource{ko}, nil
-}
-
-func (rm *resourceManager) writeCertificateChainToSecret(
-	ctx context.Context,
-	certificate string,
-	certificateChain string,
-	objectMeta metav1.ObjectMeta,
-) (err error) {
-
-	annotations := objectMeta.GetAnnotations()
-
-	namespace, found := annotations["acmpca.services.k8s.aws/chain-secret-namespace"]
-	if !found {
-		namespace = objectMeta.GetNamespace()
-	}
-
-	name, found := annotations["acmpca.services.k8s.aws/chain-secret-name"]
-	if !found {
-		return ackerr.SecretNotFound
-	}
-
-	key, found := annotations["acmpca.services.k8s.aws/chain-secret-key"]
-	if !found {
-		key = "certificateChain"
-	}
-
-	completeCertificateChain := certificate
-
-	if certificateChain != "" {
-		completeCertificateChain = certificate + "\n" + certificateChain
-	}
-
-	err = rm.rr.WriteToSecret(ctx, completeCertificateChain, namespace, name, key)
-	rm.metrics.RecordAPICall("PATCH", "writeCertificateChainToSecret", err)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (rm *resourceManager) customDeleteCertificateAuthorityActivation(
