@@ -126,7 +126,7 @@ func (rm *resourceManager) sdkCreate(
 
 	rm.setStatusDefaults(ko)
 	if certificateSecret != "" {
-		err = rm.writeCertificateChainToSecret(ctx, certificateSecret, certificateChainSecret, desired.ko.ObjectMeta)
+		err = rm.writeCertificateChainToSecret(ctx, certificateSecret, certificateChainSecret, desired.ko.GetNamespace(), desired.ko.Spec.CompleteCertificateChainOutput)
 		if err != nil {
 			return nil, err
 		}
@@ -328,6 +328,9 @@ func (rm *resourceManager) getImmutableFieldChanges(
 	}
 	if delta.DifferentAt("Spec.CertificateChain") {
 		fields = append(fields, "CertificateChain")
+	}
+	if delta.DifferentAt("Spec.CompleteCertificateChainOutput") {
+		fields = append(fields, "CompleteCertificateChainOutput")
 	}
 
 	return fields

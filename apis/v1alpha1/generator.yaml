@@ -196,6 +196,10 @@ resources:
       sdk_create_post_request:
         template_path: hooks/certificate_authority_activation/sdk_create_post_request.go.tpl
     fields:
+      CompleteCertificateChainOutput:
+        type: string
+        is_secret: true
+        is_immutable: true
       CertificateAuthorityARN:
         is_primary_key: true
         references:
