@@ -2,42 +2,46 @@
 
 This sample demonstrates how to set up a CA hierarchy using the AWS Controllers for Kubernetes (ACK) service controller for AWS Private Certificate Authority.
 
-## Create a root CA
-
-To create and activate your root CA, apply the manifest, `root_ca.yaml`, to your Kubernetes cluster using the following command:
+Apply the manifest, `ca_hierarchy.yaml`, to your Kubernetes cluster using the following command:
 
 ```
-kubectl apply -f root_ca.yaml
+kubectl apply -f ca_hierarchy.yaml
 ```
 
-Applying this manifest should create a `CertificateAuthority` resource, `Certificate` resource, `CertificateAuthority` resource, and 2 `Secret` resources, storing the CA certificate and certificate chain. 
+Applying this manifest should create the following resources:
+- Root `CertificateAuthority` resource
+- Root CA `Certificate` resource
+- Root CA `CertificateAuthorityActivation` resource
+- 2 `Secret` resources, storing the root CA certificate and certificate chain
+- Subordinate `CertificateAuthority` resource
+- Subordinate CA `Certificate` resource
+- Subordinate CA `CertificateAuthorityActivation` resource
+- 2 `Secret` resources, storing the subordinate CA certificate and certificate chain
+- End entity `Certificate` resource
+- `Secret` resource, storing the end entity certificate. 
 
-The following command will describe the `CertificateAuthority` resource, named `root-ca`. Once the resource's status is `ACTIVE`, the subordinate CA can be created.
+The following commands will describe the resources.
 ```
-kubectl describe certificateauthority/root-ca
+kubectl describe certificateAuthority/root-ca
 ```
-
-## Create a subordinate CA
-
-To create and activate your subordinate CA, apply the manifest, `sub_ca.yaml`, to your Kubernetes cluster using the following command:
-
 ```
-kubectl apply -f sub_ca.yaml
+kubectl describe certificate/root-ca-certificate
 ```
-
-Applying this manifest should create a `CertificateAuthority` resource, `Certificate` resource, `CertificateAuthority` resource, and 2 `Secret` resources, storing the CA certificate and certificate chain.
-
-The following command will describe the `CertificateAuthority` resource, named `sub-ca`. Once the resource's status is `ACTIVE`, the end entity certificate can be issued.
+```
+kubectl describe certificateAuthorityActivation/root-ca-activation
+```
+```
+kubectl describe certificateAuthority/sub-ca
+```
+```
+kubectl describe certificate/sub-ca-certificate
+```
+```
+kubectl describe certificateAuthorityActivation/sub-ca-activation
+```
+```
+kubectl describe certificate/end-entity-certificate
+```
 ```
 kubectl describe certificateauthority/sub-ca
 ```
-
-## Issue an end entity certificate
-
-To issue the end entity certificate, modify the placeholder values in `end_entity_certificate.yaml` and apply the manifest to your Kubernetes cluster using the following command:
-
-```
-kubectl apply -f end_entity.yaml
-```
-
-Applying this manifest should create a `Certificate` resource and `Secret` resource, storing the end entity certificate. 
