@@ -30,7 +30,7 @@ Go to the [samples directory][samples] and follow the README to create resources
 The ACK service controller for AWS Private Certificate Authority uses Kubernetes Secrets to store certificate and certificate chains. Users are expected to create Secrets before creating Certificate and CertificateAuthorityActivation resources. As these resources are created, the Secrets will be injected with either the certificate or certificate chain. Users are responsible for deleting Secrets.
 
 #### Certificate Secret
-Before creating the Certificate resource, users must specify the namespace, name, and key of the Secret in the annotations of the resource, as shown below. If a namespace isn't specified, the namespace of the Certificate resource will be used. If a key isn't specified, the default key of `certificate` will be used.
+Before creating the Certificate resource, users must specify the namespace, name, and key of the Secret using the `certificateOutput` field of the Certificate resource, as shown below. If a namespace isn't specified, the namespace of the Certificate resource will be used.
 
 ```
 apiVersion: v1
@@ -45,15 +45,16 @@ apiVersion: acmpca.services.k8s.aws/v1alpha1
 kind: Certificate
 metadata:
   name: my-certificate
-  annotations:
-    acmpca.services.k8s.aws/certificate-secret-namespace: default
-    acmpca.services.k8s.aws/certificate-secret-name: certificate-secret
-    acmpca.services.k8s.aws/certificate-secret-key: certificate
+spec:
+  certificateOutput:
+    namespace: default
+    name:  certificate-secret
+    key: certificate
 ...
 ```
 
 #### CertificateChain Secret
-Before creating the CertificateAuthorityActivation resource, users must specify the namespace, name, and key of the Secret in the annotations of the resource, as shown below. If a namespace isn't specified, the namespace of the CertificateAuthorityActivation resource will be used. If a key isn't specified, the default key of `certificateChain` will be used.
+Before creating the CertificateAuthorityActivation resource, users must specify the namespace, name, and key of the Secret using the `completeCertificateChainOutput` field of the CertificateAuthorityActivation resource, as shown below. If a namespace isn't specified, the namespace of the CertificateAuthorityActivation resource will be used.
 
 ```
 apiVersion: v1
@@ -67,11 +68,12 @@ data:
 apiVersion: acmpca.services.k8s.aws/v1alpha1
 kind: CertificateAuthorityActivation
 metadata:
-  name: root-ca-activation
-  annotations:
-    acmpca.services.k8s.aws/chain-secret-namespace: default
-    acmpca.services.k8s.aws/chain-secret-name: certificate-chain-secret
-    acmpca.services.k8s.aws/chain-secret-key: certificateChain
+  name: my-ca-activation
+spec:
+  completeCertificateChainOutput:
+    namespace: default
+    name: certificate-chain-secret
+    key: certificateChain
 ...
 ```
 
