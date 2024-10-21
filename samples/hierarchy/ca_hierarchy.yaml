@@ -59,7 +59,7 @@ metadata:
 spec:
   completeCertificateChainOutput:
     namespace: default
-    name: root-ca-certificate-secret
+    name: root-ca-certificate-chain-secret
     key: certificateChain
   certificateAuthorityRef:
     from:
@@ -142,7 +142,7 @@ spec:
     key: certificate
   certificateChain:
     namespace: default
-    name: root-ca-certificate-secret
+    name: root-ca-certificate-chain-secret
     key: certificateChain
   status: ACTIVE
 ---
@@ -158,10 +158,6 @@ apiVersion: acmpca.services.k8s.aws/v1alpha1
 kind: Certificate
 metadata:
   name: end-entity-certificate
-  annotations:
-    acmpca.services.k8s.aws/certificate-secret-namespace: default
-    acmpca.services.k8s.aws/certificate-secret-name: end-entity-secret
-    acmpca.services.k8s.aws/certificate-secret-key: certificate
 spec:
   certificateOutput:
     namespace: default
