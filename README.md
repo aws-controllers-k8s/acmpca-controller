@@ -17,9 +17,7 @@ The ACK service controller for AWS Private Certificate Authority supports the fo
 ## Getting Started
 
 ### Pricing
-Learn more about [AWS Private Certificate Authority Pricing][pricing].
-
-[pricing]: https://aws.amazon.com/private-ca/pricing
+The ACK service controller for AWS Private Certificate Authority is free of charge. With AWS Private Certificate Authority (AWS Private CA), you pay a monthly fee for the operation of each private certificate authority (CA), the private certificates you issue each month, and the use of the Online Certificate Status Protocol (OCSP). Learn more about [AWS Private Certificate Authority Pricing](https://aws.amazon.com/private-ca/pricing).
 
 ### Samples 
 Go to the [samples directory][samples] and follow the README to create resources.
