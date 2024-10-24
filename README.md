@@ -24,6 +24,9 @@ Go to the [samples directory][samples] and follow the README to create resources
 
 [samples]: https://github.com/aws-controllers-k8s/acmpca-controller/tree/main/samples
 
+### Use with the Cert-Manager AWS Private CA Issuer Plugin
+After creating your CA hierarchy via the ACK service controller for AWS Private Certificate Authority, you can use [cert-manager](https://cert-manager.io/) and the [AWS Private CA Issuer Plugin](https://github.com/cert-manager/aws-privateca-issuer) to deploy managed private certificates in your cluster.
+
 ### Kubernetes Secrets
 The ACK service controller for AWS Private Certificate Authority uses Kubernetes Secrets to store certificate and certificate chains. Users are expected to create Secrets before creating Certificate and CertificateAuthorityActivation resources. As these resources are created, the Secrets will be injected with either the certificate or certificate chain. Users are responsible for deleting Secrets.
 
