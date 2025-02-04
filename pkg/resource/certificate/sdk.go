@@ -28,8 +28,10 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/acmpca"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/acmpca"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/acmpca/types"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +42,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.ACMPCA{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.Certificate{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +50,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -83,13 +85,11 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	var resp *svcsdk.GetCertificateOutput
-	resp, err = rm.sdkapi.GetCertificateWithContext(ctx, input)
+	resp, err = rm.sdkapi.GetCertificate(ctx, input)
 	rm.metrics.RecordAPICall("READ_ONE", "GetCertificate", err)
 	if err != nil {
-		if reqErr, ok := ackerr.AWSRequestFailure(err); ok && reqErr.StatusCode() == 404 {
-			return nil, ackerr.NotFound
-		}
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "UNKNOWN" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "UNKNOWN" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -117,7 +117,7 @@ func (rm *resourceManager) sdkFind(
 func (rm *resourceManager) requiredFieldsMissingFromReadOneInput(
 	r *resource,
 ) bool {
-	return r.ko.Spec.CertificateAuthorityARN == nil || (r.ko.Status.ACKResourceMetadata == nil || r.ko.Status.ACKResourceMetadata.ARN == nil)
+	return (r.ko.Status.ACKResourceMetadata == nil || r.ko.Status.ACKResourceMetadata.ARN == nil) || r.ko.Spec.CertificateAuthorityARN == nil
 
 }
 
@@ -129,10 +129,10 @@ func (rm *resourceManager) newDescribeRequestPayload(
 	res := &svcsdk.GetCertificateInput{}
 
 	if r.ko.Status.ACKResourceMetadata != nil && r.ko.Status.ACKResourceMetadata.ARN != nil {
-		res.SetCertificateArn(string(*r.ko.Status.ACKResourceMetadata.ARN))
+		res.CertificateArn = (*string)(r.ko.Status.ACKResourceMetadata.ARN)
 	}
 	if r.ko.Spec.CertificateAuthorityARN != nil {
-		res.SetCertificateAuthorityArn(*r.ko.Spec.CertificateAuthorityARN)
+		res.CertificateAuthorityArn = r.ko.Spec.CertificateAuthorityARN
 	}
 
 	return res, nil
@@ -155,25 +155,25 @@ func (rm *resourceManager) sdkCreate(
 		return nil, err
 	}
 	if desired.ko.Spec.CertificateSigningRequest != nil {
-		input.SetCsr([]byte(*desired.ko.Spec.CertificateSigningRequest))
+		input.Csr = []byte(*desired.ko.Spec.CertificateSigningRequest)
 	}
-	input.SetIdempotencyToken(string(desired.ko.ObjectMeta.UID))
+	input.IdempotencyToken = aws.String(string(desired.ko.ObjectMeta.UID))
 
 	var resp *svcsdk.IssueCertificateOutput
 	_ = resp
-	resp, err = rm.sdkapi.IssueCertificateWithContext(ctx, input)
+	resp, err = rm.sdkapi.IssueCertificate(ctx, input)
 	if err != nil {
 		input := &svcsdk.DescribeCertificateAuthorityInput{}
 		input.CertificateAuthorityArn = desired.ko.Spec.CertificateAuthorityARN
 
 		var describeResp *svcsdk.DescribeCertificateAuthorityOutput
-		describeResp, describeErr := rm.sdkapi.DescribeCertificateAuthorityWithContext(ctx, input)
+		describeResp, describeErr := rm.sdkapi.DescribeCertificateAuthority(ctx, input)
 		rm.metrics.RecordAPICall("READ_ONE", "DescribeCertificateAuthority", err)
 		if describeErr != nil {
 			return desired, ackrequeue.NeededAfter(describeErr, ackrequeue.DefaultRequeueAfterDuration)
 		}
 
-		if *describeResp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusFailed && *describeResp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusDeleted && *describeResp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusDisabled {
+		if describeResp.CertificateAuthority.Status != svcsdktypes.CertificateAuthorityStatusFailed && describeResp.CertificateAuthority.Status != svcsdktypes.CertificateAuthorityStatusDeleted && describeResp.CertificateAuthority.Status != svcsdktypes.CertificateAuthorityStatusDisabled {
 			return desired, ackrequeue.NeededAfter(err, ackrequeue.DefaultRequeueAfterDuration)
 		}
 
@@ -208,295 +208,295 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.IssueCertificateInput{}
 
 	if r.ko.Spec.APIPassthrough != nil {
-		f0 := &svcsdk.ApiPassthrough{}
+		f0 := &svcsdktypes.ApiPassthrough{}
 		if r.ko.Spec.APIPassthrough.Extensions != nil {
-			f0f0 := &svcsdk.Extensions{}
+			f0f0 := &svcsdktypes.Extensions{}
 			if r.ko.Spec.APIPassthrough.Extensions.CertificatePolicies != nil {
-				f0f0f0 := []*svcsdk.PolicyInformation{}
+				f0f0f0 := []svcsdktypes.PolicyInformation{}
 				for _, f0f0f0iter := range r.ko.Spec.APIPassthrough.Extensions.CertificatePolicies {
-					f0f0f0elem := &svcsdk.PolicyInformation{}
+					f0f0f0elem := &svcsdktypes.PolicyInformation{}
 					if f0f0f0iter.CertPolicyID != nil {
-						f0f0f0elem.SetCertPolicyId(*f0f0f0iter.CertPolicyID)
+						f0f0f0elem.CertPolicyId = f0f0f0iter.CertPolicyID
 					}
 					if f0f0f0iter.PolicyQualifiers != nil {
-						f0f0f0elemf1 := []*svcsdk.PolicyQualifierInfo{}
+						f0f0f0elemf1 := []svcsdktypes.PolicyQualifierInfo{}
 						for _, f0f0f0elemf1iter := range f0f0f0iter.PolicyQualifiers {
-							f0f0f0elemf1elem := &svcsdk.PolicyQualifierInfo{}
+							f0f0f0elemf1elem := &svcsdktypes.PolicyQualifierInfo{}
 							if f0f0f0elemf1iter.PolicyQualifierID != nil {
-								f0f0f0elemf1elem.SetPolicyQualifierId(*f0f0f0elemf1iter.PolicyQualifierID)
+								f0f0f0elemf1elem.PolicyQualifierId = svcsdktypes.PolicyQualifierId(*f0f0f0elemf1iter.PolicyQualifierID)
 							}
 							if f0f0f0elemf1iter.Qualifier != nil {
-								f0f0f0elemf1elemf1 := &svcsdk.Qualifier{}
+								f0f0f0elemf1elemf1 := &svcsdktypes.Qualifier{}
 								if f0f0f0elemf1iter.Qualifier.CPSURI != nil {
-									f0f0f0elemf1elemf1.SetCpsUri(*f0f0f0elemf1iter.Qualifier.CPSURI)
+									f0f0f0elemf1elemf1.CpsUri = f0f0f0elemf1iter.Qualifier.CPSURI
 								}
-								f0f0f0elemf1elem.SetQualifier(f0f0f0elemf1elemf1)
+								f0f0f0elemf1elem.Qualifier = f0f0f0elemf1elemf1
 							}
-							f0f0f0elemf1 = append(f0f0f0elemf1, f0f0f0elemf1elem)
+							f0f0f0elemf1 = append(f0f0f0elemf1, *f0f0f0elemf1elem)
 						}
-						f0f0f0elem.SetPolicyQualifiers(f0f0f0elemf1)
+						f0f0f0elem.PolicyQualifiers = f0f0f0elemf1
 					}
-					f0f0f0 = append(f0f0f0, f0f0f0elem)
+					f0f0f0 = append(f0f0f0, *f0f0f0elem)
 				}
-				f0f0.SetCertificatePolicies(f0f0f0)
+				f0f0.CertificatePolicies = f0f0f0
 			}
 			if r.ko.Spec.APIPassthrough.Extensions.CustomExtensions != nil {
-				f0f0f1 := []*svcsdk.CustomExtension{}
+				f0f0f1 := []svcsdktypes.CustomExtension{}
 				for _, f0f0f1iter := range r.ko.Spec.APIPassthrough.Extensions.CustomExtensions {
-					f0f0f1elem := &svcsdk.CustomExtension{}
+					f0f0f1elem := &svcsdktypes.CustomExtension{}
 					if f0f0f1iter.Critical != nil {
-						f0f0f1elem.SetCritical(*f0f0f1iter.Critical)
+						f0f0f1elem.Critical = f0f0f1iter.Critical
 					}
 					if f0f0f1iter.ObjectIdentifier != nil {
-						f0f0f1elem.SetObjectIdentifier(*f0f0f1iter.ObjectIdentifier)
+						f0f0f1elem.ObjectIdentifier = f0f0f1iter.ObjectIdentifier
 					}
 					if f0f0f1iter.Value != nil {
-						f0f0f1elem.SetValue(*f0f0f1iter.Value)
+						f0f0f1elem.Value = f0f0f1iter.Value
 					}
-					f0f0f1 = append(f0f0f1, f0f0f1elem)
+					f0f0f1 = append(f0f0f1, *f0f0f1elem)
 				}
-				f0f0.SetCustomExtensions(f0f0f1)
+				f0f0.CustomExtensions = f0f0f1
 			}
 			if r.ko.Spec.APIPassthrough.Extensions.ExtendedKeyUsage != nil {
-				f0f0f2 := []*svcsdk.ExtendedKeyUsage{}
+				f0f0f2 := []svcsdktypes.ExtendedKeyUsage{}
 				for _, f0f0f2iter := range r.ko.Spec.APIPassthrough.Extensions.ExtendedKeyUsage {
-					f0f0f2elem := &svcsdk.ExtendedKeyUsage{}
+					f0f0f2elem := &svcsdktypes.ExtendedKeyUsage{}
 					if f0f0f2iter.ExtendedKeyUsageObjectIdentifier != nil {
-						f0f0f2elem.SetExtendedKeyUsageObjectIdentifier(*f0f0f2iter.ExtendedKeyUsageObjectIdentifier)
+						f0f0f2elem.ExtendedKeyUsageObjectIdentifier = f0f0f2iter.ExtendedKeyUsageObjectIdentifier
 					}
 					if f0f0f2iter.ExtendedKeyUsageType != nil {
-						f0f0f2elem.SetExtendedKeyUsageType(*f0f0f2iter.ExtendedKeyUsageType)
+						f0f0f2elem.ExtendedKeyUsageType = svcsdktypes.ExtendedKeyUsageType(*f0f0f2iter.ExtendedKeyUsageType)
 					}
-					f0f0f2 = append(f0f0f2, f0f0f2elem)
+					f0f0f2 = append(f0f0f2, *f0f0f2elem)
 				}
-				f0f0.SetExtendedKeyUsage(f0f0f2)
+				f0f0.ExtendedKeyUsage = f0f0f2
 			}
 			if r.ko.Spec.APIPassthrough.Extensions.KeyUsage != nil {
-				f0f0f3 := &svcsdk.KeyUsage{}
+				f0f0f3 := &svcsdktypes.KeyUsage{}
 				if r.ko.Spec.APIPassthrough.Extensions.KeyUsage.CRLSign != nil {
-					f0f0f3.SetCRLSign(*r.ko.Spec.APIPassthrough.Extensions.KeyUsage.CRLSign)
+					f0f0f3.CRLSign = *r.ko.Spec.APIPassthrough.Extensions.KeyUsage.CRLSign
 				}
 				if r.ko.Spec.APIPassthrough.Extensions.KeyUsage.DataEncipherment != nil {
-					f0f0f3.SetDataEncipherment(*r.ko.Spec.APIPassthrough.Extensions.KeyUsage.DataEncipherment)
+					f0f0f3.DataEncipherment = *r.ko.Spec.APIPassthrough.Extensions.KeyUsage.DataEncipherment
 				}
 				if r.ko.Spec.APIPassthrough.Extensions.KeyUsage.DecipherOnly != nil {
-					f0f0f3.SetDecipherOnly(*r.ko.Spec.APIPassthrough.Extensions.KeyUsage.DecipherOnly)
+					f0f0f3.DecipherOnly = *r.ko.Spec.APIPassthrough.Extensions.KeyUsage.DecipherOnly
 				}
 				if r.ko.Spec.APIPassthrough.Extensions.KeyUsage.DigitalSignature != nil {
-					f0f0f3.SetDigitalSignature(*r.ko.Spec.APIPassthrough.Extensions.KeyUsage.DigitalSignature)
+					f0f0f3.DigitalSignature = *r.ko.Spec.APIPassthrough.Extensions.KeyUsage.DigitalSignature
 				}
 				if r.ko.Spec.APIPassthrough.Extensions.KeyUsage.EncipherOnly != nil {
-					f0f0f3.SetEncipherOnly(*r.ko.Spec.APIPassthrough.Extensions.KeyUsage.EncipherOnly)
+					f0f0f3.EncipherOnly = *r.ko.Spec.APIPassthrough.Extensions.KeyUsage.EncipherOnly
 				}
 				if r.ko.Spec.APIPassthrough.Extensions.KeyUsage.KeyAgreement != nil {
-					f0f0f3.SetKeyAgreement(*r.ko.Spec.APIPassthrough.Extensions.KeyUsage.KeyAgreement)
+					f0f0f3.KeyAgreement = *r.ko.Spec.APIPassthrough.Extensions.KeyUsage.KeyAgreement
 				}
 				if r.ko.Spec.APIPassthrough.Extensions.KeyUsage.KeyCertSign != nil {
-					f0f0f3.SetKeyCertSign(*r.ko.Spec.APIPassthrough.Extensions.KeyUsage.KeyCertSign)
+					f0f0f3.KeyCertSign = *r.ko.Spec.APIPassthrough.Extensions.KeyUsage.KeyCertSign
 				}
 				if r.ko.Spec.APIPassthrough.Extensions.KeyUsage.KeyEncipherment != nil {
-					f0f0f3.SetKeyEncipherment(*r.ko.Spec.APIPassthrough.Extensions.KeyUsage.KeyEncipherment)
+					f0f0f3.KeyEncipherment = *r.ko.Spec.APIPassthrough.Extensions.KeyUsage.KeyEncipherment
 				}
 				if r.ko.Spec.APIPassthrough.Extensions.KeyUsage.NonRepudiation != nil {
-					f0f0f3.SetNonRepudiation(*r.ko.Spec.APIPassthrough.Extensions.KeyUsage.NonRepudiation)
+					f0f0f3.NonRepudiation = *r.ko.Spec.APIPassthrough.Extensions.KeyUsage.NonRepudiation
 				}
-				f0f0.SetKeyUsage(f0f0f3)
+				f0f0.KeyUsage = f0f0f3
 			}
 			if r.ko.Spec.APIPassthrough.Extensions.SubjectAlternativeNames != nil {
-				f0f0f4 := []*svcsdk.GeneralName{}
+				f0f0f4 := []svcsdktypes.GeneralName{}
 				for _, f0f0f4iter := range r.ko.Spec.APIPassthrough.Extensions.SubjectAlternativeNames {
-					f0f0f4elem := &svcsdk.GeneralName{}
+					f0f0f4elem := &svcsdktypes.GeneralName{}
 					if f0f0f4iter.DirectoryName != nil {
-						f0f0f4elemf0 := &svcsdk.ASN1Subject{}
+						f0f0f4elemf0 := &svcsdktypes.ASN1Subject{}
 						if f0f0f4iter.DirectoryName.CommonName != nil {
-							f0f0f4elemf0.SetCommonName(*f0f0f4iter.DirectoryName.CommonName)
+							f0f0f4elemf0.CommonName = f0f0f4iter.DirectoryName.CommonName
 						}
 						if f0f0f4iter.DirectoryName.Country != nil {
-							f0f0f4elemf0.SetCountry(*f0f0f4iter.DirectoryName.Country)
+							f0f0f4elemf0.Country = f0f0f4iter.DirectoryName.Country
 						}
 						if f0f0f4iter.DirectoryName.CustomAttributes != nil {
-							f0f0f4elemf0f2 := []*svcsdk.CustomAttribute{}
+							f0f0f4elemf0f2 := []svcsdktypes.CustomAttribute{}
 							for _, f0f0f4elemf0f2iter := range f0f0f4iter.DirectoryName.CustomAttributes {
-								f0f0f4elemf0f2elem := &svcsdk.CustomAttribute{}
+								f0f0f4elemf0f2elem := &svcsdktypes.CustomAttribute{}
 								if f0f0f4elemf0f2iter.ObjectIdentifier != nil {
-									f0f0f4elemf0f2elem.SetObjectIdentifier(*f0f0f4elemf0f2iter.ObjectIdentifier)
+									f0f0f4elemf0f2elem.ObjectIdentifier = f0f0f4elemf0f2iter.ObjectIdentifier
 								}
 								if f0f0f4elemf0f2iter.Value != nil {
-									f0f0f4elemf0f2elem.SetValue(*f0f0f4elemf0f2iter.Value)
+									f0f0f4elemf0f2elem.Value = f0f0f4elemf0f2iter.Value
 								}
-								f0f0f4elemf0f2 = append(f0f0f4elemf0f2, f0f0f4elemf0f2elem)
+								f0f0f4elemf0f2 = append(f0f0f4elemf0f2, *f0f0f4elemf0f2elem)
 							}
-							f0f0f4elemf0.SetCustomAttributes(f0f0f4elemf0f2)
+							f0f0f4elemf0.CustomAttributes = f0f0f4elemf0f2
 						}
 						if f0f0f4iter.DirectoryName.DistinguishedNameQualifier != nil {
-							f0f0f4elemf0.SetDistinguishedNameQualifier(*f0f0f4iter.DirectoryName.DistinguishedNameQualifier)
+							f0f0f4elemf0.DistinguishedNameQualifier = f0f0f4iter.DirectoryName.DistinguishedNameQualifier
 						}
 						if f0f0f4iter.DirectoryName.GenerationQualifier != nil {
-							f0f0f4elemf0.SetGenerationQualifier(*f0f0f4iter.DirectoryName.GenerationQualifier)
+							f0f0f4elemf0.GenerationQualifier = f0f0f4iter.DirectoryName.GenerationQualifier
 						}
 						if f0f0f4iter.DirectoryName.GivenName != nil {
-							f0f0f4elemf0.SetGivenName(*f0f0f4iter.DirectoryName.GivenName)
+							f0f0f4elemf0.GivenName = f0f0f4iter.DirectoryName.GivenName
 						}
 						if f0f0f4iter.DirectoryName.Initials != nil {
-							f0f0f4elemf0.SetInitials(*f0f0f4iter.DirectoryName.Initials)
+							f0f0f4elemf0.Initials = f0f0f4iter.DirectoryName.Initials
 						}
 						if f0f0f4iter.DirectoryName.Locality != nil {
-							f0f0f4elemf0.SetLocality(*f0f0f4iter.DirectoryName.Locality)
+							f0f0f4elemf0.Locality = f0f0f4iter.DirectoryName.Locality
 						}
 						if f0f0f4iter.DirectoryName.Organization != nil {
-							f0f0f4elemf0.SetOrganization(*f0f0f4iter.DirectoryName.Organization)
+							f0f0f4elemf0.Organization = f0f0f4iter.DirectoryName.Organization
 						}
 						if f0f0f4iter.DirectoryName.OrganizationalUnit != nil {
-							f0f0f4elemf0.SetOrganizationalUnit(*f0f0f4iter.DirectoryName.OrganizationalUnit)
+							f0f0f4elemf0.OrganizationalUnit = f0f0f4iter.DirectoryName.OrganizationalUnit
 						}
 						if f0f0f4iter.DirectoryName.Pseudonym != nil {
-							f0f0f4elemf0.SetPseudonym(*f0f0f4iter.DirectoryName.Pseudonym)
+							f0f0f4elemf0.Pseudonym = f0f0f4iter.DirectoryName.Pseudonym
 						}
 						if f0f0f4iter.DirectoryName.SerialNumber != nil {
-							f0f0f4elemf0.SetSerialNumber(*f0f0f4iter.DirectoryName.SerialNumber)
+							f0f0f4elemf0.SerialNumber = f0f0f4iter.DirectoryName.SerialNumber
 						}
 						if f0f0f4iter.DirectoryName.State != nil {
-							f0f0f4elemf0.SetState(*f0f0f4iter.DirectoryName.State)
+							f0f0f4elemf0.State = f0f0f4iter.DirectoryName.State
 						}
 						if f0f0f4iter.DirectoryName.Surname != nil {
-							f0f0f4elemf0.SetSurname(*f0f0f4iter.DirectoryName.Surname)
+							f0f0f4elemf0.Surname = f0f0f4iter.DirectoryName.Surname
 						}
 						if f0f0f4iter.DirectoryName.Title != nil {
-							f0f0f4elemf0.SetTitle(*f0f0f4iter.DirectoryName.Title)
+							f0f0f4elemf0.Title = f0f0f4iter.DirectoryName.Title
 						}
-						f0f0f4elem.SetDirectoryName(f0f0f4elemf0)
+						f0f0f4elem.DirectoryName = f0f0f4elemf0
 					}
 					if f0f0f4iter.DNSName != nil {
-						f0f0f4elem.SetDnsName(*f0f0f4iter.DNSName)
+						f0f0f4elem.DnsName = f0f0f4iter.DNSName
 					}
 					if f0f0f4iter.EDIPartyName != nil {
-						f0f0f4elemf2 := &svcsdk.EdiPartyName{}
+						f0f0f4elemf2 := &svcsdktypes.EdiPartyName{}
 						if f0f0f4iter.EDIPartyName.NameAssigner != nil {
-							f0f0f4elemf2.SetNameAssigner(*f0f0f4iter.EDIPartyName.NameAssigner)
+							f0f0f4elemf2.NameAssigner = f0f0f4iter.EDIPartyName.NameAssigner
 						}
 						if f0f0f4iter.EDIPartyName.PartyName != nil {
-							f0f0f4elemf2.SetPartyName(*f0f0f4iter.EDIPartyName.PartyName)
+							f0f0f4elemf2.PartyName = f0f0f4iter.EDIPartyName.PartyName
 						}
-						f0f0f4elem.SetEdiPartyName(f0f0f4elemf2)
+						f0f0f4elem.EdiPartyName = f0f0f4elemf2
 					}
 					if f0f0f4iter.IPAddress != nil {
-						f0f0f4elem.SetIpAddress(*f0f0f4iter.IPAddress)
+						f0f0f4elem.IpAddress = f0f0f4iter.IPAddress
 					}
 					if f0f0f4iter.OtherName != nil {
-						f0f0f4elemf4 := &svcsdk.OtherName{}
+						f0f0f4elemf4 := &svcsdktypes.OtherName{}
 						if f0f0f4iter.OtherName.TypeID != nil {
-							f0f0f4elemf4.SetTypeId(*f0f0f4iter.OtherName.TypeID)
+							f0f0f4elemf4.TypeId = f0f0f4iter.OtherName.TypeID
 						}
 						if f0f0f4iter.OtherName.Value != nil {
-							f0f0f4elemf4.SetValue(*f0f0f4iter.OtherName.Value)
+							f0f0f4elemf4.Value = f0f0f4iter.OtherName.Value
 						}
-						f0f0f4elem.SetOtherName(f0f0f4elemf4)
+						f0f0f4elem.OtherName = f0f0f4elemf4
 					}
 					if f0f0f4iter.RegisteredID != nil {
-						f0f0f4elem.SetRegisteredId(*f0f0f4iter.RegisteredID)
+						f0f0f4elem.RegisteredId = f0f0f4iter.RegisteredID
 					}
 					if f0f0f4iter.RFC822Name != nil {
-						f0f0f4elem.SetRfc822Name(*f0f0f4iter.RFC822Name)
+						f0f0f4elem.Rfc822Name = f0f0f4iter.RFC822Name
 					}
 					if f0f0f4iter.UniformResourceIdentifier != nil {
-						f0f0f4elem.SetUniformResourceIdentifier(*f0f0f4iter.UniformResourceIdentifier)
+						f0f0f4elem.UniformResourceIdentifier = f0f0f4iter.UniformResourceIdentifier
 					}
-					f0f0f4 = append(f0f0f4, f0f0f4elem)
+					f0f0f4 = append(f0f0f4, *f0f0f4elem)
 				}
-				f0f0.SetSubjectAlternativeNames(f0f0f4)
+				f0f0.SubjectAlternativeNames = f0f0f4
 			}
-			f0.SetExtensions(f0f0)
+			f0.Extensions = f0f0
 		}
 		if r.ko.Spec.APIPassthrough.Subject != nil {
-			f0f1 := &svcsdk.ASN1Subject{}
+			f0f1 := &svcsdktypes.ASN1Subject{}
 			if r.ko.Spec.APIPassthrough.Subject.CommonName != nil {
-				f0f1.SetCommonName(*r.ko.Spec.APIPassthrough.Subject.CommonName)
+				f0f1.CommonName = r.ko.Spec.APIPassthrough.Subject.CommonName
 			}
 			if r.ko.Spec.APIPassthrough.Subject.Country != nil {
-				f0f1.SetCountry(*r.ko.Spec.APIPassthrough.Subject.Country)
+				f0f1.Country = r.ko.Spec.APIPassthrough.Subject.Country
 			}
 			if r.ko.Spec.APIPassthrough.Subject.CustomAttributes != nil {
-				f0f1f2 := []*svcsdk.CustomAttribute{}
+				f0f1f2 := []svcsdktypes.CustomAttribute{}
 				for _, f0f1f2iter := range r.ko.Spec.APIPassthrough.Subject.CustomAttributes {
-					f0f1f2elem := &svcsdk.CustomAttribute{}
+					f0f1f2elem := &svcsdktypes.CustomAttribute{}
 					if f0f1f2iter.ObjectIdentifier != nil {
-						f0f1f2elem.SetObjectIdentifier(*f0f1f2iter.ObjectIdentifier)
+						f0f1f2elem.ObjectIdentifier = f0f1f2iter.ObjectIdentifier
 					}
 					if f0f1f2iter.Value != nil {
-						f0f1f2elem.SetValue(*f0f1f2iter.Value)
+						f0f1f2elem.Value = f0f1f2iter.Value
 					}
-					f0f1f2 = append(f0f1f2, f0f1f2elem)
+					f0f1f2 = append(f0f1f2, *f0f1f2elem)
 				}
-				f0f1.SetCustomAttributes(f0f1f2)
+				f0f1.CustomAttributes = f0f1f2
 			}
 			if r.ko.Spec.APIPassthrough.Subject.DistinguishedNameQualifier != nil {
-				f0f1.SetDistinguishedNameQualifier(*r.ko.Spec.APIPassthrough.Subject.DistinguishedNameQualifier)
+				f0f1.DistinguishedNameQualifier = r.ko.Spec.APIPassthrough.Subject.DistinguishedNameQualifier
 			}
 			if r.ko.Spec.APIPassthrough.Subject.GenerationQualifier != nil {
-				f0f1.SetGenerationQualifier(*r.ko.Spec.APIPassthrough.Subject.GenerationQualifier)
+				f0f1.GenerationQualifier = r.ko.Spec.APIPassthrough.Subject.GenerationQualifier
 			}
 			if r.ko.Spec.APIPassthrough.Subject.GivenName != nil {
-				f0f1.SetGivenName(*r.ko.Spec.APIPassthrough.Subject.GivenName)
+				f0f1.GivenName = r.ko.Spec.APIPassthrough.Subject.GivenName
 			}
 			if r.ko.Spec.APIPassthrough.Subject.Initials != nil {
-				f0f1.SetInitials(*r.ko.Spec.APIPassthrough.Subject.Initials)
+				f0f1.Initials = r.ko.Spec.APIPassthrough.Subject.Initials
 			}
 			if r.ko.Spec.APIPassthrough.Subject.Locality != nil {
-				f0f1.SetLocality(*r.ko.Spec.APIPassthrough.Subject.Locality)
+				f0f1.Locality = r.ko.Spec.APIPassthrough.Subject.Locality
 			}
 			if r.ko.Spec.APIPassthrough.Subject.Organization != nil {
-				f0f1.SetOrganization(*r.ko.Spec.APIPassthrough.Subject.Organization)
+				f0f1.Organization = r.ko.Spec.APIPassthrough.Subject.Organization
 			}
 			if r.ko.Spec.APIPassthrough.Subject.OrganizationalUnit != nil {
-				f0f1.SetOrganizationalUnit(*r.ko.Spec.APIPassthrough.Subject.OrganizationalUnit)
+				f0f1.OrganizationalUnit = r.ko.Spec.APIPassthrough.Subject.OrganizationalUnit
 			}
 			if r.ko.Spec.APIPassthrough.Subject.Pseudonym != nil {
-				f0f1.SetPseudonym(*r.ko.Spec.APIPassthrough.Subject.Pseudonym)
+				f0f1.Pseudonym = r.ko.Spec.APIPassthrough.Subject.Pseudonym
 			}
 			if r.ko.Spec.APIPassthrough.Subject.SerialNumber != nil {
-				f0f1.SetSerialNumber(*r.ko.Spec.APIPassthrough.Subject.SerialNumber)
+				f0f1.SerialNumber = r.ko.Spec.APIPassthrough.Subject.SerialNumber
 			}
 			if r.ko.Spec.APIPassthrough.Subject.State != nil {
-				f0f1.SetState(*r.ko.Spec.APIPassthrough.Subject.State)
+				f0f1.State = r.ko.Spec.APIPassthrough.Subject.State
 			}
 			if r.ko.Spec.APIPassthrough.Subject.Surname != nil {
-				f0f1.SetSurname(*r.ko.Spec.APIPassthrough.Subject.Surname)
+				f0f1.Surname = r.ko.Spec.APIPassthrough.Subject.Surname
 			}
 			if r.ko.Spec.APIPassthrough.Subject.Title != nil {
-				f0f1.SetTitle(*r.ko.Spec.APIPassthrough.Subject.Title)
+				f0f1.Title = r.ko.Spec.APIPassthrough.Subject.Title
 			}
-			f0.SetSubject(f0f1)
+			f0.Subject = f0f1
 		}
-		res.SetApiPassthrough(f0)
+		res.ApiPassthrough = f0
 	}
 	if r.ko.Spec.CertificateAuthorityARN != nil {
-		res.SetCertificateAuthorityArn(*r.ko.Spec.CertificateAuthorityARN)
+		res.CertificateAuthorityArn = r.ko.Spec.CertificateAuthorityARN
 	}
 	if r.ko.Spec.SigningAlgorithm != nil {
-		res.SetSigningAlgorithm(*r.ko.Spec.SigningAlgorithm)
+		res.SigningAlgorithm = svcsdktypes.SigningAlgorithm(*r.ko.Spec.SigningAlgorithm)
 	}
 	if r.ko.Spec.TemplateARN != nil {
-		res.SetTemplateArn(*r.ko.Spec.TemplateARN)
+		res.TemplateArn = r.ko.Spec.TemplateARN
 	}
 	if r.ko.Spec.Validity != nil {
-		f4 := &svcsdk.Validity{}
+		f4 := &svcsdktypes.Validity{}
 		if r.ko.Spec.Validity.Type != nil {
-			f4.SetType(*r.ko.Spec.Validity.Type)
+			f4.Type = svcsdktypes.ValidityPeriodType(*r.ko.Spec.Validity.Type)
 		}
 		if r.ko.Spec.Validity.Value != nil {
-			f4.SetValue(*r.ko.Spec.Validity.Value)
+			f4.Value = r.ko.Spec.Validity.Value
 		}
-		res.SetValidity(f4)
+		res.Validity = f4
 	}
 	if r.ko.Spec.ValidityNotBefore != nil {
-		f5 := &svcsdk.Validity{}
+		f5 := &svcsdktypes.Validity{}
 		if r.ko.Spec.ValidityNotBefore.Type != nil {
-			f5.SetType(*r.ko.Spec.ValidityNotBefore.Type)
+			f5.Type = svcsdktypes.ValidityPeriodType(*r.ko.Spec.ValidityNotBefore.Type)
 		}
 		if r.ko.Spec.ValidityNotBefore.Value != nil {
-			f5.SetValue(*r.ko.Spec.ValidityNotBefore.Value)
+			f5.Value = r.ko.Spec.ValidityNotBefore.Value
 		}
-		res.SetValidityNotBefore(f5)
+		res.ValidityNotBefore = f5
 	}
 
 	return res, nil
@@ -630,11 +630,12 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	if err == nil {
 		return false
 	}
-	awsErr, ok := ackerr.AWSError(err)
-	if !ok {
+
+	var terminalErr smithy.APIError
+	if !errors.As(err, &terminalErr) {
 		return false
 	}
-	switch awsErr.Code() {
+	switch terminalErr.ErrorCode() {
 	case "InvalidAction",
 		"InvalidParameterCombination",
 		"InvalidParameterValue",
@@ -644,7 +645,6 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		"ValidationException",
 		"InvalidArgsException",
 		"InvalidArnException",
-		"InvalidStateException",
 		"LimitExceededException",
 		"MalformedCSRException":
 		return true

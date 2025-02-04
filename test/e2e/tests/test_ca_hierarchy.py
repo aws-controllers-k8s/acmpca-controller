@@ -28,15 +28,17 @@ from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e.tests.helper import ACMPCAValidator
 from e2e.fixtures import k8s_secret
 
+
 @pytest.fixture(scope="module")
 def create_secret(k8s_secret):
     secret = k8s_secret(
         "default",
         random_suffix_name("certificate-secret", 50),
         "certificate",
-        "value"
+        "value",
     )
     yield secret
+
 
 @pytest.fixture(scope="module")
 def create_certificate_chain_secret(k8s_secret):
@@ -44,12 +46,15 @@ def create_certificate_chain_secret(k8s_secret):
         "default",
         random_suffix_name("certificate-chain-secret", 50),
         "certificateChain",
-        "value"
+        "value",
     )
     yield secret
 
+
 @pytest.fixture(scope="module")
-def certificate_authority_hierarchy(create_secret, create_certificate_chain_secret, acmpca_client):
+def certificate_authority_hierarchy(
+    create_secret, create_certificate_chain_secret, acmpca_client
+):
     ca_name = random_suffix_name("certificate-authority", 50)
     cert_name = random_suffix_name("certificate", 30)
     act_name = random_suffix_name("certificate-authority-activation", 50)
@@ -86,7 +91,7 @@ def certificate_authority_hierarchy(create_secret, create_certificate_chain_secr
     replacements["COMPLETE_CERTIFICATE_CHAIN_SEC_NS"] = sub_certificate_chain_secret.ns
     replacements["COMPLETE_CERTIFICATE_CHAIN_SEC_NAME"] = sub_certificate_chain_secret.name
     replacements["COMPLETE_CERTIFICATE_CHAIN_SEC_KEY"] = sub_certificate_chain_secret.key
-    
+
     replacements["END_CERTIFICATE_SEC_NS"] = end_entity_secret.ns
     replacements["END_CERTIFICATE_SEC_NAME"] = end_entity_secret.name
     replacements["END_CERTIFICATE_SEC_KEY"] = end_entity_secret.key
@@ -99,8 +104,11 @@ def certificate_authority_hierarchy(create_secret, create_certificate_chain_secr
 
     # Create CA reference
     ca_ref = k8s.create_reference(
-        CRD_GROUP, CRD_VERSION, "certificateauthorities",
-        ca_name, namespace="default",
+        CRD_GROUP,
+        CRD_VERSION,
+        "certificateauthorities",
+        ca_name,
+        namespace="default",
     )
 
     # Create Certificate reference
@@ -108,35 +116,50 @@ def certificate_authority_hierarchy(create_secret, create_certificate_chain_secr
         CRD_GROUP, CRD_VERSION, "certificates",
         cert_name, namespace="default",
     )
-    
+
     # Create CAActivation reference
     act_ref = k8s.create_reference(
-        CRD_GROUP, CRD_VERSION, "certificateauthorityactivations",
-        act_name, namespace="default",
+        CRD_GROUP,
+        CRD_VERSION,
+        "certificateauthorityactivations",
+        act_name,
+        namespace="default",
     )
 
     # Create Subordinate CA reference
     sub_ca_ref = k8s.create_reference(
-        CRD_GROUP, CRD_VERSION, "certificateauthorities",
-        sub_ca_name, namespace="default",
+        CRD_GROUP,
+        CRD_VERSION,
+        "certificateauthorities",
+        sub_ca_name,
+        namespace="default",
     )
 
     # Create Subordinate Certificate reference
     sub_cert_ref = k8s.create_reference(
-        CRD_GROUP, CRD_VERSION, "certificates",
-        sub_cert_name, namespace="default",
+        CRD_GROUP,
+        CRD_VERSION,
+        "certificates",
+        sub_cert_name,
+        namespace="default",
     )
-    
+
     # Create Subordinate CAActivation reference
     sub_act_ref = k8s.create_reference(
-        CRD_GROUP, CRD_VERSION, "certificateauthorityactivations",
-        sub_act_name, namespace="default",
+        CRD_GROUP,
+        CRD_VERSION,
+        "certificateauthorityactivations",
+        sub_act_name,
+        namespace="default",
     )
 
     # Create End-entity Certificate reference
     end_entity_cert_ref = k8s.create_reference(
-        CRD_GROUP, CRD_VERSION, "certificates",
-        end_entity_cert_name, namespace="default",
+        CRD_GROUP,
+        CRD_VERSION,
+        "certificates",
+        end_entity_cert_name,
+        namespace="default",
     )
 
     references = [ca_ref, cert_ref, act_ref, sub_ca_ref, sub_cert_ref, sub_act_ref, end_entity_cert_ref]
@@ -144,7 +167,8 @@ def certificate_authority_hierarchy(create_secret, create_certificate_chain_secr
     for resource in resource_data:
         logging.info(resource)
         k8s.create_custom_resource(references[i], resource)
-        i+=1
+        assert k8s.wait_on_condition(references[i], "ACK.ResourceSynced", "True", wait_periods=15)
+        i += 1
 
     time.sleep(180)
 
@@ -155,6 +179,9 @@ def certificate_authority_hierarchy(create_secret, create_certificate_chain_secr
     sub_cert_cr = k8s.wait_resource_consumed_by_controller(sub_cert_ref)
     sub_act_cr = k8s.wait_resource_consumed_by_controller(sub_act_ref)
     end_entity_cert_cr = k8s.wait_resource_consumed_by_controller(end_entity_cert_ref)
+
+    for ref in references:
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=15)
 
     assert ca_cr is not None
     assert k8s.get_resource_exists(ca_ref)
@@ -168,7 +195,7 @@ def certificate_authority_hierarchy(create_secret, create_certificate_chain_secr
     assert k8s.get_resource_exists(act_ref)
     logging.info(act_cr)
 
-    ca_resource_arn =  k8s.get_resource_arn(ca_cr)
+    ca_resource_arn = k8s.get_resource_arn(ca_cr)
     assert ca_resource_arn is not None
 
     assert sub_ca_cr is not None
@@ -183,21 +210,21 @@ def certificate_authority_hierarchy(create_secret, create_certificate_chain_secr
     assert k8s.get_resource_exists(sub_act_ref)
     logging.info(sub_act_cr)
 
-    sub_ca_resource_arn =  k8s.get_resource_arn(sub_ca_cr)
+    sub_ca_resource_arn = k8s.get_resource_arn(sub_ca_cr)
     assert sub_ca_resource_arn is not None
 
     assert end_entity_cert_cr is not None
     assert k8s.get_resource_exists(end_entity_cert_ref)
     logging.info(end_entity_cert_cr)
 
-    end_entity_cert_arn =  k8s.get_resource_arn(end_entity_cert_cr)
+    end_entity_cert_arn = k8s.get_resource_arn(end_entity_cert_cr)
     assert end_entity_cert_arn is not None
 
     yield (ca_resource_arn, sub_ca_resource_arn, end_entity_cert_arn, end_entity_secret)
 
-    #Delete K8s resources
+    # Delete K8s resources
     _, deleted = k8s.delete_custom_resource(end_entity_cert_ref)
-    assert deleted is True  
+    assert deleted is True
 
     _, deleted = k8s.delete_custom_resource(sub_act_ref)
     assert deleted is True
@@ -217,12 +244,18 @@ def certificate_authority_hierarchy(create_secret, create_certificate_chain_secr
     _, deleted = k8s.delete_custom_resource(ca_ref)
     assert deleted is True
 
+
 @service_marker
 class TestCertificateAuthorityHierarchy:
 
     def test_ca_hierarchy(self, acmpca_client, certificate_authority_hierarchy):
 
-        (ca_resource_arn, sub_ca_resource_arn, end_entity_cert_arn, end_entity_secret) = certificate_authority_hierarchy
+        (
+            ca_resource_arn,
+            sub_ca_resource_arn,
+            end_entity_cert_arn,
+            end_entity_secret,
+        ) = certificate_authority_hierarchy
 
         # Check CA status is ACTIVE
         acmpca_validator = ACMPCAValidator(acmpca_client)
@@ -230,12 +263,21 @@ class TestCertificateAuthorityHierarchy:
         acmpca_validator.assert_certificate_authority(sub_ca_resource_arn, "ACTIVE")
 
         # Get End-entity certificate
-        end_entity_cert = acmpca_validator.get_certificate(ca_arn=sub_ca_resource_arn, cert_arn=end_entity_cert_arn)
+        end_entity_cert = acmpca_validator.get_certificate(
+            ca_arn=sub_ca_resource_arn, cert_arn=end_entity_cert_arn
+        )
         assert end_entity_cert is not None
 
         # Check certificate is in secret
         _api_client = _get_k8s_api_client()
-        api_response = client.CoreV1Api(_api_client).read_namespaced_secret(end_entity_secret.name, end_entity_secret.ns).data
+        api_response = (
+            client.CoreV1Api(_api_client)
+            .read_namespaced_secret(end_entity_secret.name, end_entity_secret.ns)
+            .data
+        )
 
         assert end_entity_secret.key in api_response
-        assert base64.b64decode(api_response[end_entity_secret.key]).decode("ascii") == end_entity_cert
+        assert (
+            base64.b64decode(api_response[end_entity_secret.key]).decode("ascii")
+            == end_entity_cert
+        )

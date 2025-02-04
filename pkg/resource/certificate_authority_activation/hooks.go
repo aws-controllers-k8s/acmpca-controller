@@ -20,7 +20,9 @@ import (
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	svcsdk "github.com/aws/aws-sdk-go/service/acmpca"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/acmpca"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/acmpca/types"
 )
 
 func (rm *resourceManager) writeCertificateChainToSecret(
@@ -70,7 +72,7 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 	input.CertificateAuthorityArn = r.ko.Spec.CertificateAuthorityARN
 
 	var resp *svcsdk.DescribeCertificateAuthorityOutput
-	resp, err = rm.sdkapi.DescribeCertificateAuthorityWithContext(ctx, input)
+	resp, err = rm.sdkapi.DescribeCertificateAuthority(ctx, input)
 	rm.metrics.RecordAPICall("READ_ONE", "DescribeCertificateAuthority", err)
 	if err != nil {
 		return nil, err
@@ -78,13 +80,13 @@ func (rm *resourceManager) customFindCertificateAuthorityActivation(
 
 	ko := r.ko.DeepCopy()
 
-	if resp.CertificateAuthority.Status != nil {
-		ko.Spec.Status = resp.CertificateAuthority.Status
+	if resp.CertificateAuthority.Status != "" {
+		ko.Spec.Status = aws.String(string(resp.CertificateAuthority.Status))
 	} else {
 		ko.Spec.Status = nil
 	}
 
-	if ko.Spec.Status == nil || *ko.Spec.Status == svcsdk.CertificateAuthorityStatusCreating || *ko.Spec.Status == svcsdk.CertificateAuthorityStatusPendingCertificate {
+	if ko.Spec.Status == nil || *ko.Spec.Status == string(svcsdktypes.CertificateAuthorityStatusCreating) || *ko.Spec.Status == string(svcsdktypes.CertificateAuthorityStatusPendingCertificate) {
 		return nil, ackerr.NotFound
 	}
 
@@ -107,16 +109,16 @@ func (rm *resourceManager) customUpdateCertificateAuthorityActivation(
 	input := &svcsdk.UpdateCertificateAuthorityInput{}
 
 	if desired.ko.Spec.CertificateAuthorityARN != nil {
-		input.SetCertificateAuthorityArn(*desired.ko.Spec.CertificateAuthorityARN)
+		input.CertificateAuthorityArn = desired.ko.Spec.CertificateAuthorityARN
 	}
 
 	if desired.ko.Spec.Status != nil {
-		input.SetStatus(*desired.ko.Spec.Status)
+		input.Status = svcsdktypes.CertificateAuthorityStatus(*desired.ko.Spec.Status)
 	}
 
 	var resp *svcsdk.UpdateCertificateAuthorityOutput
 	_ = resp
-	resp, err = rm.sdkapi.UpdateCertificateAuthorityWithContext(ctx, input)
+	resp, err = rm.sdkapi.UpdateCertificateAuthority(ctx, input)
 	rm.metrics.RecordAPICall("UPDATE", "UpdateCertificateAuthority", err)
 	if err != nil {
 		return nil, err
@@ -138,24 +140,24 @@ func (rm *resourceManager) customDeleteCertificateAuthorityActivation(
 	input.CertificateAuthorityArn = r.ko.Spec.CertificateAuthorityARN
 
 	var resp *svcsdk.DescribeCertificateAuthorityOutput
-	resp, err = rm.sdkapi.DescribeCertificateAuthorityWithContext(ctx, input)
+	resp, err = rm.sdkapi.DescribeCertificateAuthority(ctx, input)
 	rm.metrics.RecordAPICall("READ_ONE", "DescribeCertificateAuthority", err)
 	if err != nil {
 		return nil, err
 	}
 
-	if resp.CertificateAuthority.Status != nil && *resp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusDeleted && *resp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusDisabled {
+	if resp.CertificateAuthority.Status != "" && resp.CertificateAuthority.Status != svcsdktypes.CertificateAuthorityStatusDeleted && resp.CertificateAuthority.Status != svcsdktypes.CertificateAuthorityStatusDisabled {
 		input := &svcsdk.UpdateCertificateAuthorityInput{}
 
 		if r.ko.Spec.CertificateAuthorityARN != nil {
-			input.SetCertificateAuthorityArn(*r.ko.Spec.CertificateAuthorityARN)
+			input.CertificateAuthorityArn = r.ko.Spec.CertificateAuthorityARN
 		}
 
-		input.SetStatus(svcsdk.CertificateAuthorityStatusDisabled)
+		input.Status = svcsdktypes.CertificateAuthorityStatusDisabled
 
 		var resp *svcsdk.UpdateCertificateAuthorityOutput
 		_ = resp
-		resp, err = rm.sdkapi.UpdateCertificateAuthorityWithContext(ctx, input)
+		resp, err = rm.sdkapi.UpdateCertificateAuthority(ctx, input)
 		rm.metrics.RecordAPICall("UPDATE", "UpdateCertificateAuthority", err)
 		if err != nil {
 			return nil, err

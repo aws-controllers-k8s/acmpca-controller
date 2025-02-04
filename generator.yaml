@@ -1,33 +1,37 @@
+sdk_names:
+  model_name: acm-pca
 ignore:
   resource_names:
-      #- CertificateAuthority
-      - CertificateAuthorityAuditReport
-      - Permission
+    #- CertificateAuthority
+    - CertificateAuthorityAuditReport
+    - Permission
   field_paths:
-  - CreateCertificateAuthorityInput.IdempotencyToken
-  - IssueCertificateInput.IdempotencyToken
-  - IssueCertificateInput.Csr
-  - ImportCertificateAuthorityCertificateInput.Certificate
-  - ImportCertificateAuthorityCertificateInput.CertificateChain
-  - UpdateCertificateAuthorityInput.Status
+    - CreateCertificateAuthorityInput.IdempotencyToken
+    - CreateCertificateAuthorityInput.RevocationConfiguration.CRLConfiguration.CRLDistributionPointExtensionConfiguration
+    - IssueCertificateInput.IdempotencyToken
+    - IssueCertificateInput.Csr
+    - ImportCertificateAuthorityCertificateInput.Certificate
+    - ImportCertificateAuthorityCertificateInput.CertificateChain
+    - UpdateCertificateAuthorityInput.Status
+    - CrlConfiguration.CrlDistributionPointExtensionConfiguration
 operations:
   UpdateCertificateAuthority:
     operation_type:
-    - Update
+      - Update
     resource_name: CertificateAuthority
   IssueCertificate:
     operation_type:
-    - Create
+      - Create
     resource_name: Certificate
   ImportCertificateAuthorityCertificate:
     operation_type:
-    - Create
+      - Create
     resource_name: CertificateAuthorityActivation
 model_name: acm-pca
 prefix_config: {}
 resources:
   CertificateAuthority:
-    reconcile: 
+    reconcile:
       requeue_on_success_seconds: 30
     renames:
       operations:
@@ -45,18 +49,18 @@ resources:
         template_path: hooks/certificate_authority/sdk_read_one_post_set_output.go.tpl
     exceptions:
       terminal_codes:
-      - InvalidAction
-      - InvalidParameterCombination
-      - InvalidParameterValue
-      - InvalidQueryParameter
-      - MissingParameter
-      - ValidationError
-      - ValidationException
-      - LimitExceededException
-      - InvalidTagException
-      - InvalidPolicyException
-      - InvalidArgsException
-    fields: 
+        - InvalidAction
+        - InvalidParameterCombination
+        - InvalidParameterValue
+        - InvalidQueryParameter
+        - MissingParameter
+        - ValidationError
+        - ValidationException
+        - LimitExceededException
+        - InvalidTagException
+        - InvalidPolicyException
+        - InvalidArgsException
+    fields:
       CertificateAuthorityConfiguration:
         is_immutable: true
       Type:
@@ -128,18 +132,17 @@ resources:
         template_path: hooks/certificate/sdk_create_post_request.go.tpl
     exceptions:
       terminal_codes:
-      - InvalidAction
-      - InvalidParameterCombination
-      - InvalidParameterValue
-      - InvalidQueryParameter
-      - MissingParameter
-      - ValidationError
-      - ValidationException
-      - InvalidArgsException
-      - InvalidArnException
-      - InvalidStateException
-      - LimitExceededException
-      - MalformedCSRException
+        - InvalidAction
+        - InvalidParameterCombination
+        - InvalidParameterValue
+        - InvalidQueryParameter
+        - MissingParameter
+        - ValidationError
+        - ValidationException
+        - InvalidArgsException
+        - InvalidArnException
+        - LimitExceededException
+        - MalformedCSRException
     fields:
       CertificateOutput:
         type: string
@@ -173,19 +176,18 @@ resources:
   CertificateAuthorityActivation:
     exceptions:
       terminal_codes:
-      - InvalidAction
-      - InvalidParameterCombination
-      - InvalidParameterValue
-      - InvalidQueryParameter
-      - MissingParameter
-      - ValidationError
-      - ValidationException
-      - CertificateMismatchException
-      - InvalidArnException
-      - InvalidRequestException
-      - InvalidStateException
-      - MalformedCertificateException
-      - RequestFailedException
+        - InvalidAction
+        - InvalidParameterCombination
+        - InvalidParameterValue
+        - InvalidQueryParameter
+        - MissingParameter
+        - ValidationError
+        - ValidationException
+        - CertificateMismatchException
+        - InvalidArnException
+        - InvalidRequestException
+        - MalformedCertificateException
+        - RequestFailedException
     hooks:
       delta_pre_compare:
         code: customSetDefaults(a, b)
