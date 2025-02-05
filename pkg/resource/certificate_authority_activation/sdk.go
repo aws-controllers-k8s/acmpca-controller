@@ -28,8 +28,10 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/acmpca"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/acmpca"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/acmpca/types"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +42,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.ACMPCA{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.CertificateAuthorityActivation{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +50,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -83,7 +85,7 @@ func (rm *resourceManager) sdkCreate(
 			return nil, ackrequeue.Needed(err)
 		}
 		if certificateSecret != "" {
-			input.SetCertificate([]byte(certificateSecret))
+			input.Certificate = []byte(certificateSecret)
 		}
 	}
 	if desired.ko.Spec.CertificateChain != nil {
@@ -92,25 +94,25 @@ func (rm *resourceManager) sdkCreate(
 			return nil, ackrequeue.Needed(err)
 		}
 		if certificateChainSecret != "" {
-			input.SetCertificateChain([]byte(certificateChainSecret))
+			input.CertificateChain = []byte(certificateChainSecret)
 		}
 	}
 
 	var resp *svcsdk.ImportCertificateAuthorityCertificateOutput
 	_ = resp
-	resp, err = rm.sdkapi.ImportCertificateAuthorityCertificateWithContext(ctx, input)
+	resp, err = rm.sdkapi.ImportCertificateAuthorityCertificate(ctx, input)
 	if err != nil {
 		input := &svcsdk.DescribeCertificateAuthorityInput{}
 		input.CertificateAuthorityArn = desired.ko.Spec.CertificateAuthorityARN
 
 		var describeResp *svcsdk.DescribeCertificateAuthorityOutput
-		describeResp, describeErr := rm.sdkapi.DescribeCertificateAuthorityWithContext(ctx, input)
+		describeResp, describeErr := rm.sdkapi.DescribeCertificateAuthority(ctx, input)
 		rm.metrics.RecordAPICall("READ_ONE", "DescribeCertificateAuthority", err)
 		if describeErr != nil {
 			return desired, ackrequeue.NeededAfter(describeErr, ackrequeue.DefaultRequeueAfterDuration)
 		}
 
-		if *describeResp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusFailed && *describeResp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusDeleted && *describeResp.CertificateAuthority.Status != svcsdk.CertificateAuthorityStatusDisabled {
+		if describeResp.CertificateAuthority.Status != svcsdktypes.CertificateAuthorityStatusFailed && describeResp.CertificateAuthority.Status != svcsdktypes.CertificateAuthorityStatusDeleted && describeResp.CertificateAuthority.Status != svcsdktypes.CertificateAuthorityStatusDisabled {
 			return desired, ackrequeue.NeededAfter(err, ackrequeue.DefaultRequeueAfterDuration)
 		}
 
@@ -132,16 +134,16 @@ func (rm *resourceManager) sdkCreate(
 		}
 	}
 
-	if desired.ko.Spec.Status != nil && *desired.ko.Spec.Status == svcsdk.CertificateAuthorityStatusDisabled {
+	if desired.ko.Spec.Status != nil && *desired.ko.Spec.Status == string(svcsdktypes.CertificateAuthorityStatusDisabled) {
 		updateInput := &svcsdk.UpdateCertificateAuthorityInput{}
 
-		updateInput.SetStatus(*desired.ko.Spec.Status)
+		updateInput.Status = svcsdktypes.CertificateAuthorityStatus(*desired.ko.Spec.Status)
 
 		if desired.ko.Spec.CertificateAuthorityARN != nil {
-			updateInput.SetCertificateAuthorityArn(*desired.ko.Spec.CertificateAuthorityARN)
+			updateInput.CertificateAuthorityArn = desired.ko.Spec.CertificateAuthorityARN
 		}
 
-		_, err = rm.sdkapi.UpdateCertificateAuthorityWithContext(ctx, updateInput)
+		_, err = rm.sdkapi.UpdateCertificateAuthority(ctx, updateInput)
 		rm.metrics.RecordAPICall("UPDATE", "UpdateCertificateAuthority", err)
 		if err != nil {
 			return nil, err
@@ -159,7 +161,7 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.ImportCertificateAuthorityCertificateInput{}
 
 	if r.ko.Spec.CertificateAuthorityARN != nil {
-		res.SetCertificateAuthorityArn(*r.ko.Spec.CertificateAuthorityARN)
+		res.CertificateAuthorityArn = r.ko.Spec.CertificateAuthorityARN
 	}
 
 	return res, nil
@@ -291,11 +293,12 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	if err == nil {
 		return false
 	}
-	awsErr, ok := ackerr.AWSError(err)
-	if !ok {
+
+	var terminalErr smithy.APIError
+	if !errors.As(err, &terminalErr) {
 		return false
 	}
-	switch awsErr.Code() {
+	switch terminalErr.ErrorCode() {
 	case "InvalidAction",
 		"InvalidParameterCombination",
 		"InvalidParameterValue",
@@ -306,7 +309,6 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		"CertificateMismatchException",
 		"InvalidArnException",
 		"InvalidRequestException",
-		"InvalidStateException",
 		"MalformedCertificateException",
 		"RequestFailedException":
 		return true

@@ -54,10 +54,9 @@ type CertificateAuthoritySpec struct {
 	// For information about security standard support in various Regions, see Storage
 	// and security compliance of Amazon Web Services Private CA private keys (https://docs.aws.amazon.com/privateca/latest/userguide/data-protection.html#private-keys).
 	KeyStorageSecurityStandard *string `json:"keyStorageSecurityStandard,omitempty"`
-	// Contains information to enable Online Certificate Status Protocol (OCSP)
-	// support, to enable a certificate revocation list (CRL), to enable both, or
-	// to enable neither. The default is for both certificate validation mechanisms
-	// to be disabled.
+	// Contains information to enable support for Online Certificate Status Protocol
+	// (OCSP), certificate revocation list (CRL), both protocols, or neither. By
+	// default, both certificate validation mechanisms are disabled.
 	//
 	// The following requirements apply to revocation configurations.
 	//

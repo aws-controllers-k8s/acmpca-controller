@@ -19,7 +19,8 @@ import (
 	svcapitypes "github.com/aws-controllers-k8s/acmpca-controller/apis/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	svcsdk "github.com/aws/aws-sdk-go/service/acmpca"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/acmpca"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/acmpca/types"
 )
 
 func (rm *resourceManager) getCertificateAuthorityCsr(
@@ -28,7 +29,7 @@ func (rm *resourceManager) getCertificateAuthorityCsr(
 ) (*string, error) {
 	input := &svcsdk.GetCertificateAuthorityCsrInput{}
 	input.CertificateAuthorityArn = &resourceARN
-	resp, err := rm.sdkapi.GetCertificateAuthorityCsrWithContext(ctx, input)
+	resp, err := rm.sdkapi.GetCertificateAuthorityCsr(ctx, input)
 	rm.metrics.RecordAPICall("READ_ONE", "GetCertificateAuthorityCsr", err)
 	if err != nil {
 		return nil, err
@@ -42,7 +43,7 @@ func (rm *resourceManager) getTags(
 	ctx context.Context,
 	resourceARN string,
 ) ([]*svcapitypes.Tag, error) {
-	resp, err := rm.sdkapi.ListTagsWithContext(
+	resp, err := rm.sdkapi.ListTags(
 		ctx,
 		&svcsdk.ListTagsInput{
 			CertificateAuthorityArn: &resourceARN,
@@ -83,7 +84,7 @@ func (rm *resourceManager) syncTags(
 
 	if len(toRemove) > 0 {
 		rlog.Debug("removing tags from CertificateAuthority", "tags", toRemove)
-		_, err = rm.sdkapi.UntagCertificateAuthorityWithContext(
+		_, err = rm.sdkapi.UntagCertificateAuthority(
 			ctx,
 			&svcsdk.UntagCertificateAuthorityInput{
 				CertificateAuthorityArn: arn,
@@ -98,7 +99,7 @@ func (rm *resourceManager) syncTags(
 
 	if len(toAdd) > 0 {
 		rlog.Debug("adding tags to CertificateAuthority", "tags", toAdd)
-		_, err = rm.sdkapi.TagCertificateAuthorityWithContext(
+		_, err = rm.sdkapi.TagCertificateAuthority(
 			ctx,
 			&svcsdk.TagCertificateAuthorityInput{
 				CertificateAuthorityArn: arn,
@@ -116,10 +117,10 @@ func (rm *resourceManager) syncTags(
 
 func sdkTagsFromResourceTags(
 	rTags []*svcapitypes.Tag,
-) []*svcsdk.Tag {
-	tags := make([]*svcsdk.Tag, len(rTags))
+) []svcsdktypes.Tag {
+	tags := make([]svcsdktypes.Tag, len(rTags))
 	for i := range rTags {
-		tags[i] = &svcsdk.Tag{
+		tags[i] = svcsdktypes.Tag{
 			Key:   rTags[i].Key,
 			Value: rTags[i].Value,
 		}
@@ -128,7 +129,7 @@ func sdkTagsFromResourceTags(
 }
 
 func resourceTagsFromSDKTags(
-	sdkTags []*svcsdk.Tag,
+	sdkTags []svcsdktypes.Tag,
 ) []*svcapitypes.Tag {
 	tags := make([]*svcapitypes.Tag, len(sdkTags))
 	for i := range sdkTags {

@@ -1,1 +1,1 @@
-input.SetIdempotencyToken(string(desired.ko.ObjectMeta.UID))
+input.IdempotencyToken = aws.String(string(desired.ko.ObjectMeta.UID))

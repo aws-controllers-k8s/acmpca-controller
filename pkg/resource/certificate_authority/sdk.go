@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"strings"
 
@@ -28,8 +29,10 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/acmpca"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/acmpca"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/acmpca/types"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +43,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.ACMPCA{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.CertificateAuthority{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +51,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -74,13 +77,11 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	var resp *svcsdk.DescribeCertificateAuthorityOutput
-	resp, err = rm.sdkapi.DescribeCertificateAuthorityWithContext(ctx, input)
+	resp, err = rm.sdkapi.DescribeCertificateAuthority(ctx, input)
 	rm.metrics.RecordAPICall("READ_ONE", "DescribeCertificateAuthority", err)
 	if err != nil {
-		if reqErr, ok := ackerr.AWSRequestFailure(err); ok && reqErr.StatusCode() == 404 {
-			return nil, ackerr.NotFound
-		}
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "UNKNOWN" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "UNKNOWN" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -103,33 +104,15 @@ func (rm *resourceManager) sdkFind(
 			f1f0 := &svcapitypes.CSRExtensions{}
 			if resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage != nil {
 				f1f0f0 := &svcapitypes.KeyUsage{}
-				if resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.CRLSign != nil {
-					f1f0f0.CRLSign = resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.CRLSign
-				}
-				if resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.DataEncipherment != nil {
-					f1f0f0.DataEncipherment = resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.DataEncipherment
-				}
-				if resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.DecipherOnly != nil {
-					f1f0f0.DecipherOnly = resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.DecipherOnly
-				}
-				if resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.DigitalSignature != nil {
-					f1f0f0.DigitalSignature = resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.DigitalSignature
-				}
-				if resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.EncipherOnly != nil {
-					f1f0f0.EncipherOnly = resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.EncipherOnly
-				}
-				if resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.KeyAgreement != nil {
-					f1f0f0.KeyAgreement = resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.KeyAgreement
-				}
-				if resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.KeyCertSign != nil {
-					f1f0f0.KeyCertSign = resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.KeyCertSign
-				}
-				if resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.KeyEncipherment != nil {
-					f1f0f0.KeyEncipherment = resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.KeyEncipherment
-				}
-				if resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.NonRepudiation != nil {
-					f1f0f0.NonRepudiation = resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.NonRepudiation
-				}
+				f1f0f0.CRLSign = &resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.CRLSign
+				f1f0f0.DataEncipherment = &resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.DataEncipherment
+				f1f0f0.DecipherOnly = &resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.DecipherOnly
+				f1f0f0.DigitalSignature = &resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.DigitalSignature
+				f1f0f0.EncipherOnly = &resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.EncipherOnly
+				f1f0f0.KeyAgreement = &resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.KeyAgreement
+				f1f0f0.KeyCertSign = &resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.KeyCertSign
+				f1f0f0.KeyEncipherment = &resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.KeyEncipherment
+				f1f0f0.NonRepudiation = &resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.KeyUsage.NonRepudiation
 				f1f0.KeyUsage = f1f0f0
 			}
 			if resp.CertificateAuthority.CertificateAuthorityConfiguration.CsrExtensions.SubjectInformationAccess != nil {
@@ -237,8 +220,8 @@ func (rm *resourceManager) sdkFind(
 					}
 					if f1f0f1iter.AccessMethod != nil {
 						f1f0f1elemf1 := &svcapitypes.AccessMethod{}
-						if f1f0f1iter.AccessMethod.AccessMethodType != nil {
-							f1f0f1elemf1.AccessMethodType = f1f0f1iter.AccessMethod.AccessMethodType
+						if f1f0f1iter.AccessMethod.AccessMethodType != "" {
+							f1f0f1elemf1.AccessMethodType = aws.String(string(f1f0f1iter.AccessMethod.AccessMethodType))
 						}
 						if f1f0f1iter.AccessMethod.CustomObjectIdentifier != nil {
 							f1f0f1elemf1.CustomObjectIdentifier = f1f0f1iter.AccessMethod.CustomObjectIdentifier
@@ -251,11 +234,11 @@ func (rm *resourceManager) sdkFind(
 			}
 			f1.CSRExtensions = f1f0
 		}
-		if resp.CertificateAuthority.CertificateAuthorityConfiguration.KeyAlgorithm != nil {
-			f1.KeyAlgorithm = resp.CertificateAuthority.CertificateAuthorityConfiguration.KeyAlgorithm
+		if resp.CertificateAuthority.CertificateAuthorityConfiguration.KeyAlgorithm != "" {
+			f1.KeyAlgorithm = aws.String(string(resp.CertificateAuthority.CertificateAuthorityConfiguration.KeyAlgorithm))
 		}
-		if resp.CertificateAuthority.CertificateAuthorityConfiguration.SigningAlgorithm != nil {
-			f1.SigningAlgorithm = resp.CertificateAuthority.CertificateAuthorityConfiguration.SigningAlgorithm
+		if resp.CertificateAuthority.CertificateAuthorityConfiguration.SigningAlgorithm != "" {
+			f1.SigningAlgorithm = aws.String(string(resp.CertificateAuthority.CertificateAuthorityConfiguration.SigningAlgorithm))
 		}
 		if resp.CertificateAuthority.CertificateAuthorityConfiguration.Subject != nil {
 			f1f3 := &svcapitypes.ASN1Subject{}
@@ -326,13 +309,13 @@ func (rm *resourceManager) sdkFind(
 	} else {
 		ko.Status.CreatedAt = nil
 	}
-	if resp.CertificateAuthority.FailureReason != nil {
-		ko.Status.FailureReason = resp.CertificateAuthority.FailureReason
+	if resp.CertificateAuthority.FailureReason != "" {
+		ko.Status.FailureReason = aws.String(string(resp.CertificateAuthority.FailureReason))
 	} else {
 		ko.Status.FailureReason = nil
 	}
-	if resp.CertificateAuthority.KeyStorageSecurityStandard != nil {
-		ko.Spec.KeyStorageSecurityStandard = resp.CertificateAuthority.KeyStorageSecurityStandard
+	if resp.CertificateAuthority.KeyStorageSecurityStandard != "" {
+		ko.Spec.KeyStorageSecurityStandard = aws.String(string(resp.CertificateAuthority.KeyStorageSecurityStandard))
 	} else {
 		ko.Spec.KeyStorageSecurityStandard = nil
 	}
@@ -372,13 +355,14 @@ func (rm *resourceManager) sdkFind(
 				f10f0.Enabled = resp.CertificateAuthority.RevocationConfiguration.CrlConfiguration.Enabled
 			}
 			if resp.CertificateAuthority.RevocationConfiguration.CrlConfiguration.ExpirationInDays != nil {
-				f10f0.ExpirationInDays = resp.CertificateAuthority.RevocationConfiguration.CrlConfiguration.ExpirationInDays
+				expirationInDaysCopy := int64(*resp.CertificateAuthority.RevocationConfiguration.CrlConfiguration.ExpirationInDays)
+				f10f0.ExpirationInDays = &expirationInDaysCopy
 			}
 			if resp.CertificateAuthority.RevocationConfiguration.CrlConfiguration.S3BucketName != nil {
 				f10f0.S3BucketName = resp.CertificateAuthority.RevocationConfiguration.CrlConfiguration.S3BucketName
 			}
-			if resp.CertificateAuthority.RevocationConfiguration.CrlConfiguration.S3ObjectAcl != nil {
-				f10f0.S3ObjectACL = resp.CertificateAuthority.RevocationConfiguration.CrlConfiguration.S3ObjectAcl
+			if resp.CertificateAuthority.RevocationConfiguration.CrlConfiguration.S3ObjectAcl != "" {
+				f10f0.S3ObjectACL = aws.String(string(resp.CertificateAuthority.RevocationConfiguration.CrlConfiguration.S3ObjectAcl))
 			}
 			f10.CRLConfiguration = f10f0
 		}
@@ -401,18 +385,18 @@ func (rm *resourceManager) sdkFind(
 	} else {
 		ko.Status.Serial = nil
 	}
-	if resp.CertificateAuthority.Status != nil {
-		ko.Status.Status = resp.CertificateAuthority.Status
+	if resp.CertificateAuthority.Status != "" {
+		ko.Status.Status = aws.String(string(resp.CertificateAuthority.Status))
 	} else {
 		ko.Status.Status = nil
 	}
-	if resp.CertificateAuthority.Type != nil {
-		ko.Spec.Type = resp.CertificateAuthority.Type
+	if resp.CertificateAuthority.Type != "" {
+		ko.Spec.Type = aws.String(string(resp.CertificateAuthority.Type))
 	} else {
 		ko.Spec.Type = nil
 	}
-	if resp.CertificateAuthority.UsageMode != nil {
-		ko.Spec.UsageMode = resp.CertificateAuthority.UsageMode
+	if resp.CertificateAuthority.UsageMode != "" {
+		ko.Spec.UsageMode = aws.String(string(resp.CertificateAuthority.UsageMode))
 	} else {
 		ko.Spec.UsageMode = nil
 	}
@@ -453,7 +437,7 @@ func (rm *resourceManager) newDescribeRequestPayload(
 	res := &svcsdk.DescribeCertificateAuthorityInput{}
 
 	if r.ko.Status.ACKResourceMetadata != nil && r.ko.Status.ACKResourceMetadata.ARN != nil {
-		res.SetCertificateAuthorityArn(string(*r.ko.Status.ACKResourceMetadata.ARN))
+		res.CertificateAuthorityArn = (*string)(r.ko.Status.ACKResourceMetadata.ARN)
 	}
 
 	return res, nil
@@ -475,11 +459,11 @@ func (rm *resourceManager) sdkCreate(
 	if err != nil {
 		return nil, err
 	}
-	input.SetIdempotencyToken(string(desired.ko.ObjectMeta.UID))
+	input.IdempotencyToken = aws.String(string(desired.ko.ObjectMeta.UID))
 
 	var resp *svcsdk.CreateCertificateAuthorityOutput
 	_ = resp
-	resp, err = rm.sdkapi.CreateCertificateAuthorityWithContext(ctx, input)
+	resp, err = rm.sdkapi.CreateCertificateAuthority(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "CreateCertificateAuthority", err)
 	if err != nil {
 		return nil, err
@@ -509,282 +493,287 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.CreateCertificateAuthorityInput{}
 
 	if r.ko.Spec.CertificateAuthorityConfiguration != nil {
-		f0 := &svcsdk.CertificateAuthorityConfiguration{}
+		f0 := &svcsdktypes.CertificateAuthorityConfiguration{}
 		if r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions != nil {
-			f0f0 := &svcsdk.CsrExtensions{}
+			f0f0 := &svcsdktypes.CsrExtensions{}
 			if r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage != nil {
-				f0f0f0 := &svcsdk.KeyUsage{}
+				f0f0f0 := &svcsdktypes.KeyUsage{}
 				if r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.CRLSign != nil {
-					f0f0f0.SetCRLSign(*r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.CRLSign)
+					f0f0f0.CRLSign = *r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.CRLSign
 				}
 				if r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.DataEncipherment != nil {
-					f0f0f0.SetDataEncipherment(*r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.DataEncipherment)
+					f0f0f0.DataEncipherment = *r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.DataEncipherment
 				}
 				if r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.DecipherOnly != nil {
-					f0f0f0.SetDecipherOnly(*r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.DecipherOnly)
+					f0f0f0.DecipherOnly = *r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.DecipherOnly
 				}
 				if r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.DigitalSignature != nil {
-					f0f0f0.SetDigitalSignature(*r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.DigitalSignature)
+					f0f0f0.DigitalSignature = *r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.DigitalSignature
 				}
 				if r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.EncipherOnly != nil {
-					f0f0f0.SetEncipherOnly(*r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.EncipherOnly)
+					f0f0f0.EncipherOnly = *r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.EncipherOnly
 				}
 				if r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.KeyAgreement != nil {
-					f0f0f0.SetKeyAgreement(*r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.KeyAgreement)
+					f0f0f0.KeyAgreement = *r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.KeyAgreement
 				}
 				if r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.KeyCertSign != nil {
-					f0f0f0.SetKeyCertSign(*r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.KeyCertSign)
+					f0f0f0.KeyCertSign = *r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.KeyCertSign
 				}
 				if r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.KeyEncipherment != nil {
-					f0f0f0.SetKeyEncipherment(*r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.KeyEncipherment)
+					f0f0f0.KeyEncipherment = *r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.KeyEncipherment
 				}
 				if r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.NonRepudiation != nil {
-					f0f0f0.SetNonRepudiation(*r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.NonRepudiation)
+					f0f0f0.NonRepudiation = *r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.KeyUsage.NonRepudiation
 				}
-				f0f0.SetKeyUsage(f0f0f0)
+				f0f0.KeyUsage = f0f0f0
 			}
 			if r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess != nil {
-				f0f0f1 := []*svcsdk.AccessDescription{}
+				f0f0f1 := []svcsdktypes.AccessDescription{}
 				for _, f0f0f1iter := range r.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess {
-					f0f0f1elem := &svcsdk.AccessDescription{}
+					f0f0f1elem := &svcsdktypes.AccessDescription{}
 					if f0f0f1iter.AccessLocation != nil {
-						f0f0f1elemf0 := &svcsdk.GeneralName{}
+						f0f0f1elemf0 := &svcsdktypes.GeneralName{}
 						if f0f0f1iter.AccessLocation.DirectoryName != nil {
-							f0f0f1elemf0f0 := &svcsdk.ASN1Subject{}
+							f0f0f1elemf0f0 := &svcsdktypes.ASN1Subject{}
 							if f0f0f1iter.AccessLocation.DirectoryName.CommonName != nil {
-								f0f0f1elemf0f0.SetCommonName(*f0f0f1iter.AccessLocation.DirectoryName.CommonName)
+								f0f0f1elemf0f0.CommonName = f0f0f1iter.AccessLocation.DirectoryName.CommonName
 							}
 							if f0f0f1iter.AccessLocation.DirectoryName.Country != nil {
-								f0f0f1elemf0f0.SetCountry(*f0f0f1iter.AccessLocation.DirectoryName.Country)
+								f0f0f1elemf0f0.Country = f0f0f1iter.AccessLocation.DirectoryName.Country
 							}
 							if f0f0f1iter.AccessLocation.DirectoryName.CustomAttributes != nil {
-								f0f0f1elemf0f0f2 := []*svcsdk.CustomAttribute{}
+								f0f0f1elemf0f0f2 := []svcsdktypes.CustomAttribute{}
 								for _, f0f0f1elemf0f0f2iter := range f0f0f1iter.AccessLocation.DirectoryName.CustomAttributes {
-									f0f0f1elemf0f0f2elem := &svcsdk.CustomAttribute{}
+									f0f0f1elemf0f0f2elem := &svcsdktypes.CustomAttribute{}
 									if f0f0f1elemf0f0f2iter.ObjectIdentifier != nil {
-										f0f0f1elemf0f0f2elem.SetObjectIdentifier(*f0f0f1elemf0f0f2iter.ObjectIdentifier)
+										f0f0f1elemf0f0f2elem.ObjectIdentifier = f0f0f1elemf0f0f2iter.ObjectIdentifier
 									}
 									if f0f0f1elemf0f0f2iter.Value != nil {
-										f0f0f1elemf0f0f2elem.SetValue(*f0f0f1elemf0f0f2iter.Value)
+										f0f0f1elemf0f0f2elem.Value = f0f0f1elemf0f0f2iter.Value
 									}
-									f0f0f1elemf0f0f2 = append(f0f0f1elemf0f0f2, f0f0f1elemf0f0f2elem)
+									f0f0f1elemf0f0f2 = append(f0f0f1elemf0f0f2, *f0f0f1elemf0f0f2elem)
 								}
-								f0f0f1elemf0f0.SetCustomAttributes(f0f0f1elemf0f0f2)
+								f0f0f1elemf0f0.CustomAttributes = f0f0f1elemf0f0f2
 							}
 							if f0f0f1iter.AccessLocation.DirectoryName.DistinguishedNameQualifier != nil {
-								f0f0f1elemf0f0.SetDistinguishedNameQualifier(*f0f0f1iter.AccessLocation.DirectoryName.DistinguishedNameQualifier)
+								f0f0f1elemf0f0.DistinguishedNameQualifier = f0f0f1iter.AccessLocation.DirectoryName.DistinguishedNameQualifier
 							}
 							if f0f0f1iter.AccessLocation.DirectoryName.GenerationQualifier != nil {
-								f0f0f1elemf0f0.SetGenerationQualifier(*f0f0f1iter.AccessLocation.DirectoryName.GenerationQualifier)
+								f0f0f1elemf0f0.GenerationQualifier = f0f0f1iter.AccessLocation.DirectoryName.GenerationQualifier
 							}
 							if f0f0f1iter.AccessLocation.DirectoryName.GivenName != nil {
-								f0f0f1elemf0f0.SetGivenName(*f0f0f1iter.AccessLocation.DirectoryName.GivenName)
+								f0f0f1elemf0f0.GivenName = f0f0f1iter.AccessLocation.DirectoryName.GivenName
 							}
 							if f0f0f1iter.AccessLocation.DirectoryName.Initials != nil {
-								f0f0f1elemf0f0.SetInitials(*f0f0f1iter.AccessLocation.DirectoryName.Initials)
+								f0f0f1elemf0f0.Initials = f0f0f1iter.AccessLocation.DirectoryName.Initials
 							}
 							if f0f0f1iter.AccessLocation.DirectoryName.Locality != nil {
-								f0f0f1elemf0f0.SetLocality(*f0f0f1iter.AccessLocation.DirectoryName.Locality)
+								f0f0f1elemf0f0.Locality = f0f0f1iter.AccessLocation.DirectoryName.Locality
 							}
 							if f0f0f1iter.AccessLocation.DirectoryName.Organization != nil {
-								f0f0f1elemf0f0.SetOrganization(*f0f0f1iter.AccessLocation.DirectoryName.Organization)
+								f0f0f1elemf0f0.Organization = f0f0f1iter.AccessLocation.DirectoryName.Organization
 							}
 							if f0f0f1iter.AccessLocation.DirectoryName.OrganizationalUnit != nil {
-								f0f0f1elemf0f0.SetOrganizationalUnit(*f0f0f1iter.AccessLocation.DirectoryName.OrganizationalUnit)
+								f0f0f1elemf0f0.OrganizationalUnit = f0f0f1iter.AccessLocation.DirectoryName.OrganizationalUnit
 							}
 							if f0f0f1iter.AccessLocation.DirectoryName.Pseudonym != nil {
-								f0f0f1elemf0f0.SetPseudonym(*f0f0f1iter.AccessLocation.DirectoryName.Pseudonym)
+								f0f0f1elemf0f0.Pseudonym = f0f0f1iter.AccessLocation.DirectoryName.Pseudonym
 							}
 							if f0f0f1iter.AccessLocation.DirectoryName.SerialNumber != nil {
-								f0f0f1elemf0f0.SetSerialNumber(*f0f0f1iter.AccessLocation.DirectoryName.SerialNumber)
+								f0f0f1elemf0f0.SerialNumber = f0f0f1iter.AccessLocation.DirectoryName.SerialNumber
 							}
 							if f0f0f1iter.AccessLocation.DirectoryName.State != nil {
-								f0f0f1elemf0f0.SetState(*f0f0f1iter.AccessLocation.DirectoryName.State)
+								f0f0f1elemf0f0.State = f0f0f1iter.AccessLocation.DirectoryName.State
 							}
 							if f0f0f1iter.AccessLocation.DirectoryName.Surname != nil {
-								f0f0f1elemf0f0.SetSurname(*f0f0f1iter.AccessLocation.DirectoryName.Surname)
+								f0f0f1elemf0f0.Surname = f0f0f1iter.AccessLocation.DirectoryName.Surname
 							}
 							if f0f0f1iter.AccessLocation.DirectoryName.Title != nil {
-								f0f0f1elemf0f0.SetTitle(*f0f0f1iter.AccessLocation.DirectoryName.Title)
+								f0f0f1elemf0f0.Title = f0f0f1iter.AccessLocation.DirectoryName.Title
 							}
-							f0f0f1elemf0.SetDirectoryName(f0f0f1elemf0f0)
+							f0f0f1elemf0.DirectoryName = f0f0f1elemf0f0
 						}
 						if f0f0f1iter.AccessLocation.DNSName != nil {
-							f0f0f1elemf0.SetDnsName(*f0f0f1iter.AccessLocation.DNSName)
+							f0f0f1elemf0.DnsName = f0f0f1iter.AccessLocation.DNSName
 						}
 						if f0f0f1iter.AccessLocation.EDIPartyName != nil {
-							f0f0f1elemf0f2 := &svcsdk.EdiPartyName{}
+							f0f0f1elemf0f2 := &svcsdktypes.EdiPartyName{}
 							if f0f0f1iter.AccessLocation.EDIPartyName.NameAssigner != nil {
-								f0f0f1elemf0f2.SetNameAssigner(*f0f0f1iter.AccessLocation.EDIPartyName.NameAssigner)
+								f0f0f1elemf0f2.NameAssigner = f0f0f1iter.AccessLocation.EDIPartyName.NameAssigner
 							}
 							if f0f0f1iter.AccessLocation.EDIPartyName.PartyName != nil {
-								f0f0f1elemf0f2.SetPartyName(*f0f0f1iter.AccessLocation.EDIPartyName.PartyName)
+								f0f0f1elemf0f2.PartyName = f0f0f1iter.AccessLocation.EDIPartyName.PartyName
 							}
-							f0f0f1elemf0.SetEdiPartyName(f0f0f1elemf0f2)
+							f0f0f1elemf0.EdiPartyName = f0f0f1elemf0f2
 						}
 						if f0f0f1iter.AccessLocation.IPAddress != nil {
-							f0f0f1elemf0.SetIpAddress(*f0f0f1iter.AccessLocation.IPAddress)
+							f0f0f1elemf0.IpAddress = f0f0f1iter.AccessLocation.IPAddress
 						}
 						if f0f0f1iter.AccessLocation.OtherName != nil {
-							f0f0f1elemf0f4 := &svcsdk.OtherName{}
+							f0f0f1elemf0f4 := &svcsdktypes.OtherName{}
 							if f0f0f1iter.AccessLocation.OtherName.TypeID != nil {
-								f0f0f1elemf0f4.SetTypeId(*f0f0f1iter.AccessLocation.OtherName.TypeID)
+								f0f0f1elemf0f4.TypeId = f0f0f1iter.AccessLocation.OtherName.TypeID
 							}
 							if f0f0f1iter.AccessLocation.OtherName.Value != nil {
-								f0f0f1elemf0f4.SetValue(*f0f0f1iter.AccessLocation.OtherName.Value)
+								f0f0f1elemf0f4.Value = f0f0f1iter.AccessLocation.OtherName.Value
 							}
-							f0f0f1elemf0.SetOtherName(f0f0f1elemf0f4)
+							f0f0f1elemf0.OtherName = f0f0f1elemf0f4
 						}
 						if f0f0f1iter.AccessLocation.RegisteredID != nil {
-							f0f0f1elemf0.SetRegisteredId(*f0f0f1iter.AccessLocation.RegisteredID)
+							f0f0f1elemf0.RegisteredId = f0f0f1iter.AccessLocation.RegisteredID
 						}
 						if f0f0f1iter.AccessLocation.RFC822Name != nil {
-							f0f0f1elemf0.SetRfc822Name(*f0f0f1iter.AccessLocation.RFC822Name)
+							f0f0f1elemf0.Rfc822Name = f0f0f1iter.AccessLocation.RFC822Name
 						}
 						if f0f0f1iter.AccessLocation.UniformResourceIdentifier != nil {
-							f0f0f1elemf0.SetUniformResourceIdentifier(*f0f0f1iter.AccessLocation.UniformResourceIdentifier)
+							f0f0f1elemf0.UniformResourceIdentifier = f0f0f1iter.AccessLocation.UniformResourceIdentifier
 						}
-						f0f0f1elem.SetAccessLocation(f0f0f1elemf0)
+						f0f0f1elem.AccessLocation = f0f0f1elemf0
 					}
 					if f0f0f1iter.AccessMethod != nil {
-						f0f0f1elemf1 := &svcsdk.AccessMethod{}
+						f0f0f1elemf1 := &svcsdktypes.AccessMethod{}
 						if f0f0f1iter.AccessMethod.AccessMethodType != nil {
-							f0f0f1elemf1.SetAccessMethodType(*f0f0f1iter.AccessMethod.AccessMethodType)
+							f0f0f1elemf1.AccessMethodType = svcsdktypes.AccessMethodType(*f0f0f1iter.AccessMethod.AccessMethodType)
 						}
 						if f0f0f1iter.AccessMethod.CustomObjectIdentifier != nil {
-							f0f0f1elemf1.SetCustomObjectIdentifier(*f0f0f1iter.AccessMethod.CustomObjectIdentifier)
+							f0f0f1elemf1.CustomObjectIdentifier = f0f0f1iter.AccessMethod.CustomObjectIdentifier
 						}
-						f0f0f1elem.SetAccessMethod(f0f0f1elemf1)
+						f0f0f1elem.AccessMethod = f0f0f1elemf1
 					}
-					f0f0f1 = append(f0f0f1, f0f0f1elem)
+					f0f0f1 = append(f0f0f1, *f0f0f1elem)
 				}
-				f0f0.SetSubjectInformationAccess(f0f0f1)
+				f0f0.SubjectInformationAccess = f0f0f1
 			}
-			f0.SetCsrExtensions(f0f0)
+			f0.CsrExtensions = f0f0
 		}
 		if r.ko.Spec.CertificateAuthorityConfiguration.KeyAlgorithm != nil {
-			f0.SetKeyAlgorithm(*r.ko.Spec.CertificateAuthorityConfiguration.KeyAlgorithm)
+			f0.KeyAlgorithm = svcsdktypes.KeyAlgorithm(*r.ko.Spec.CertificateAuthorityConfiguration.KeyAlgorithm)
 		}
 		if r.ko.Spec.CertificateAuthorityConfiguration.SigningAlgorithm != nil {
-			f0.SetSigningAlgorithm(*r.ko.Spec.CertificateAuthorityConfiguration.SigningAlgorithm)
+			f0.SigningAlgorithm = svcsdktypes.SigningAlgorithm(*r.ko.Spec.CertificateAuthorityConfiguration.SigningAlgorithm)
 		}
 		if r.ko.Spec.CertificateAuthorityConfiguration.Subject != nil {
-			f0f3 := &svcsdk.ASN1Subject{}
+			f0f3 := &svcsdktypes.ASN1Subject{}
 			if r.ko.Spec.CertificateAuthorityConfiguration.Subject.CommonName != nil {
-				f0f3.SetCommonName(*r.ko.Spec.CertificateAuthorityConfiguration.Subject.CommonName)
+				f0f3.CommonName = r.ko.Spec.CertificateAuthorityConfiguration.Subject.CommonName
 			}
 			if r.ko.Spec.CertificateAuthorityConfiguration.Subject.Country != nil {
-				f0f3.SetCountry(*r.ko.Spec.CertificateAuthorityConfiguration.Subject.Country)
+				f0f3.Country = r.ko.Spec.CertificateAuthorityConfiguration.Subject.Country
 			}
 			if r.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes != nil {
-				f0f3f2 := []*svcsdk.CustomAttribute{}
+				f0f3f2 := []svcsdktypes.CustomAttribute{}
 				for _, f0f3f2iter := range r.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes {
-					f0f3f2elem := &svcsdk.CustomAttribute{}
+					f0f3f2elem := &svcsdktypes.CustomAttribute{}
 					if f0f3f2iter.ObjectIdentifier != nil {
-						f0f3f2elem.SetObjectIdentifier(*f0f3f2iter.ObjectIdentifier)
+						f0f3f2elem.ObjectIdentifier = f0f3f2iter.ObjectIdentifier
 					}
 					if f0f3f2iter.Value != nil {
-						f0f3f2elem.SetValue(*f0f3f2iter.Value)
+						f0f3f2elem.Value = f0f3f2iter.Value
 					}
-					f0f3f2 = append(f0f3f2, f0f3f2elem)
+					f0f3f2 = append(f0f3f2, *f0f3f2elem)
 				}
-				f0f3.SetCustomAttributes(f0f3f2)
+				f0f3.CustomAttributes = f0f3f2
 			}
 			if r.ko.Spec.CertificateAuthorityConfiguration.Subject.DistinguishedNameQualifier != nil {
-				f0f3.SetDistinguishedNameQualifier(*r.ko.Spec.CertificateAuthorityConfiguration.Subject.DistinguishedNameQualifier)
+				f0f3.DistinguishedNameQualifier = r.ko.Spec.CertificateAuthorityConfiguration.Subject.DistinguishedNameQualifier
 			}
 			if r.ko.Spec.CertificateAuthorityConfiguration.Subject.GenerationQualifier != nil {
-				f0f3.SetGenerationQualifier(*r.ko.Spec.CertificateAuthorityConfiguration.Subject.GenerationQualifier)
+				f0f3.GenerationQualifier = r.ko.Spec.CertificateAuthorityConfiguration.Subject.GenerationQualifier
 			}
 			if r.ko.Spec.CertificateAuthorityConfiguration.Subject.GivenName != nil {
-				f0f3.SetGivenName(*r.ko.Spec.CertificateAuthorityConfiguration.Subject.GivenName)
+				f0f3.GivenName = r.ko.Spec.CertificateAuthorityConfiguration.Subject.GivenName
 			}
 			if r.ko.Spec.CertificateAuthorityConfiguration.Subject.Initials != nil {
-				f0f3.SetInitials(*r.ko.Spec.CertificateAuthorityConfiguration.Subject.Initials)
+				f0f3.Initials = r.ko.Spec.CertificateAuthorityConfiguration.Subject.Initials
 			}
 			if r.ko.Spec.CertificateAuthorityConfiguration.Subject.Locality != nil {
-				f0f3.SetLocality(*r.ko.Spec.CertificateAuthorityConfiguration.Subject.Locality)
+				f0f3.Locality = r.ko.Spec.CertificateAuthorityConfiguration.Subject.Locality
 			}
 			if r.ko.Spec.CertificateAuthorityConfiguration.Subject.Organization != nil {
-				f0f3.SetOrganization(*r.ko.Spec.CertificateAuthorityConfiguration.Subject.Organization)
+				f0f3.Organization = r.ko.Spec.CertificateAuthorityConfiguration.Subject.Organization
 			}
 			if r.ko.Spec.CertificateAuthorityConfiguration.Subject.OrganizationalUnit != nil {
-				f0f3.SetOrganizationalUnit(*r.ko.Spec.CertificateAuthorityConfiguration.Subject.OrganizationalUnit)
+				f0f3.OrganizationalUnit = r.ko.Spec.CertificateAuthorityConfiguration.Subject.OrganizationalUnit
 			}
 			if r.ko.Spec.CertificateAuthorityConfiguration.Subject.Pseudonym != nil {
-				f0f3.SetPseudonym(*r.ko.Spec.CertificateAuthorityConfiguration.Subject.Pseudonym)
+				f0f3.Pseudonym = r.ko.Spec.CertificateAuthorityConfiguration.Subject.Pseudonym
 			}
 			if r.ko.Spec.CertificateAuthorityConfiguration.Subject.SerialNumber != nil {
-				f0f3.SetSerialNumber(*r.ko.Spec.CertificateAuthorityConfiguration.Subject.SerialNumber)
+				f0f3.SerialNumber = r.ko.Spec.CertificateAuthorityConfiguration.Subject.SerialNumber
 			}
 			if r.ko.Spec.CertificateAuthorityConfiguration.Subject.State != nil {
-				f0f3.SetState(*r.ko.Spec.CertificateAuthorityConfiguration.Subject.State)
+				f0f3.State = r.ko.Spec.CertificateAuthorityConfiguration.Subject.State
 			}
 			if r.ko.Spec.CertificateAuthorityConfiguration.Subject.Surname != nil {
-				f0f3.SetSurname(*r.ko.Spec.CertificateAuthorityConfiguration.Subject.Surname)
+				f0f3.Surname = r.ko.Spec.CertificateAuthorityConfiguration.Subject.Surname
 			}
 			if r.ko.Spec.CertificateAuthorityConfiguration.Subject.Title != nil {
-				f0f3.SetTitle(*r.ko.Spec.CertificateAuthorityConfiguration.Subject.Title)
+				f0f3.Title = r.ko.Spec.CertificateAuthorityConfiguration.Subject.Title
 			}
-			f0.SetSubject(f0f3)
+			f0.Subject = f0f3
 		}
-		res.SetCertificateAuthorityConfiguration(f0)
+		res.CertificateAuthorityConfiguration = f0
 	}
 	if r.ko.Spec.Type != nil {
-		res.SetCertificateAuthorityType(*r.ko.Spec.Type)
+		res.CertificateAuthorityType = svcsdktypes.CertificateAuthorityType(*r.ko.Spec.Type)
 	}
 	if r.ko.Spec.KeyStorageSecurityStandard != nil {
-		res.SetKeyStorageSecurityStandard(*r.ko.Spec.KeyStorageSecurityStandard)
+		res.KeyStorageSecurityStandard = svcsdktypes.KeyStorageSecurityStandard(*r.ko.Spec.KeyStorageSecurityStandard)
 	}
 	if r.ko.Spec.RevocationConfiguration != nil {
-		f3 := &svcsdk.RevocationConfiguration{}
+		f3 := &svcsdktypes.RevocationConfiguration{}
 		if r.ko.Spec.RevocationConfiguration.CRLConfiguration != nil {
-			f3f0 := &svcsdk.CrlConfiguration{}
+			f3f0 := &svcsdktypes.CrlConfiguration{}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME != nil {
-				f3f0.SetCustomCname(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME)
+				f3f0.CustomCname = r.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME
 			}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled != nil {
-				f3f0.SetEnabled(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled)
+				f3f0.Enabled = r.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled
 			}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays != nil {
-				f3f0.SetExpirationInDays(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays)
+				expirationInDaysCopy0 := *r.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays
+				if expirationInDaysCopy0 > math.MaxInt32 || expirationInDaysCopy0 < math.MinInt32 {
+					return nil, fmt.Errorf("error: field ExpirationInDays is of type int32")
+				}
+				expirationInDaysCopy := int32(expirationInDaysCopy0)
+				f3f0.ExpirationInDays = &expirationInDaysCopy
 			}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName != nil {
-				f3f0.SetS3BucketName(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName)
+				f3f0.S3BucketName = r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName
 			}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL != nil {
-				f3f0.SetS3ObjectAcl(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL)
+				f3f0.S3ObjectAcl = svcsdktypes.S3ObjectAcl(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL)
 			}
-			f3.SetCrlConfiguration(f3f0)
+			f3.CrlConfiguration = f3f0
 		}
 		if r.ko.Spec.RevocationConfiguration.OCSPConfiguration != nil {
-			f3f1 := &svcsdk.OcspConfiguration{}
+			f3f1 := &svcsdktypes.OcspConfiguration{}
 			if r.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled != nil {
-				f3f1.SetEnabled(*r.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled)
+				f3f1.Enabled = r.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled
 			}
 			if r.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME != nil {
-				f3f1.SetOcspCustomCname(*r.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME)
+				f3f1.OcspCustomCname = r.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME
 			}
-			f3.SetOcspConfiguration(f3f1)
+			f3.OcspConfiguration = f3f1
 		}
-		res.SetRevocationConfiguration(f3)
+		res.RevocationConfiguration = f3
 	}
 	if r.ko.Spec.Tags != nil {
-		f4 := []*svcsdk.Tag{}
+		f4 := []svcsdktypes.Tag{}
 		for _, f4iter := range r.ko.Spec.Tags {
-			f4elem := &svcsdk.Tag{}
+			f4elem := &svcsdktypes.Tag{}
 			if f4iter.Key != nil {
-				f4elem.SetKey(*f4iter.Key)
+				f4elem.Key = f4iter.Key
 			}
 			if f4iter.Value != nil {
-				f4elem.SetValue(*f4iter.Value)
+				f4elem.Value = f4iter.Value
 			}
-			f4 = append(f4, f4elem)
+			f4 = append(f4, *f4elem)
 		}
-		res.SetTags(f4)
+		res.Tags = f4
 	}
 	if r.ko.Spec.UsageMode != nil {
-		res.SetUsageMode(*r.ko.Spec.UsageMode)
+		res.UsageMode = svcsdktypes.CertificateAuthorityUsageMode(*r.ko.Spec.UsageMode)
 	}
 
 	return res, nil
@@ -823,7 +812,7 @@ func (rm *resourceManager) sdkUpdate(
 
 	var resp *svcsdk.UpdateCertificateAuthorityOutput
 	_ = resp
-	resp, err = rm.sdkapi.UpdateCertificateAuthorityWithContext(ctx, input)
+	resp, err = rm.sdkapi.UpdateCertificateAuthority(ctx, input)
 	rm.metrics.RecordAPICall("UPDATE", "UpdateCertificateAuthority", err)
 	if err != nil {
 		return nil, err
@@ -846,40 +835,45 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	res := &svcsdk.UpdateCertificateAuthorityInput{}
 
 	if r.ko.Status.ACKResourceMetadata != nil && r.ko.Status.ACKResourceMetadata.ARN != nil {
-		res.SetCertificateAuthorityArn(string(*r.ko.Status.ACKResourceMetadata.ARN))
+		res.CertificateAuthorityArn = (*string)(r.ko.Status.ACKResourceMetadata.ARN)
 	}
 	if r.ko.Spec.RevocationConfiguration != nil {
-		f1 := &svcsdk.RevocationConfiguration{}
+		f1 := &svcsdktypes.RevocationConfiguration{}
 		if r.ko.Spec.RevocationConfiguration.CRLConfiguration != nil {
-			f1f0 := &svcsdk.CrlConfiguration{}
+			f1f0 := &svcsdktypes.CrlConfiguration{}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME != nil {
-				f1f0.SetCustomCname(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME)
+				f1f0.CustomCname = r.ko.Spec.RevocationConfiguration.CRLConfiguration.CustomCNAME
 			}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled != nil {
-				f1f0.SetEnabled(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled)
+				f1f0.Enabled = r.ko.Spec.RevocationConfiguration.CRLConfiguration.Enabled
 			}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays != nil {
-				f1f0.SetExpirationInDays(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays)
+				expirationInDaysCopy0 := *r.ko.Spec.RevocationConfiguration.CRLConfiguration.ExpirationInDays
+				if expirationInDaysCopy0 > math.MaxInt32 || expirationInDaysCopy0 < math.MinInt32 {
+					return nil, fmt.Errorf("error: field ExpirationInDays is of type int32")
+				}
+				expirationInDaysCopy := int32(expirationInDaysCopy0)
+				f1f0.ExpirationInDays = &expirationInDaysCopy
 			}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName != nil {
-				f1f0.SetS3BucketName(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName)
+				f1f0.S3BucketName = r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3BucketName
 			}
 			if r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL != nil {
-				f1f0.SetS3ObjectAcl(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL)
+				f1f0.S3ObjectAcl = svcsdktypes.S3ObjectAcl(*r.ko.Spec.RevocationConfiguration.CRLConfiguration.S3ObjectACL)
 			}
-			f1.SetCrlConfiguration(f1f0)
+			f1.CrlConfiguration = f1f0
 		}
 		if r.ko.Spec.RevocationConfiguration.OCSPConfiguration != nil {
-			f1f1 := &svcsdk.OcspConfiguration{}
+			f1f1 := &svcsdktypes.OcspConfiguration{}
 			if r.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled != nil {
-				f1f1.SetEnabled(*r.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled)
+				f1f1.Enabled = r.ko.Spec.RevocationConfiguration.OCSPConfiguration.Enabled
 			}
 			if r.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME != nil {
-				f1f1.SetOcspCustomCname(*r.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME)
+				f1f1.OcspCustomCname = r.ko.Spec.RevocationConfiguration.OCSPConfiguration.OCSPCustomCNAME
 			}
-			f1.SetOcspConfiguration(f1f1)
+			f1.OcspConfiguration = f1f1
 		}
-		res.SetRevocationConfiguration(f1)
+		res.RevocationConfiguration = f1
 	}
 
 	return res, nil
@@ -901,7 +895,7 @@ func (rm *resourceManager) sdkDelete(
 	}
 	var resp *svcsdk.DeleteCertificateAuthorityOutput
 	_ = resp
-	resp, err = rm.sdkapi.DeleteCertificateAuthorityWithContext(ctx, input)
+	resp, err = rm.sdkapi.DeleteCertificateAuthority(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteCertificateAuthority", err)
 	return nil, err
 }
@@ -914,7 +908,7 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	res := &svcsdk.DeleteCertificateAuthorityInput{}
 
 	if r.ko.Status.ACKResourceMetadata != nil && r.ko.Status.ACKResourceMetadata.ARN != nil {
-		res.SetCertificateAuthorityArn(string(*r.ko.Status.ACKResourceMetadata.ARN))
+		res.CertificateAuthorityArn = (*string)(r.ko.Status.ACKResourceMetadata.ARN)
 	}
 
 	return res, nil
@@ -1027,11 +1021,12 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	if err == nil {
 		return false
 	}
-	awsErr, ok := ackerr.AWSError(err)
-	if !ok {
+
+	var terminalErr smithy.APIError
+	if !errors.As(err, &terminalErr) {
 		return false
 	}
-	switch awsErr.Code() {
+	switch terminalErr.ErrorCode() {
 	case "InvalidAction",
 		"InvalidParameterCombination",
 		"InvalidParameterValue",

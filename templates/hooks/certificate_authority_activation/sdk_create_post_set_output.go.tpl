@@ -5,16 +5,16 @@
         }
     }
     
-    if desired.ko.Spec.Status != nil && *desired.ko.Spec.Status == svcsdk.CertificateAuthorityStatusDisabled {
+    if desired.ko.Spec.Status != nil && *desired.ko.Spec.Status == string(svcsdktypes.CertificateAuthorityStatusDisabled) {
         updateInput := &svcsdk.UpdateCertificateAuthorityInput{}
 
-        updateInput.SetStatus(*desired.ko.Spec.Status)
+        updateInput.Status = svcsdktypes.CertificateAuthorityStatus(*desired.ko.Spec.Status)
 
         if desired.ko.Spec.CertificateAuthorityARN != nil {
-            updateInput.SetCertificateAuthorityArn(*desired.ko.Spec.CertificateAuthorityARN)
+            updateInput.CertificateAuthorityArn = desired.ko.Spec.CertificateAuthorityARN
         }
 
-        _, err = rm.sdkapi.UpdateCertificateAuthorityWithContext(ctx, updateInput)
+        _, err = rm.sdkapi.UpdateCertificateAuthority(ctx, updateInput)
         rm.metrics.RecordAPICall("UPDATE", "UpdateCertificateAuthority", err)
         if err != nil {
             return nil, err

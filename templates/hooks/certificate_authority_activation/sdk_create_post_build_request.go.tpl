@@ -6,7 +6,7 @@
 			return nil, ackrequeue.Needed(err)
 		}
 		if certificateSecret != "" {
-			input.SetCertificate([]byte(certificateSecret))
+			input.Certificate = []byte(certificateSecret)
 		}
 	}
 	if desired.ko.Spec.CertificateChain != nil {
@@ -15,6 +15,6 @@
 			return nil, ackrequeue.Needed(err)
 		}
 		if certificateChainSecret != "" {
-			input.SetCertificateChain([]byte(certificateChainSecret))
+			input.CertificateChain = []byte(certificateChainSecret)
 		}
 	}

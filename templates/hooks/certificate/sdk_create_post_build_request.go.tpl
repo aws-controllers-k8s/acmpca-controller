@@ -1,4 +1,4 @@
     if desired.ko.Spec.CertificateSigningRequest != nil {
-		input.SetCsr([]byte(*desired.ko.Spec.CertificateSigningRequest))
+		input.Csr = []byte(*desired.ko.Spec.CertificateSigningRequest)
 	}
-	input.SetIdempotencyToken(string(desired.ko.ObjectMeta.UID))
+	input.IdempotencyToken = aws.String(string(desired.ko.ObjectMeta.UID))
