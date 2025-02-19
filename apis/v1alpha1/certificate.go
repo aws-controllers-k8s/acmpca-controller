@@ -32,16 +32,30 @@ type CertificateSpec struct {
 	// issuance, Amazon Web Services Private CA applies order of operation rules
 	// (https://docs.aws.amazon.com/privateca/latest/userguide/UsingTemplates.html#template-order-of-operations)
 	// to determine what information is used.
+
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
+
 	APIPassthrough *APIPassthrough `json:"apiPassthrough,omitempty"`
 	// The Amazon Resource Name (ARN) that was returned when you called CreateCertificateAuthority
 	// (https://docs.aws.amazon.com/privateca/latest/APIReference/API_CreateCertificateAuthority.html).
 	// This must be of the form:
 	//
 	// arn:aws:acm-pca:region:account:certificate-authority/12345678-1234-1234-1234-123456789012
-	CertificateAuthorityARN      *string                                  `json:"certificateAuthorityARN,omitempty"`
-	CertificateAuthorityRef      *ackv1alpha1.AWSResourceReferenceWrapper `json:"certificateAuthorityRef,omitempty"`
-	CertificateOutput            *ackv1alpha1.SecretKeyReference          `json:"certificateOutput,omitempty"`
-	CertificateSigningRequest    *string                                  `json:"certificateSigningRequest,omitempty"`
+
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
+
+	CertificateAuthorityARN *string `json:"certificateAuthorityARN,omitempty"`
+
+	CertificateAuthorityRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"certificateAuthorityRef,omitempty"`
+
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
+
+	CertificateOutput *ackv1alpha1.SecretKeyReference `json:"certificateOutput,omitempty"`
+
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
+
+	CertificateSigningRequest *string `json:"certificateSigningRequest,omitempty"`
+
 	CertificateSigningRequestRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"certificateSigningRequestRef,omitempty"`
 	// The name of the algorithm that will be used to sign the certificate to be
 	// issued.
@@ -51,7 +65,10 @@ type CertificateSpec struct {
 	//
 	// The specified signing algorithm family (RSA or ECDSA) must match the algorithm
 	// family of the CA's secret key.
+
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	// +kubebuilder:validation:Required
+
 	SigningAlgorithm *string `json:"signingAlgorithm"`
 	// Specifies a custom configuration template to use when issuing a certificate.
 	// If this parameter is not provided, Amazon Web Services Private CA defaults
@@ -64,6 +81,9 @@ type CertificateSpec struct {
 	//
 	// For a list of TemplateArn values supported by Amazon Web Services Private
 	// CA, see Understanding Certificate Templates (https://docs.aws.amazon.com/privateca/latest/userguide/UsingTemplates.html).
+
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
+
 	TemplateARN *string `json:"templateARN,omitempty"`
 	// Information describing the end of the validity period of the certificate.
 	// This parameter sets the “Not After” date for the certificate.
@@ -80,7 +100,10 @@ type CertificateSpec struct {
 	//
 	// The end of the validity period configured on a certificate must not exceed
 	// the limit set on its parents in the CA hierarchy.
+
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	// +kubebuilder:validation:Required
+
 	Validity *Validity `json:"validity"`
 	// Information describing the start of the validity period of the certificate.
 	// This parameter sets the “Not Before" date for the certificate.
@@ -96,6 +119,9 @@ type CertificateSpec struct {
 	// the Validity type value ABSOLUTE. For more information, see Validity (https://docs.aws.amazon.com/privateca/latest/APIReference/API_Validity.html)
 	// in this API reference and Validity (https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.5)
 	// in RFC 5280.
+
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
+
 	ValidityNotBefore *Validity `json:"validityNotBefore,omitempty"`
 }
 
@@ -106,7 +132,7 @@ type CertificateStatus struct {
 	// constructed ARN for the resource
 	// +kubebuilder:validation:Optional
 	ACKResourceMetadata *ackv1alpha1.ResourceMetadata `json:"ackResourceMetadata"`
-	// All CRS managed by ACK have a common `Status.Conditions` member that
+	// All CRs managed by ACK have a common `Status.Conditions` member that
 	// contains a collection of `ackv1alpha1.Condition` objects that describe
 	// the various terminal states of the CR and its backend AWS service API
 	// resource

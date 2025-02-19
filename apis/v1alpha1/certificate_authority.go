@@ -38,7 +38,10 @@ type CertificateAuthoritySpec struct {
 
 	// Name and bit size of the private key algorithm, the name of the signing algorithm,
 	// and X.500 certificate subject information.
+
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	// +kubebuilder:validation:Required
+
 	CertificateAuthorityConfiguration *CertificateAuthorityConfiguration `json:"certificateAuthorityConfiguration"`
 	// Specifies a cryptographic key management compliance standard used for handling
 	// CA keys.
@@ -53,6 +56,9 @@ type CertificateAuthoritySpec struct {
 	//
 	// For information about security standard support in various Regions, see Storage
 	// and security compliance of Amazon Web Services Private CA private keys (https://docs.aws.amazon.com/privateca/latest/userguide/data-protection.html#private-keys).
+
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
+
 	KeyStorageSecurityStandard *string `json:"keyStorageSecurityStandard,omitempty"`
 	// Contains information to enable support for Online Certificate Status Protocol
 	// (OCSP), certificate revocation list (CRL), both protocols, or neither. By
@@ -60,30 +66,35 @@ type CertificateAuthoritySpec struct {
 	//
 	// The following requirements apply to revocation configurations.
 	//
-	//   - A configuration disabling CRLs or OCSP must contain only the Enabled=False
-	//     parameter, and will fail if other parameters such as CustomCname or ExpirationInDays
-	//     are included.
+	//    * A configuration disabling CRLs or OCSP must contain only the Enabled=False
+	//    parameter, and will fail if other parameters such as CustomCname or ExpirationInDays
+	//    are included.
 	//
-	//   - In a CRL configuration, the S3BucketName parameter must conform to Amazon
-	//     S3 bucket naming rules (https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html).
+	//    * In a CRL configuration, the S3BucketName parameter must conform to Amazon
+	//    S3 bucket naming rules (https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html).
 	//
-	//   - A configuration containing a custom Canonical Name (CNAME) parameter
-	//     for CRLs or OCSP must conform to RFC2396 (https://www.ietf.org/rfc/rfc2396.txt)
-	//     restrictions on the use of special characters in a CNAME.
+	//    * A configuration containing a custom Canonical Name (CNAME) parameter
+	//    for CRLs or OCSP must conform to RFC2396 (https://www.ietf.org/rfc/rfc2396.txt)
+	//    restrictions on the use of special characters in a CNAME.
 	//
-	//   - In a CRL or OCSP configuration, the value of a CNAME parameter must
-	//     not include a protocol prefix such as "http://" or "https://".
+	//    * In a CRL or OCSP configuration, the value of a CNAME parameter must
+	//    not include a protocol prefix such as "http://" or "https://".
 	//
 	// For more information, see the OcspConfiguration (https://docs.aws.amazon.com/privateca/latest/APIReference/API_OcspConfiguration.html)
 	// and CrlConfiguration (https://docs.aws.amazon.com/privateca/latest/APIReference/API_CrlConfiguration.html)
 	// types.
+
 	RevocationConfiguration *RevocationConfiguration `json:"revocationConfiguration,omitempty"`
 	// Key-value pairs that will be attached to the new private CA. You can associate
 	// up to 50 tags with a private CA. For information using tags with IAM to manage
 	// permissions, see Controlling Access Using IAM Tags (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_iam-tags.html).
+
 	Tags []*Tag `json:"tags,omitempty"`
 	// The type of the certificate authority.
+
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	// +kubebuilder:validation:Required
+
 	Type *string `json:"type,omitempty"`
 	// Specifies whether the CA issues general-purpose certificates that typically
 	// require a revocation mechanism, or short-lived certificates that may optionally
@@ -91,6 +102,9 @@ type CertificateAuthoritySpec struct {
 	// is limited to seven days.
 	//
 	// The default value is GENERAL_PURPOSE.
+
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
+
 	UsageMode *string `json:"usageMode,omitempty"`
 }
 
@@ -101,7 +115,7 @@ type CertificateAuthorityStatus struct {
 	// constructed ARN for the resource
 	// +kubebuilder:validation:Optional
 	ACKResourceMetadata *ackv1alpha1.ResourceMetadata `json:"ackResourceMetadata"`
-	// All CRS managed by ACK have a common `Status.Conditions` member that
+	// All CRs managed by ACK have a common `Status.Conditions` member that
 	// contains a collection of `ackv1alpha1.Condition` objects that describe
 	// the various terminal states of the CR and its backend AWS service API
 	// resource
