@@ -23,18 +23,31 @@ import (
 // CertificateAuthorityActivationSpec defines the desired state of CertificateAuthorityActivation.
 type CertificateAuthorityActivationSpec struct {
 
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	// +kubebuilder:validation:Required
+
 	Certificate *ackv1alpha1.SecretKeyReference `json:"certificate"`
 	// The Amazon Resource Name (ARN) that was returned when you called CreateCertificateAuthority
 	// (https://docs.aws.amazon.com/privateca/latest/APIReference/API_CreateCertificateAuthority.html).
 	// This must be of the form:
 	//
 	// arn:aws:acm-pca:region:account:certificate-authority/12345678-1234-1234-1234-123456789012
-	CertificateAuthorityARN        *string                                  `json:"certificateAuthorityARN,omitempty"`
-	CertificateAuthorityRef        *ackv1alpha1.AWSResourceReferenceWrapper `json:"certificateAuthorityRef,omitempty"`
-	CertificateChain               *ackv1alpha1.SecretKeyReference          `json:"certificateChain,omitempty"`
-	CompleteCertificateChainOutput *ackv1alpha1.SecretKeyReference          `json:"completeCertificateChainOutput,omitempty"`
-	Status                         *string                                  `json:"status,omitempty"`
+
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
+
+	CertificateAuthorityARN *string `json:"certificateAuthorityARN,omitempty"`
+
+	CertificateAuthorityRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"certificateAuthorityRef,omitempty"`
+
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
+
+	CertificateChain *ackv1alpha1.SecretKeyReference `json:"certificateChain,omitempty"`
+
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
+
+	CompleteCertificateChainOutput *ackv1alpha1.SecretKeyReference `json:"completeCertificateChainOutput,omitempty"`
+
+	Status *string `json:"status,omitempty"`
 }
 
 // CertificateAuthorityActivationStatus defines the observed state of CertificateAuthorityActivation
@@ -44,7 +57,7 @@ type CertificateAuthorityActivationStatus struct {
 	// constructed ARN for the resource
 	// +kubebuilder:validation:Optional
 	ACKResourceMetadata *ackv1alpha1.ResourceMetadata `json:"ackResourceMetadata"`
-	// All CRS managed by ACK have a common `Status.Conditions` member that
+	// All CRs managed by ACK have a common `Status.Conditions` member that
 	// contains a collection of `ackv1alpha1.Condition` objects that describe
 	// the various terminal states of the CR and its backend AWS service API
 	// resource

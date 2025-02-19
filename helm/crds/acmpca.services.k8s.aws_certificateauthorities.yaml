@@ -56,8 +56,13 @@ spec:
             properties:
               certificateAuthorityConfiguration:
                 description: |-
-                  Name and bit size of the private key algorithm, the name of the signing algorithm,
-                  and X.500 certificate subject information.
+                  Contains configuration information for your private certificate authority
+                  (CA). This includes information about the class of public key algorithm and
+                  the key pair that your private CA creates when it issues a certificate. It
+                  also includes the signature algorithm that it uses when issuing certificates,
+                  and its X.500 distinguished name. You must specify this information when
+                  you call the CreateCertificateAuthority (https://docs.aws.amazon.com/privateca/latest/APIReference/API_CreateCertificateAuthority.html)
+                  action.
                 properties:
                   csrExtensions:
                     description: |-
@@ -249,47 +254,26 @@ spec:
                         type: string
                     type: object
                 type: object
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               keyStorageSecurityStandard:
-                description: |-
-                  Specifies a cryptographic key management compliance standard used for handling
-                  CA keys.
-
-                  Default: FIPS_140_2_LEVEL_3_OR_HIGHER
-
-                  Some Amazon Web Services Regions do not support the default. When creating
-                  a CA in these Regions, you must provide FIPS_140_2_LEVEL_2_OR_HIGHER as the
-                  argument for KeyStorageSecurityStandard. Failure to do this results in an
-                  InvalidArgsException with the message, "A certificate authority cannot be
-                  created in this region with the specified security standard."
-
-                  For information about security standard support in various Regions, see Storage
-                  and security compliance of Amazon Web Services Private CA private keys (https://docs.aws.amazon.com/privateca/latest/userguide/data-protection.html#private-keys).
                 type: string
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               revocationConfiguration:
                 description: |-
-                  Contains information to enable support for Online Certificate Status Protocol
-                  (OCSP), certificate revocation list (CRL), both protocols, or neither. By
-                  default, both certificate validation mechanisms are disabled.
-
-                  The following requirements apply to revocation configurations.
-
-                    - A configuration disabling CRLs or OCSP must contain only the Enabled=False
-                      parameter, and will fail if other parameters such as CustomCname or ExpirationInDays
-                      are included.
-
-                    - In a CRL configuration, the S3BucketName parameter must conform to Amazon
-                      S3 bucket naming rules (https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html).
-
-                    - A configuration containing a custom Canonical Name (CNAME) parameter
-                      for CRLs or OCSP must conform to RFC2396 (https://www.ietf.org/rfc/rfc2396.txt)
-                      restrictions on the use of special characters in a CNAME.
-
-                    - In a CRL or OCSP configuration, the value of a CNAME parameter must
-                      not include a protocol prefix such as "http://" or "https://".
-
-                  For more information, see the OcspConfiguration (https://docs.aws.amazon.com/privateca/latest/APIReference/API_OcspConfiguration.html)
-                  and CrlConfiguration (https://docs.aws.amazon.com/privateca/latest/APIReference/API_CrlConfiguration.html)
-                  types.
+                  Certificate revocation information used by the CreateCertificateAuthority
+                  (https://docs.aws.amazon.com/privateca/latest/APIReference/API_CreateCertificateAuthority.html)
+                  and UpdateCertificateAuthority (https://docs.aws.amazon.com/privateca/latest/APIReference/API_UpdateCertificateAuthority.html)
+                  actions. Your private certificate authority (CA) can configure Online Certificate
+                  Status Protocol (OCSP) support and/or maintain a certificate revocation list
+                  (CRL). OCSP returns validation information about certificates as requested
+                  by clients, and a CRL contains an updated list of certificates revoked by
+                  your CA. For more information, see RevokeCertificate (https://docs.aws.amazon.com/privateca/latest/APIReference/API_RevokeCertificate.html)
+                  and Setting up a certificate revocation method (https://docs.aws.amazon.com/privateca/latest/userguide/revocation-setup.html)
+                  in the Amazon Web Services Private Certificate Authority User Guide.
                 properties:
                   crlConfiguration:
                     description: |-
@@ -383,10 +367,6 @@ spec:
                     type: object
                 type: object
               tags:
-                description: |-
-                  Key-value pairs that will be attached to the new private CA. You can associate
-                  up to 50 tags with a private CA. For information using tags with IAM to manage
-                  permissions, see Controlling Access Using IAM Tags (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_iam-tags.html).
                 items:
                   description: |-
                     Tags are labels that you can use to identify and organize your private CAs.
@@ -403,17 +383,15 @@ spec:
                   type: object
                 type: array
               type:
-                description: The type of the certificate authority.
                 type: string
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               usageMode:
-                description: |-
-                  Specifies whether the CA issues general-purpose certificates that typically
-                  require a revocation mechanism, or short-lived certificates that may optionally
-                  omit revocation because they expire quickly. Short-lived certificate validity
-                  is limited to seven days.
-
-                  The default value is GENERAL_PURPOSE.
                 type: string
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
             required:
             - certificateAuthorityConfiguration
             - type
@@ -458,7 +436,7 @@ spec:
                 type: string
               conditions:
                 description: |-
-                  All CRS managed by ACK have a common `Status.Conditions` member that
+                  All CRs managed by ACK have a common `Status.Conditions` member that
                   contains a collection of `ackv1alpha1.Condition` objects that describe
                   the various terminal states of the CR and its backend AWS service API
                   resource
