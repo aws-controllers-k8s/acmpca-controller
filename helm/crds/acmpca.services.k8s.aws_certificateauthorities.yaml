@@ -249,6 +249,9 @@ spec:
                         type: string
                     type: object
                 type: object
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               keyStorageSecurityStandard:
                 description: |-
                   Specifies a cryptographic key management compliance standard used for handling
@@ -265,6 +268,9 @@ spec:
                   For information about security standard support in various Regions, see Storage
                   and security compliance of Amazon Web Services Private CA private keys (https://docs.aws.amazon.com/privateca/latest/userguide/data-protection.html#private-keys).
                 type: string
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               revocationConfiguration:
                 description: |-
                   Contains information to enable support for Online Certificate Status Protocol
@@ -405,6 +411,9 @@ spec:
               type:
                 description: The type of the certificate authority.
                 type: string
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               usageMode:
                 description: |-
                   Specifies whether the CA issues general-purpose certificates that typically
@@ -414,6 +423,9 @@ spec:
 
                   The default value is GENERAL_PURPOSE.
                 type: string
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
             required:
             - certificateAuthorityConfiguration
             - type
@@ -458,7 +470,7 @@ spec:
                 type: string
               conditions:
                 description: |-
-                  All CRS managed by ACK have a common `Status.Conditions` member that
+                  All CRs managed by ACK have a common `Status.Conditions` member that
                   contains a collection of `ackv1alpha1.Condition` objects that describe
                   the various terminal states of the CR and its backend AWS service API
                   resource

@@ -652,36 +652,3 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		return false
 	}
 }
-
-// getImmutableFieldChanges returns list of immutable fields from the
-func (rm *resourceManager) getImmutableFieldChanges(
-	delta *ackcompare.Delta,
-) []string {
-	var fields []string
-	if delta.DifferentAt("Spec.APIPassthrough") {
-		fields = append(fields, "APIPassthrough")
-	}
-	if delta.DifferentAt("Spec.CertificateAuthorityARN") {
-		fields = append(fields, "CertificateAuthorityARN")
-	}
-	if delta.DifferentAt("Spec.CertificateOutput") {
-		fields = append(fields, "CertificateOutput")
-	}
-	if delta.DifferentAt("Spec.CertificateSigningRequest") {
-		fields = append(fields, "CertificateSigningRequest")
-	}
-	if delta.DifferentAt("Spec.SigningAlgorithm") {
-		fields = append(fields, "SigningAlgorithm")
-	}
-	if delta.DifferentAt("Spec.TemplateARN") {
-		fields = append(fields, "TemplateARN")
-	}
-	if delta.DifferentAt("Spec.Validity") {
-		fields = append(fields, "Validity")
-	}
-	if delta.DifferentAt("Spec.ValidityNotBefore") {
-		fields = append(fields, "ValidityNotBefore")
-	}
-
-	return fields
-}

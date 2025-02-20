@@ -38,6 +38,7 @@ type CertificateAuthoritySpec struct {
 
 	// Name and bit size of the private key algorithm, the name of the signing algorithm,
 	// and X.500 certificate subject information.
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	// +kubebuilder:validation:Required
 	CertificateAuthorityConfiguration *CertificateAuthorityConfiguration `json:"certificateAuthorityConfiguration"`
 	// Specifies a cryptographic key management compliance standard used for handling
@@ -53,6 +54,7 @@ type CertificateAuthoritySpec struct {
 	//
 	// For information about security standard support in various Regions, see Storage
 	// and security compliance of Amazon Web Services Private CA private keys (https://docs.aws.amazon.com/privateca/latest/userguide/data-protection.html#private-keys).
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	KeyStorageSecurityStandard *string `json:"keyStorageSecurityStandard,omitempty"`
 	// Contains information to enable support for Online Certificate Status Protocol
 	// (OCSP), certificate revocation list (CRL), both protocols, or neither. By
@@ -83,6 +85,7 @@ type CertificateAuthoritySpec struct {
 	// permissions, see Controlling Access Using IAM Tags (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_iam-tags.html).
 	Tags []*Tag `json:"tags,omitempty"`
 	// The type of the certificate authority.
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	// +kubebuilder:validation:Required
 	Type *string `json:"type,omitempty"`
 	// Specifies whether the CA issues general-purpose certificates that typically
@@ -91,6 +94,7 @@ type CertificateAuthoritySpec struct {
 	// is limited to seven days.
 	//
 	// The default value is GENERAL_PURPOSE.
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	UsageMode *string `json:"usageMode,omitempty"`
 }
 
@@ -101,7 +105,7 @@ type CertificateAuthorityStatus struct {
 	// constructed ARN for the resource
 	// +kubebuilder:validation:Optional
 	ACKResourceMetadata *ackv1alpha1.ResourceMetadata `json:"ackResourceMetadata"`
-	// All CRS managed by ACK have a common `Status.Conditions` member that
+	// All CRs managed by ACK have a common `Status.Conditions` member that
 	// contains a collection of `ackv1alpha1.Condition` objects that describe
 	// the various terminal states of the CR and its backend AWS service API
 	// resource
