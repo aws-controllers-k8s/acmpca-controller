@@ -275,6 +275,9 @@ spec:
                         type: string
                     type: object
                 type: object
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               certificateAuthorityARN:
                 description: |-
                   The Amazon Resource Name (ARN) that was returned when you called CreateCertificateAuthority
@@ -283,6 +286,9 @@ spec:
 
                   arn:aws:acm-pca:region:account:certificate-authority/12345678-1234-1234-1234-123456789012
                 type: string
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               certificateAuthorityRef:
                 description: "AWSResourceReferenceWrapper provides a wrapper around
                   *AWSResourceReference\ntype to provide more user friendly syntax
@@ -320,8 +326,14 @@ spec:
                 - key
                 type: object
                 x-kubernetes-map-type: atomic
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               certificateSigningRequest:
                 type: string
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               certificateSigningRequestRef:
                 description: "AWSResourceReferenceWrapper provides a wrapper around
                   *AWSResourceReference\ntype to provide more user friendly syntax
@@ -350,6 +362,9 @@ spec:
                   The specified signing algorithm family (RSA or ECDSA) must match the algorithm
                   family of the CA's secret key.
                 type: string
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               templateARN:
                 description: |-
                   Specifies a custom configuration template to use when issuing a certificate.
@@ -364,6 +379,9 @@ spec:
                   For a list of TemplateArn values supported by Amazon Web Services Private
                   CA, see Understanding Certificate Templates (https://docs.aws.amazon.com/privateca/latest/userguide/UsingTemplates.html).
                 type: string
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               validity:
                 description: |-
                   Information describing the end of the validity period of the certificate.
@@ -388,6 +406,9 @@ spec:
                     format: int64
                     type: integer
                 type: object
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               validityNotBefore:
                 description: |-
                   Information describing the start of the validity period of the certificate.
@@ -411,6 +432,9 @@ spec:
                     format: int64
                     type: integer
                 type: object
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
             required:
             - signingAlgorithm
             - validity
@@ -449,7 +473,7 @@ spec:
                 type: object
               conditions:
                 description: |-
-                  All CRS managed by ACK have a common `Status.Conditions` member that
+                  All CRs managed by ACK have a common `Status.Conditions` member that
                   contains a collection of `ackv1alpha1.Condition` objects that describe
                   the various terminal states of the CR and its backend AWS service API
                   resource
