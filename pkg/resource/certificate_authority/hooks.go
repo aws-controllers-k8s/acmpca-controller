@@ -69,13 +69,13 @@ func (rm *resourceManager) syncTags(
 
 	arn := (*string)(latest.ko.Status.ACKResourceMetadata.ARN)
 
-	desiredTags := ToACKTags(desired.ko.Spec.Tags)
-	latestTags := ToACKTags(latest.ko.Spec.Tags)
+	desiredTags, _ := convertToOrderedACKTags(desired.ko.Spec.Tags)
+	latestTags, _ := convertToOrderedACKTags(latest.ko.Spec.Tags)
 
 	added, _, removed := ackcompare.GetTagsDifference(latestTags, desiredTags)
 
-	toAdd := FromACKTags(added)
-	toRemove := FromACKTags(removed)
+	toAdd := fromACKTags(added, nil)
+	toRemove := fromACKTags(removed, nil)
 
 	/*var toDelete []*string
 	for _, removedElement := range toRemove {
