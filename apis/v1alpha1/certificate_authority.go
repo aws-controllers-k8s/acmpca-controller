@@ -131,6 +131,8 @@ type CertificateAuthorityStatus struct {
 	// +kubebuilder:validation:Optional
 	NotBefore *metav1.Time `json:"notBefore,omitempty"`
 	// The Amazon Web Services account ID that owns the certificate authority.
+	//
+	// Regex Pattern: `^[0-9]+$`
 	// +kubebuilder:validation:Optional
 	OwnerAccount *string `json:"ownerAccount,omitempty"`
 	// The period during which a deleted CA can be restored. For more information,
