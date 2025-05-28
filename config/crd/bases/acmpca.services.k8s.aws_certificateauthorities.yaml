@@ -525,8 +525,10 @@ spec:
                 format: date-time
                 type: string
               ownerAccount:
-                description: The Amazon Web Services account ID that owns the certificate
-                  authority.
+                description: |-
+                  The Amazon Web Services account ID that owns the certificate authority.
+
+                  Regex Pattern: `^[0-9]+$`
                 type: string
               restorableUntil:
                 description: |-
