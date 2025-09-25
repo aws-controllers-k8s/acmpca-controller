@@ -167,7 +167,7 @@ def certificate_authority_hierarchy(
     for resource in resource_data:
         logging.info(resource)
         k8s.create_custom_resource(references[i], resource)
-        assert k8s.wait_on_condition(references[i], "ACK.ResourceSynced", "True", wait_periods=15)
+        assert k8s.wait_on_condition(references[i], "Ready", "True", wait_periods=15)
         i += 1
 
     time.sleep(180)
@@ -181,7 +181,7 @@ def certificate_authority_hierarchy(
     end_entity_cert_cr = k8s.wait_resource_consumed_by_controller(end_entity_cert_ref)
 
     for ref in references:
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=15)
+        assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=15)
 
     assert ca_cr is not None
     assert k8s.get_resource_exists(ca_ref)
