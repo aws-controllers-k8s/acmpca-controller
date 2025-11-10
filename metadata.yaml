@@ -1,6 +1,6 @@
 service:
   full_name: "AWS Private Certificate Authority"
-  short_name: "PCA"
+  short_name: "ACM PCA"
   link: "https://docs.aws.amazon.com/privateca/"
   documentation: "https://docs.aws.amazon.com/privateca/latest/userguide/PcaWelcome.html"
 api_versions:
