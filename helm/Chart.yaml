@@ -1,8 +1,8 @@
 apiVersion: v1
 name: acmpca-chart
-description: A Helm chart for the ACK service controller for AWS Private Certificate Authority (PCA)
-version: 1.1.1
-appVersion: 1.1.1
+description: A Helm chart for the ACK service controller for AWS Private Certificate Authority (ACM PCA)
+version: 1.1.2
+appVersion: 1.1.2
 home: https://github.com/aws-controllers-k8s/acmpca-controller
 icon: https://raw.githubusercontent.com/aws/eks-charts/master/docs/logo/aws.png
 sources:
@@ -10,7 +10,7 @@ sources:
 maintainers:
   - name: ACK Admins
     url: https://github.com/orgs/aws-controllers-k8s/teams/ack-admin
-  - name: PCA Admins
+  - name: ACM PCA Admins
     url: https://github.com/orgs/aws-controllers-k8s/teams/acmpca-maintainer
 keywords:
   - aws
