@@ -17,16 +17,15 @@ package certificate_authority
 
 import (
 	"bytes"
-	"reflect"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	acktags "github.com/aws-controllers-k8s/runtime/pkg/tags"
+	"k8s.io/apimachinery/pkg/api/equality"
 )
 
 // Hack to avoid import errors during build...
 var (
 	_ = &bytes.Buffer{}
-	_ = &reflect.Method{}
 	_ = &acktags.Tags{}
 )
 
@@ -120,7 +119,7 @@ func newResourceDelta(
 			if len(a.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess) != len(b.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess) {
 				delta.Add("Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess", a.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess, b.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess)
 			} else if len(a.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess) > 0 {
-				if !reflect.DeepEqual(a.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess, b.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess) {
+				if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess, b.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess) {
 					delta.Add("Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess", a.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess, b.ko.Spec.CertificateAuthorityConfiguration.CSRExtensions.SubjectInformationAccess)
 				}
 			}
@@ -159,7 +158,7 @@ func newResourceDelta(
 			if len(a.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes) != len(b.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes) {
 				delta.Add("Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes", a.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes, b.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes)
 			} else if len(a.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes) > 0 {
-				if !reflect.DeepEqual(a.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes, b.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes) {
+				if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes, b.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes) {
 					delta.Add("Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes", a.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes, b.ko.Spec.CertificateAuthorityConfiguration.Subject.CustomAttributes)
 				}
 			}
