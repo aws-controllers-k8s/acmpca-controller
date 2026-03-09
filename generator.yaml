@@ -27,7 +27,6 @@ operations:
     operation_type:
       - Create
     resource_name: CertificateAuthorityActivation
-model_name: acm-pca
 prefix_config: {}
 resources:
   CertificateAuthority:
