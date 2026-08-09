@@ -218,6 +218,11 @@ func (in *CRLConfiguration) DeepCopyInto(out *CRLConfiguration) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.S3BucketRef != nil {
+		in, out := &in.S3BucketRef, &out.S3BucketRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.S3ObjectACL != nil {
 		in, out := &in.S3ObjectACL, &out.S3ObjectACL
 		*out = new(string)

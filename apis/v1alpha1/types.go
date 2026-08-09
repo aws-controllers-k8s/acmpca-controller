@@ -158,7 +158,9 @@ type CRLConfiguration struct {
 	Enabled          *bool   `json:"enabled,omitempty"`
 	ExpirationInDays *int64  `json:"expirationInDays,omitempty"`
 	S3BucketName     *string `json:"s3BucketName,omitempty"`
-	S3ObjectACL      *string `json:"s3ObjectACL,omitempty"`
+	// Reference field for S3BucketName
+	S3BucketRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"s3BucketRef,omitempty"`
+	S3ObjectACL *string                                  `json:"s3ObjectACL,omitempty"`
 }
 
 // Contains configuration information for the default behavior of the CRL Distribution
