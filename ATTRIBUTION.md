@@ -21,6 +21,7 @@ distributed. For any package *NOT* distributed under the terms of the Apache
 License version 2.0, we include the full text of the package's License below.
 
 * `github.com/aws-controllers-k8s/runtime`
+* `github.com/aws-controllers-k8s/s3-controller`
 * `github.com/aws/aws-sdk-go`
 * `github.com/aws/aws-sdk-go-v2`
 * `github.com/aws/aws-sdk-go-v2/service/acmpca`
@@ -1529,6 +1530,172 @@ License Identifier: Apache-2.0
 
 License Identifier: Apache-2.0
 
+### github.com/aws-controllers-k8s/s3-controller
+
+License Identifier: Apache-2.0
+
+Subdependencies:
+* `github.com/aws-controllers-k8s/iam-controller`
+* `github.com/aws-controllers-k8s/runtime`
+* `github.com/aws/aws-sdk-go`
+* `github.com/aws/aws-sdk-go-v2`
+* `github.com/aws/aws-sdk-go-v2/service/s3`
+* `github.com/aws/aws-sdk-go-v2/service/s3control`
+* `github.com/aws/smithy-go`
+* `github.com/go-logr/logr`
+* `github.com/pkg/errors`
+* `github.com/spf13/pflag`
+* `github.com/stretchr/testify`
+* `k8s.io/api`
+* `k8s.io/apimachinery`
+* `k8s.io/client-go`
+* `sigs.k8s.io/controller-runtime`
+* `github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream`
+* `github.com/aws/aws-sdk-go-v2/config`
+* `github.com/aws/aws-sdk-go-v2/credentials`
+* `github.com/aws/aws-sdk-go-v2/feature/ec2/imds`
+* `github.com/aws/aws-sdk-go-v2/internal/configsources`
+* `github.com/aws/aws-sdk-go-v2/internal/endpoints/v2`
+* `github.com/aws/aws-sdk-go-v2/internal/ini`
+* `github.com/aws/aws-sdk-go-v2/internal/v4a`
+* `github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding`
+* `github.com/aws/aws-sdk-go-v2/service/internal/checksum`
+* `github.com/aws/aws-sdk-go-v2/service/internal/presigned-url`
+* `github.com/aws/aws-sdk-go-v2/service/internal/s3shared`
+* `github.com/aws/aws-sdk-go-v2/service/sso`
+* `github.com/aws/aws-sdk-go-v2/service/ssooidc`
+* `github.com/aws/aws-sdk-go-v2/service/sts`
+* `github.com/beorn7/perks`
+* `github.com/cenkalti/backoff/v4`
+* `github.com/cespare/xxhash/v2`
+* `github.com/davecgh/go-spew`
+* `github.com/emicklei/go-restful/v3`
+* `github.com/evanphx/json-patch/v5`
+* `github.com/fsnotify/fsnotify`
+* `github.com/fxamacker/cbor/v2`
+* `github.com/go-logr/zapr`
+* `github.com/go-openapi/jsonpointer`
+* `github.com/go-openapi/jsonreference`
+* `github.com/go-openapi/swag`
+* `github.com/google/btree`
+* `github.com/google/gnostic-models`
+* `github.com/google/go-cmp`
+* `github.com/google/uuid`
+* `github.com/itchyny/gojq`
+* `github.com/itchyny/timefmt-go`
+* `github.com/jaypipes/envutil`
+* `github.com/josharian/intern`
+* `github.com/json-iterator/go`
+* `github.com/mailru/easyjson`
+* `github.com/micahhausler/aws-iam-policy`
+* `github.com/modern-go/concurrent`
+* `github.com/modern-go/reflect2`
+* `github.com/munnerz/goautoneg`
+* `github.com/pmezard/go-difflib`
+* `github.com/prometheus/client_golang`
+* `github.com/prometheus/client_model`
+* `github.com/prometheus/common`
+* `github.com/prometheus/procfs`
+* `github.com/x448/float16`
+* `go.uber.org/multierr`
+* `go.uber.org/zap`
+* `go.yaml.in/yaml/v2`
+* `go.yaml.in/yaml/v3`
+* `golang.org/x/net`
+* `golang.org/x/oauth2`
+* `golang.org/x/sync`
+* `golang.org/x/sys`
+* `golang.org/x/term`
+* `golang.org/x/text`
+* `golang.org/x/time`
+* `gomodules.xyz/jsonpatch/v2`
+* `google.golang.org/protobuf`
+* `gopkg.in/evanphx/json-patch.v4`
+* `gopkg.in/inf.v0`
+* `gopkg.in/yaml.v3`
+* `k8s.io/apiextensions-apiserver`
+* `k8s.io/klog/v2`
+* `k8s.io/kube-openapi`
+* `k8s.io/utils`
+* `sigs.k8s.io/json`
+* `sigs.k8s.io/randfill`
+* `sigs.k8s.io/structured-merge-diff/v6`
+* `sigs.k8s.io/yaml`
+
+#### github.com/aws-controllers-k8s/iam-controller
+
+License Identifier: Apache-2.0
+
+
+
+#### github.com/aws/aws-sdk-go
+
+License Identifier: Apache-2.0
+
+#### github.com/aws/aws-sdk-go-v2
+
+License Identifier: Apache-2.0
+
+#### github.com/aws/aws-sdk-go-v2/service/s3
+
+License Identifier: Apache-2.0
+
+#### github.com/aws/aws-sdk-go-v2/service/s3control
+
+License Identifier: Apache-2.0
+
+#### github.com/aws/smithy-go
+
+License Identifier: Apache-2.0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream
+
+License Identifier: Apache-2.0
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### github.com/aws/aws-sdk-go-v2/internal/v4a
+
+License Identifier: Apache-2.0
+
+
+
+#### github.com/aws/aws-sdk-go-v2/service/internal/checksum
+
+License Identifier: Apache-2.0
+
+
+
+#### github.com/aws/aws-sdk-go-v2/service/internal/s3shared
+
+License Identifier: Apache-2.0
+
 ### github.com/aws/aws-sdk-go
 
 License Identifier: Apache-2.0
@@ -1542,13 +1709,7 @@ Subdependencies:
 
 License Identifier: Apache-2.0
 
-### github.com/aws/aws-sdk-go-v2
 
-License Identifier: Apache-2.0
-
-Subdependencies:
-* `github.com/aws/smithy-go`
-* `github.com/jmespath/go-jmespath`
 
 ### github.com/aws/aws-sdk-go-v2/service/acmpca
 
@@ -1560,6 +1721,10 @@ Subdependencies:
 * `github.com/aws/aws-sdk-go-v2/internal/endpoints/v2`
 * `github.com/aws/smithy-go`
 * `github.com/jmespath/go-jmespath`
+
+#### github.com/aws/aws-sdk-go-v2
+
+License Identifier: Apache-2.0
 
 
 
