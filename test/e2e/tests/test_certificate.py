@@ -21,7 +21,7 @@ from fixtures import SecretKeyReference
 import pytest
 
 from acktest.resources import random_suffix_name
-from acktest.k8s import resource as k8s
+from acktest.k8s import resource as k8s, condition
 from acktest.k8s.resource import _get_k8s_api_client
 from kubernetes import client
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_acmpca_resource
@@ -35,6 +35,8 @@ CREATE_CA_WAIT_AFTER_SECONDS = 60
 CREATE_WAIT_AFTER_SECONDS = 10
 UPDATE_WAIT_AFTER_SECONDS = 10
 DELETE_WAIT_AFTER_SECONDS = 10
+
+CROSS_NAMESPACE_NOT_ALLOWED_MSG = "cross-namespace resource reference is not allowed"
 
 @pytest.fixture(scope="module")
 def create_secret(k8s_secret):
@@ -293,6 +295,54 @@ def simple_root_certificate_without_secret_namespace(acmpca_client, create_secre
     _, deleted = k8s.delete_custom_resource(ref)
     assert deleted is True
 
+@pytest.fixture(scope="module")
+def simple_root_certificate_cross_namespace_secret(acmpca_client, simple_certificate_authority):
+    (ca_cr, ca_name) = simple_certificate_authority
+    ca_arn = ca_cr['status']['ackResourceMetadata']['arn']
+
+    cert_name = random_suffix_name("certificate", 30)
+
+    # The Secret lives in a different namespace from the Certificate.
+    secret_ns = random_suffix_name("cert-secret-ns", 30)
+    k8s.create_k8s_namespace(secret_ns)
+    secret_ref = SecretKeyReference(secret_ns, random_suffix_name("certificate-secret", 50), "certificate", "value")
+    k8s.create_opaque_secret(secret_ref.ns, secret_ref.name, secret_ref.key, secret_ref.val)
+
+    replacements = {}
+    replacements["NAME"] = cert_name
+    replacements["CA_ARN"] = ca_arn
+    replacements["CA_NAME"] = ca_name
+    replacements["CERTIFICATE_SEC_NS"] = secret_ref.ns
+    replacements["CERTIFICATE_SEC_NAME"] = secret_ref.name
+    replacements["CERTIFICATE_SEC_KEY"] = secret_ref.key
+    replacements["TEMPLATE_ARN"] = "arn:aws:acm-pca:::template/RootCACertificate/V1"
+
+    # Load Certificate CR
+    resource_data = load_acmpca_resource(
+        "certificate",
+        additional_replacements=replacements,
+    )
+
+    # Create k8s resource
+    ref = k8s.create_reference(
+        CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+        cert_name, namespace="default",
+    )
+    k8s.create_custom_resource(ref, resource_data)
+    cr = k8s.wait_resource_consumed_by_controller(ref)
+
+    assert cr is not None
+    assert k8s.get_resource_exists(ref)
+
+    yield (ref, secret_ref)
+
+    #Delete Certificate k8s resource
+    _, deleted = k8s.delete_custom_resource(ref)
+    assert deleted is True
+
+    k8s.delete_secret(secret_ref.ns, secret_ref.name)
+    k8s.delete_k8s_namespace(secret_ns)
+
 @service_marker
 class TestCertificate:
 
@@ -357,3 +407,24 @@ class TestCertificate:
 
         assert 'certificate' in api_response
         assert base64.b64decode(api_response['certificate']).decode("ascii") == cert
+
+    def test_cross_namespace_secret_write_rejected(self, simple_root_certificate_cross_namespace_secret):
+        # The e2e controller runs with --enable-cross-namespace=false (the
+        # default), so the issued certificate must not be written to a Secret
+        # in another namespace.
+        (ref, secret) = simple_root_certificate_cross_namespace_secret
+
+        assert k8s.wait_on_condition(
+            ref,
+            condition.CONDITION_TYPE_TERMINAL,
+            "True",
+            wait_periods=10,
+            period_length=15,
+        )
+        cond = k8s.get_resource_condition(ref, condition.CONDITION_TYPE_TERMINAL)
+        assert CROSS_NAMESPACE_NOT_ALLOWED_MSG in cond['message']
+
+        # The Secret still holds its original value.
+        _api_client = _get_k8s_api_client()
+        api_response = client.CoreV1Api(_api_client).read_namespaced_secret(secret.name, secret.ns).data
+        assert base64.b64decode(api_response[secret.key]).decode("ascii") == secret.val
